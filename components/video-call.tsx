@@ -128,7 +128,7 @@ export function VideoCall({ isRecording, isAISpeaking, onStartRecording, onStopR
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <div className="relative w-24 h-24 mb-3">
             <Image
-              src="/placeholder.svg?height=96&width=96"
+              src="/AI-Interviewer.png"
               alt="AI Interviewer"
               width={96}
               height={96}
@@ -143,13 +143,13 @@ export function VideoCall({ isRecording, isAISpeaking, onStartRecording, onStopR
           <p className="text-white font-medium">AI Interviewer</p>
           <div className="mt-3">
             {isAISpeaking ? (
-              <div className="flex items-center space-x-1">
-                <div className="w-1 h-3 bg-blue-400 animate-pulse rounded-full"></div>
-                <div className="w-1 h-5 bg-blue-400 animate-pulse rounded-full delay-75"></div>
-                <div className="w-1 h-7 bg-blue-400 animate-pulse rounded-full delay-150"></div>
-                <div className="w-1 h-5 bg-blue-400 animate-pulse rounded-full delay-75"></div>
-                <div className="w-1 h-3 bg-blue-400 animate-pulse rounded-full"></div>
-              </div>
+              <Image
+                  src="/AIVoiceEffectCrop.gif"
+                  alt="AI Interviewer"
+                  width={50}
+                  height={50}
+                  className="rounded-full border-2 border-blue-400"
+                />
             ) : (
               <div className="text-blue-300 text-sm">Waiting for your response...</div>
             )}

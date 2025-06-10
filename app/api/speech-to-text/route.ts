@@ -1,8 +1,16 @@
 import type { NextRequest } from "next/server"
 import { OpenAI } from "openai"
+import { writeFile } from "fs/promises"
+import { tmpdir } from "os"
+import path from "path"
+import { createReadStream } from "fs"
+
+// Polyfill File if not present
+import { File } from "node:buffer"
+if (!globalThis.File) globalThis.File = File
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY!,
 })
 
 export async function POST(request: NextRequest) {
@@ -19,11 +27,12 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(arrayBuffer)
 
     // Create a temporary file for OpenAI API
-    const tempFileName = `speech-${Date.now()}.webm`
+    const tempFilePath = path.join(tmpdir(), `speech-${Date.now()}.webm`)
+    await writeFile(tempFilePath, buffer)
 
     // Use OpenAI's Whisper API for transcription
     const transcription = await openai.audio.transcriptions.create({
-      file: new File([buffer], tempFileName, { type: audioFile.type }),
+      file: createReadStream(tempFilePath),
       model: "whisper-1",
       language: "en",
     })

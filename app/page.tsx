@@ -208,7 +208,7 @@ export default function AIInterviewSystem() {
               })}
             </div>
 
-            {interviewComplete && overallFeedback && (
+            {interviewComplete && overallFeedback && !isAISpeaking && (
               <div className="mt-6">
                 <FeedbackDisplay feedback={overallFeedback} type="overall" />
                 <div className="mt-4 text-center">
@@ -220,24 +220,29 @@ export default function AIInterviewSystem() {
             )}
 
             <div className="flex justify-center space-x-4">
-              <Button
-                onClick={isRecording ? stopRecording : startRecording}
-                disabled={isAISpeaking}
-                className={`${isRecording ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"}`}
-              >
-                {isRecording ? (
-                  <>
-                    <MicOff className="w-4 h-4 mr-2" />
-                    Stop Recording
-                  </>
-                ) : (
-                  <>
-                    <Mic className="w-4 h-4 mr-2" />
-                    Start Speaking
-                  </>
-                )}
-              </Button>
-
+              {!interviewComplete && !overallFeedback && (
+                <Button
+                  onClick={isRecording ? stopRecording : startRecording}
+                  disabled={isAISpeaking}
+                  className={`${
+                    isRecording
+                      ? "bg-red-500 hover:bg-red-600"
+                      : "bg-green-500 hover:bg-green-600"
+                  }`}
+                >
+                  {isRecording ? (
+                    <>
+                      <MicOff className="w-4 h-4 mr-2" />
+                      Stop Recording
+                    </>
+                  ) : (
+                    <>
+                      <Mic className="w-4 h-4 mr-2" />
+                      Start Speaking
+                    </>
+                  )}
+                </Button>
+              )}
               {isAISpeaking && (
                 <div className="flex items-center text-blue-600">
                   <Play className="w-4 h-4 mr-2" />

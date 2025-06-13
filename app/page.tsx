@@ -1,18 +1,18 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Mic, MicOff, Play } from "lucide-react"
+import { Play } from "lucide-react"
 import { FeedbackDisplay } from "@/components/feedback-display"
 import { InterviewProgress } from "@/components/interview-progress"
 import { VideoCall } from "@/components/video-call"
 import { AudioRecorder } from "@/components/audio-recorder"
 import { generateSpeech, playAudioFromArrayBuffer } from "@/services/eleven-labs"
+import { InterviewSetupForm, type InterviewSetupData } from "@/components/interview-setup-form"
+import { ResponseInput } from "@/components/response-input"
 
 export default function AIInterviewSystem() {
-  const [jobDescription, setJobDescription] = useState("")
+  const [interviewSetup, setInterviewSetup] = useState<InterviewSetupData | null>(null)
   const [interviewStarted, setInterviewStarted] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
   const [isAISpeaking, setIsAISpeaking] = useState(false)
@@ -37,19 +37,19 @@ export default function AIInterviewSystem() {
     onRecordingStop: () => setIsRecording(false),
   })
 
-  const startInterview = async () => {
-    if (!jobDescription.trim()) {
-      alert("Please enter a job description first")
-      return
-    }
+  const handleSetupSubmit = (data: InterviewSetupData) => {
+    setInterviewSetup(data)
+    startInterview(data)
+  }
 
+  const startInterview = async (setupData: InterviewSetupData) => {
     setInterviewStartTime(new Date())
 
     try {
       const response = await fetch("/api/interview/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jobDescription }),
+        body: JSON.stringify(setupData),
       })
 
       const data = await response.json()
@@ -87,6 +87,8 @@ export default function AIInterviewSystem() {
   }
 
   const handleUserResponse = async (userResponse: string) => {
+    if (!interviewSetup) return
+
     const newConversation = [...conversation, { role: "user" as const, content: userResponse }]
     setConversation(newConversation)
     setQuestionCount((prev) => prev + 1)
@@ -96,7 +98,7 @@ export default function AIInterviewSystem() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          jobDescription,
+          ...interviewSetup,
           conversation: newConversation,
           questionCount: questionCount + 1,
           maxQuestions,
@@ -133,26 +135,8 @@ export default function AIInterviewSystem() {
   if (!interviewStarted) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-        <div className="max-w-2xl mx-auto pt-20">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl text-center">AI Video Interview Assistant</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Enter Job Description</label>
-                <Textarea
-                  value={jobDescription}
-                  onChange={(e) => setJobDescription(e.target.value)}
-                  placeholder="Paste the job description here. The AI will conduct a video interview based on this role..."
-                  className="min-h-[200px]"
-                />
-              </div>
-              <Button onClick={startInterview} className="w-full" disabled={!jobDescription.trim()}>
-                Start AI Video Interview
-              </Button>
-            </CardContent>
-          </Card>
+        <div className="max-w-2xl mx-auto pt-10">
+          <InterviewSetupForm onSubmit={handleSetupSubmit} />
         </div>
       </div>
     )
@@ -163,7 +147,9 @@ export default function AIInterviewSystem() {
       <div className="max-w-4xl mx-auto pt-8">
         <Card>
           <CardHeader>
-            <CardTitle className="text-xl">AI Video Interview in Progress</CardTitle>
+            <CardTitle className="text-xl">
+              {interviewSetup?.companyName} - {interviewSetup?.jobRole} Interview
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {interviewStartTime && (
@@ -208,48 +194,34 @@ export default function AIInterviewSystem() {
               })}
             </div>
 
-            {interviewComplete && overallFeedback && !isAISpeaking && (
+            {interviewComplete && overallFeedback ? (
               <div className="mt-6">
                 <FeedbackDisplay feedback={overallFeedback} type="overall" />
                 <div className="mt-4 text-center">
-                  <Button onClick={() => window.location.reload()} className="bg-green-600 hover:bg-green-700">
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md"
+                  >
                     🎯 Start New Interview
-                  </Button>
+                  </button>
                 </div>
               </div>
+            ) : (
+              <ResponseInput
+                onSubmitText={handleUserResponse}
+                onStartRecording={startRecording}
+                onStopRecording={stopRecording}
+                isRecording={isRecording}
+                isAISpeaking={isAISpeaking}
+              />
             )}
 
-            <div className="flex justify-center space-x-4">
-              {!interviewComplete && !overallFeedback && (
-                <Button
-                  onClick={isRecording ? stopRecording : startRecording}
-                  disabled={isAISpeaking}
-                  className={`${
-                    isRecording
-                      ? "bg-red-500 hover:bg-red-600"
-                      : "bg-green-500 hover:bg-green-600"
-                  }`}
-                >
-                  {isRecording ? (
-                    <>
-                      <MicOff className="w-4 h-4 mr-2" />
-                      Stop Recording
-                    </>
-                  ) : (
-                    <>
-                      <Mic className="w-4 h-4 mr-2" />
-                      Start Speaking
-                    </>
-                  )}
-                </Button>
-              )}
-              {isAISpeaking && (
-                <div className="flex items-center text-blue-600">
-                  <Play className="w-4 h-4 mr-2" />
-                  AI is speaking...
-                </div>
-              )}
-            </div>
+            {isAISpeaking && (
+              <div className="flex items-center justify-center mt-4 text-blue-600">
+                <Play className="w-4 h-4 mr-2" />
+                AI is speaking...
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

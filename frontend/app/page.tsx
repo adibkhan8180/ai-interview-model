@@ -101,7 +101,7 @@ export default function AIInterviewSystem() {
       setConversation([{ role: "ai", content: questionData?.question }]);
       setInterviewStarted(true);
 
-      speakTextWithTTS(data.firstQuestion);
+      speakTextWithTTS(questionData?.question);
     } catch (error) {
       console.error("Error starting interview:", error);
     }
@@ -140,19 +140,20 @@ export default function AIInterviewSystem() {
     setQuestionCount((prev) => prev + 1);
 
     try {
-      const response = await fetch("/api/interview/continue", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...interviewSetup,
-          conversation: newConversation,
-          questionCount: questionCount + 1,
-          maxQuestions,
-        }),
-      });
+      const response = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_BACKEND_URL
+        }/api/interviews/${localStorage.getItem("sessionId")}/answers`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            answer: userResponse,
+          }),
+        });
 
       const data = await response.json();
-
+      
       // Set immediate feedback
       setCurrentFeedback(data.feedback);
 

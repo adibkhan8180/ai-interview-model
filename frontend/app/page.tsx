@@ -1,137 +1,183 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Play } from "lucide-react"
-import { FeedbackDisplay } from "@/components/feedback-display"
-import { InterviewProgress } from "@/components/interview-progress"
-import { VideoCall } from "@/components/video-call"
-import { AudioRecorder } from "@/components/audio-recorder"
-import { generateSpeech, playAudioFromArrayBuffer } from "@/services/text-to-speech"
-import { InterviewSetupForm, type InterviewSetupData } from "@/components/interview-setup-form"
-import { ResponseInput } from "@/components/response-input"
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Play } from "lucide-react";
+import { FeedbackDisplay } from "@/components/feedback-display";
+import { InterviewProgress } from "@/components/interview-progress";
+import { VideoCall } from "@/components/video-call";
+import { AudioRecorder } from "@/components/audio-recorder";
+import {
+  generateSpeech,
+  playAudioFromArrayBuffer,
+} from "@/services/text-to-speech";
+import {
+  InterviewSetupForm,
+  type InterviewSetupData,
+} from "@/components/interview-setup-form";
+import { ResponseInput } from "@/components/response-input";
 
 export default function AIInterviewSystem() {
-  const [interviewSetup, setInterviewSetup] = useState<InterviewSetupData | null>(null)
-  const [interviewStarted, setInterviewStarted] = useState(false)
-  const [isRecording, setIsRecording] = useState(false)
-  const [isAISpeaking, setIsAISpeaking] = useState(false)
-  const [conversation, setConversation] = useState<Array<{ role: "ai" | "user"; content: string }>>([])
-  const [currentQuestion, setCurrentQuestion] = useState("")
-  const [currentFeedback, setCurrentFeedback] = useState("")
-  const [overallFeedback, setOverallFeedback] = useState("")
-  const [interviewComplete, setInterviewComplete] = useState(false)
-  const [questionCount, setQuestionCount] = useState(0)
-  const [maxQuestions] = useState(7) // Limit interview to 7 questions
-  const [interviewStartTime, setInterviewStartTime] = useState<Date | null>(null)
-  const [transcribedText, setTranscribedText] = useState("")
+  const [interviewSetup, setInterviewSetup] =
+    useState<InterviewSetupData | null>(null);
+  const [interviewStarted, setInterviewStarted] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isAISpeaking, setIsAISpeaking] = useState(false);
+  const [conversation, setConversation] = useState<
+    Array<{ role: "ai" | "user"; content: string }>
+  >([]);
+  const [currentQuestion, setCurrentQuestion] = useState("");
+  const [currentFeedback, setCurrentFeedback] = useState("");
+  const [overallFeedback, setOverallFeedback] = useState("");
+  const [interviewComplete, setInterviewComplete] = useState(false);
+  const [questionCount, setQuestionCount] = useState(0);
+  const [maxQuestions] = useState(7); // Limit interview to 7 questions
+  const [interviewStartTime, setInterviewStartTime] = useState<Date | null>(
+    null
+  );
+  const [transcribedText, setTranscribedText] = useState("");
 
   // Initialize audio recorder
   const { startRecording, stopRecording } = AudioRecorder({
     onTranscription: (text) => {
-      setTranscribedText(text)
-      handleUserResponse(text)
+      setTranscribedText(text);
+      handleUserResponse(text);
     },
     isRecording,
     onRecordingStart: () => setIsRecording(true),
     onRecordingStop: () => setIsRecording(false),
-  })
+  });
 
   const handleSetupSubmit = (data: InterviewSetupData) => {
-    setInterviewSetup(data)
-    startInterview(data)
-  }
+    setInterviewSetup(data);
+    startInterview(data);
+  };
 
   const startInterview = async (setupData: InterviewSetupData) => {
-    setInterviewStartTime(new Date())
+    setInterviewStartTime(new Date());
+    const { companyName, jobRole, jobDescription, domain, interviewCategory } =
+      setupData;
+
+    if (!companyName || !jobRole || !interviewCategory) {
+      alert("Please fill in all required fields.");
+      return;
+    }
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/interviews`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(setupData),
-      })
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/interviews`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            companyName,
+            jobRole,
+            jobDescription,
+            domain,
+            interviewType: interviewCategory,
+          }),
+        }
+      );
 
-      const data = await response.json()
-      setCurrentQuestion(data.firstQuestion)
-      setConversation([{ role: "ai", content: data.firstQuestion }])
-      setInterviewStarted(true)
+      const data = await response.json();
+      if (data.success !== true) {
+        console.log("failed to generate sessionId");
+        throw new Error("Failed to start interview. Please try again.");
+      }
 
-      // Speak the first question using TTS
-      speakTextWithTTS(`Hello, it's a pleasure to meet you too. I have a strong background in software and web development with experience in React.js, React Native, Node.js, and MongoDB. I've built and led projects like an invoice management system and a real-time chat app. What interests me about this role is the opportunity to work on impactful, user-centric products while contributing to a collaborative and innovative team environment.
-`)
+      localStorage.setItem("sessionId", data.sessionId);
+
+      const questionResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/interviews/${data.sessionId}/questions`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      const questionData = await questionResponse.json();
+      console.log("hello===>>>", questionData);
+      setCurrentQuestion(questionData?.question);
+      setConversation([{ role: "ai", content: questionData?.question }]);
+      setInterviewStarted(true);
+
+      speakTextWithTTS(questionData?.question);
     } catch (error) {
-      console.error("Error starting interview:", error)
+      console.error("Error starting interview:", error);
     }
-  }
+  };
 
   const speakTextWithTTS = async (text: string) => {
     try {
-      setIsAISpeaking(true)
-      const audioData = await generateSpeech({ text })
-      await playAudioFromArrayBuffer(audioData)
-      setIsAISpeaking(false)
+      setIsAISpeaking(true);
+      const audioData = await generateSpeech({ text });
+      await playAudioFromArrayBuffer(audioData);
+      setIsAISpeaking(false);
     } catch (error) {
-      console.error("Error with TTS:", error)
+      console.error("Error with TTS:", error);
       // Fallback to browser TTS
-      speakTextWithBrowser(text)
+      speakTextWithBrowser(text);
     }
-  }
+  };
 
   const speakTextWithBrowser = (text: string) => {
     if ("speechSynthesis" in window) {
-      setIsAISpeaking(true)
-      const utterance = new SpeechSynthesisUtterance(text)
-      utterance.onend = () => setIsAISpeaking(false)
-      speechSynthesis.speak(utterance)
+      setIsAISpeaking(true);
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.onend = () => setIsAISpeaking(false);
+      speechSynthesis.speak(utterance);
     }
-  }
+  };
 
   const handleUserResponse = async (userResponse: string) => {
-    if (!interviewSetup) return
+    if (!interviewSetup) return;
 
-    const newConversation = [...conversation, { role: "user" as const, content: userResponse }]
-    setConversation(newConversation)
-    setQuestionCount((prev) => prev + 1)
+    const newConversation = [
+      ...conversation,
+      { role: "user" as const, content: userResponse },
+    ];
+    setConversation(newConversation);
+    setQuestionCount((prev) => prev + 1);
 
     try {
-      const response = await fetch("/api/interview/continue", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...interviewSetup,
-          conversation: newConversation,
-          questionCount: questionCount + 1,
-          maxQuestions,
-        }),
-      })
+      const response = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_BACKEND_URL
+        }/api/interviews/${localStorage.getItem("sessionId")}/answers`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            answer: userResponse,
+          }),
+        });
 
-      const data = await response.json()
-
+      const data = await response.json();
+      
       // Set immediate feedback
-      setCurrentFeedback(data.feedback)
+      setCurrentFeedback(data.feedback);
 
       if (data.isComplete) {
-        setInterviewComplete(true)
-        setOverallFeedback(data.overallFeedback)
+        setInterviewComplete(true);
+        setOverallFeedback(data.overallFeedback);
 
         // Speak feedback and overall assessment
-        speakTextWithTTS(`${data.feedback} ${data.overallFeedback}`)
+        speakTextWithTTS(`${data.feedback} ${data.overallFeedback}`);
       } else {
-        const aiResponse = data.nextQuestion
+        const aiResponse = data.nextQuestion;
         setConversation((prev) => [
           ...prev,
           { role: "ai", content: data.feedback },
           { role: "ai", content: aiResponse },
-        ])
+        ]);
 
         // Speak feedback and next question
-        speakTextWithTTS(`${data.feedback} ${aiResponse}`)
+        speakTextWithTTS(`${data.feedback} ${aiResponse}`);
       }
     } catch (error) {
-      console.error("Error getting AI response:", error)
+      console.error("Error getting AI response:", error);
     }
-  }
+  };
 
   if (!interviewStarted) {
     return (
@@ -140,7 +186,7 @@ export default function AIInterviewSystem() {
           <InterviewSetupForm onSubmit={handleSetupSubmit} />
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -149,7 +195,8 @@ export default function AIInterviewSystem() {
         <Card>
           <CardHeader>
             <CardTitle className="text-xl">
-              {interviewSetup?.companyName} - {interviewSetup?.jobRole} Interview
+              {interviewSetup?.companyName} - {interviewSetup?.jobRole}{" "}
+              Interview
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -173,25 +220,35 @@ export default function AIInterviewSystem() {
               {conversation.map((message, index) => {
                 const isFeedback =
                   message.role === "ai" &&
-                  (message.content.startsWith("Great response!") ||
-                    message.content.startsWith("Good answer!") ||
-                    message.content.startsWith("Excellent point!"))
+                  (message?.content?.startsWith("Great response!") ||
+                    message?.content?.startsWith("Good answer!") ||
+                    message?.content?.startsWith("Excellent point!"));
 
                 if (isFeedback) {
-                  return <FeedbackDisplay key={index} feedback={message.content} type="immediate" />
+                  return (
+                    <FeedbackDisplay
+                      key={index}
+                      feedback={message.content}
+                      type="immediate"
+                    />
+                  );
                 }
 
                 return (
                   <div
                     key={index}
                     className={`p-3 rounded-lg ${
-                      message.role === "ai" ? "bg-blue-100 text-blue-900" : "bg-green-100 text-green-900 ml-8"
+                      message.role === "ai"
+                        ? "bg-blue-100 text-blue-900"
+                        : "bg-green-100 text-green-900 ml-8"
                     }`}
                   >
-                    <strong>{message.role === "ai" ? "🤖 AI Interviewer:" : "👤 You:"}</strong>
+                    <strong>
+                      {message.role === "ai" ? "🤖 AI Interviewer:" : "👤 You:"}
+                    </strong>
                     <p className="mt-1">{message.content}</p>
                   </div>
-                )
+                );
               })}
             </div>
 
@@ -227,5 +284,5 @@ export default function AIInterviewSystem() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

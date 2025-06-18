@@ -73,17 +73,12 @@ export const getFeedback = async (req, res, next) => {
 
 export const reviseAnswer = async (req, res, next) => {
   try {
-    // console.log("im inside revise");
     const sessionId = req.params.sessionId;
-    const result = await interviewService.reviseAnswer(
-      sessionId,
-      req.body.answer
-    );
-    // console.log(req.body.answer);
+    const result = await interviewService.reviseAnswer(sessionId);
     res.json({
       success: true,
-      message: "Answer revised successfully",
-      feedback: result.feedback,
+      message: "Previous Question To Revise Answer",
+      question: result.question,
     });
   } catch (error) {
     next(error);

@@ -7,7 +7,7 @@ import { FeedbackDisplay } from "@/components/feedback-display"
 import { InterviewProgress } from "@/components/interview-progress"
 import { VideoCall } from "@/components/video-call"
 import { AudioRecorder } from "@/components/audio-recorder"
-import { generateSpeech, playAudioFromArrayBuffer } from "@/services/eleven-labs"
+import { generateSpeech, playAudioFromArrayBuffer } from "@/services/text-to-speech"
 import { InterviewSetupForm, type InterviewSetupData } from "@/components/interview-setup-form"
 import { ResponseInput } from "@/components/response-input"
 
@@ -46,7 +46,7 @@ export default function AIInterviewSystem() {
     setInterviewStartTime(new Date())
 
     try {
-      const response = await fetch("/api/interview/start", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/interviews`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(setupData),
@@ -57,21 +57,22 @@ export default function AIInterviewSystem() {
       setConversation([{ role: "ai", content: data.firstQuestion }])
       setInterviewStarted(true)
 
-      // Speak the first question using ElevenLabs
-      speakTextWithElevenLabs(data.firstQuestion)
+      // Speak the first question using TTS
+      speakTextWithTTS(`Hello, it's a pleasure to meet you too. I have a strong background in software and web development with experience in React.js, React Native, Node.js, and MongoDB. I've built and led projects like an invoice management system and a real-time chat app. What interests me about this role is the opportunity to work on impactful, user-centric products while contributing to a collaborative and innovative team environment.
+`)
     } catch (error) {
       console.error("Error starting interview:", error)
     }
   }
 
-  const speakTextWithElevenLabs = async (text: string) => {
+  const speakTextWithTTS = async (text: string) => {
     try {
       setIsAISpeaking(true)
       const audioData = await generateSpeech({ text })
       await playAudioFromArrayBuffer(audioData)
       setIsAISpeaking(false)
     } catch (error) {
-      console.error("Error with ElevenLabs TTS:", error)
+      console.error("Error with TTS:", error)
       // Fallback to browser TTS
       speakTextWithBrowser(text)
     }
@@ -115,7 +116,7 @@ export default function AIInterviewSystem() {
         setOverallFeedback(data.overallFeedback)
 
         // Speak feedback and overall assessment
-        speakTextWithElevenLabs(`${data.feedback} ${data.overallFeedback}`)
+        speakTextWithTTS(`${data.feedback} ${data.overallFeedback}`)
       } else {
         const aiResponse = data.nextQuestion
         setConversation((prev) => [
@@ -125,7 +126,7 @@ export default function AIInterviewSystem() {
         ])
 
         // Speak feedback and next question
-        speakTextWithElevenLabs(`${data.feedback} ${aiResponse}`)
+        speakTextWithTTS(`${data.feedback} ${aiResponse}`)
       }
     } catch (error) {
       console.error("Error getting AI response:", error)

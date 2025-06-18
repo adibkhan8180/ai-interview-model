@@ -112,7 +112,7 @@ export class InterviewService {
     return feedback;
   }
 
-  async reviseAnswer(sessionId, answer) {
+  async reviseAnswer(sessionId) {
     const session = storage.getSession(sessionId);
     if (!session) {
       throw new Error("Session not found");
@@ -120,24 +120,9 @@ export class InterviewService {
 
     let { chatHistory } = session;
 
-    // Add student answer to history
     chatHistory.pop();
-    chatHistory.push(new HumanMessage(answer));
 
-    // Generate feedback
-    const feedbackResponse = await this.aiService.generateFeedback(
-      answer,
-      chatHistory
-    );
-
-    // Update session in in-memory storage
-    storage.updateSession(sessionId, {
-      chatHistory,
-      currentStep: "feedback",
-      lastFeedback: feedbackResponse.content,
-    });
-
-    return { feedback: feedbackResponse.content };
+    return { question: chatHistory[chatHistory.length - 1].content };
   }
 
   async submitInterview(sessionId) {

@@ -24,8 +24,10 @@ export default function AIInterviewSystem() {
   const [isRecording, setIsRecording] = useState(false);
   const [isAISpeaking, setIsAISpeaking] = useState(false);
   const [conversation, setConversation] = useState<
-    Array<{ role: "ai" | "user"; content: string }>
-  >([]);
+    Array<{ role: "ai" | "user"; content: string; isFeedback?: boolean }>
+  >([
+    { role: "ai", content: "Hi! How can I help you today?", isFeedback: true },
+  ]);
   const [currentQuestion, setCurrentQuestion] = useState("");
   const [currentFeedback, setCurrentFeedback] = useState("");
   const [overallFeedback, setOverallFeedback] = useState("");
@@ -98,7 +100,13 @@ export default function AIInterviewSystem() {
       const questionData = await questionResponse.json();
       console.log("hello===>>>", questionData);
       setCurrentQuestion(questionData?.question);
-      setConversation([{ role: "ai", content: questionData?.question }]);
+      setConversation([
+        {
+          role: "ai",
+          content: questionData?.question,
+          isFeedback: questionData?.isFeedback ? true : false,
+        },
+      ]);
       setInterviewStarted(true);
 
       speakTextWithTTS(questionData?.question);
@@ -150,12 +158,12 @@ export default function AIInterviewSystem() {
           body: JSON.stringify({
             answer: userResponse,
           }),
-        });
+        }
+      );
 
       const data = await response.json();
-      
       // Set immediate feedback
-      setCurrentFeedback(data.feedback);
+      setCurrentFeedback(data?.feedback);
 
       if (data.isComplete) {
         setInterviewComplete(true);
@@ -167,12 +175,13 @@ export default function AIInterviewSystem() {
         const aiResponse = data.nextQuestion;
         setConversation((prev) => [
           ...prev,
-          { role: "ai", content: data.feedback },
-          { role: "ai", content: aiResponse },
+          { role: "ai", content: data.feedback, isFeedback: true },
+          // { role: "ai", content: aiResponse },
         ]);
 
         // Speak feedback and next question
-        speakTextWithTTS(`${data.feedback} ${aiResponse}`);
+        // speakTextWithTTS(`${data.feedback} ${aiResponse}`);
+        speakTextWithTTS(data.feedback);
       }
     } catch (error) {
       console.error("Error getting AI response:", error);
@@ -218,18 +227,17 @@ export default function AIInterviewSystem() {
 
             <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
               {conversation.map((message, index) => {
-                const isFeedback =
-                  message.role === "ai" &&
-                  (message?.content?.startsWith("Great response!") ||
-                    message?.content?.startsWith("Good answer!") ||
-                    message?.content?.startsWith("Excellent point!"));
-
-                if (isFeedback) {
+                if (message?.isFeedback) {
                   return (
                     <FeedbackDisplay
                       key={index}
                       feedback={message.content}
                       type="immediate"
+                      setConversation={setConversation}
+                      speakTextWithTTS={speakTextWithTTS}
+                      setCurrentQuestion={setCurrentQuestion}
+                      isAISpeaking={isAISpeaking}
+                      isLatestFeedback={index === conversation.length - 1}
                     />
                   );
                 }
@@ -252,9 +260,19 @@ export default function AIInterviewSystem() {
               })}
             </div>
 
+            <div></div>
+
             {interviewComplete && overallFeedback ? (
               <div className="mt-6">
-                <FeedbackDisplay feedback={overallFeedback} type="overall" />
+                <FeedbackDisplay
+                  feedback={overallFeedback}
+                  type="overall"
+                  setConversation={setConversation}
+                  speakTextWithTTS={speakTextWithTTS}
+                  setCurrentQuestion={setCurrentQuestion}
+                  isAISpeaking={isAISpeaking}
+                  isLatestFeedback={false}
+                />
                 <div className="mt-4 text-center">
                   <button
                     onClick={() => window.location.reload()}

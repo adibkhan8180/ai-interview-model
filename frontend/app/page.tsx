@@ -57,7 +57,7 @@ export default function AIInterviewSystem() {
   });
   const [interviewComplete, setInterviewComplete] = useState(false);
   const [questionCount, setQuestionCount] = useState(1);
-  const [maxQuestions] = useState(1); // Limit interview to 7 questions
+  const [maxQuestions] = useState(5); // Limit interview to 7 questions
   const [interviewStartTime, setInterviewStartTime] = useState<Date | null>(
     null
   );
@@ -315,6 +315,7 @@ export default function AIInterviewSystem() {
                   setCurrentQuestion={setCurrentQuestion}
                   isAISpeaking={isAISpeaking}
                   isLatestFeedback={false}
+                  interviewComplete={interviewComplete}
                 />
                 <div className="mt-4 text-center">
                   <button

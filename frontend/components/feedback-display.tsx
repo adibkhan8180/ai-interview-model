@@ -32,6 +32,7 @@ interface FeedbackDisplayProps {
   setCurrentQuestion: React.Dispatch<React.SetStateAction<string>>;
   isAISpeaking: boolean;
   isLatestFeedback?: boolean;
+  interviewComplete?: boolean;
 }
 
 export function FeedbackDisplay({
@@ -42,6 +43,7 @@ export function FeedbackDisplay({
   setCurrentQuestion,
   isAISpeaking,
   isLatestFeedback,
+  interviewComplete,
 }: FeedbackDisplayProps) {
   if (type === "immediate") {
     if (typeof feedback !== "string") {
@@ -111,7 +113,7 @@ export function FeedbackDisplay({
             </div>
           </div>
         </div>
-        {isLatestFeedback && (
+        {!interviewComplete && isLatestFeedback && (
           <div className="flex items-center justify-center gap-5">
             <p className="text-yellow-700 text-sm leading-relaxed">
               Do you want to revise the answer?

@@ -16,8 +16,10 @@ import {
   type InterviewSetupData,
 } from "@/components/interview-setup-form";
 import { ResponseInput } from "@/components/response-input";
+import { useRouter } from "next/navigation";
 
 export default function AIInterviewSystem() {
+  const router = useRouter();
   const [interviewSetup, setInterviewSetup] =
     useState<InterviewSetupData | null>(null);
   const [interviewStarted, setInterviewStarted] = useState(false);
@@ -30,10 +32,32 @@ export default function AIInterviewSystem() {
   ]);
   const [currentQuestion, setCurrentQuestion] = useState("");
   const [currentFeedback, setCurrentFeedback] = useState("");
-  const [overallFeedback, setOverallFeedback] = useState("");
+  const [overallFeedback, setOverallFeedback] = useState({
+    overall_score: 60,
+    summary:
+      "The candidate demonstrated a strong technical background in software development and showcased experience with relevant technologies. However, the lack of specific examples and depth in responses impacted the assessment.",
+    questions_analysis: [],
+    skill_assessment: {
+      communication: 6,
+      technical_knowledge: 7,
+      problem_solving: 6,
+      cultural_fit: 7,
+    },
+    coaching_scores: {
+      clarity_of_motivation: 3,
+      specificity_of_learning: 2,
+      career_goal_alignment: 3,
+    },
+    recommendations: [
+      "Provide more specific examples to showcase your experience and problem-solving skills.",
+      "Work on articulating your motivations and career goals with more clarity and alignment to the role.",
+    ],
+    closure_message:
+      "Thank you for sharing your experiences and goals with us. Keep refining your responses to provide more depth and specificity in future interviews. Best of luck in your future endeavors!",
+  });
   const [interviewComplete, setInterviewComplete] = useState(false);
-  const [questionCount, setQuestionCount] = useState(0);
-  const [maxQuestions] = useState(7); // Limit interview to 7 questions
+  const [questionCount, setQuestionCount] = useState(1);
+  const [maxQuestions] = useState(1); // Limit interview to 7 questions
   const [interviewStartTime, setInterviewStartTime] = useState<Date | null>(
     null
   );
@@ -108,6 +132,7 @@ export default function AIInterviewSystem() {
         },
       ]);
       setInterviewStarted(true);
+      // router.replace(`/${data.sessionId}`);
 
       speakTextWithTTS(questionData?.question);
     } catch (error) {
@@ -165,12 +190,30 @@ export default function AIInterviewSystem() {
       // Set immediate feedback
       setCurrentFeedback(data?.feedback);
 
-      if (data.isComplete) {
+      if (questionCount >= maxQuestions) {
+        const finalResponse = await fetch(
+          `${
+            process.env.NEXT_PUBLIC_BACKEND_URL
+          }/api/interviews/${localStorage.getItem("sessionId")}/submit`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+
+        const overallData = await finalResponse.json();
+        setConversation((prev) => [
+          ...prev,
+          { role: "ai", content: data.feedback, isFeedback: true },
+        ]);
+
         setInterviewComplete(true);
-        setOverallFeedback(data.overallFeedback);
+        setOverallFeedback(overallData.overallFeedback);
 
         // Speak feedback and overall assessment
-        speakTextWithTTS(`${data.feedback} ${data.overallFeedback}`);
+        speakTextWithTTS(
+          `${data.feedback} ${JSON.stringify(overallData.overallFeedback)}`
+        );
       } else {
         const aiResponse = data.nextQuestion;
         setConversation((prev) => [
@@ -211,7 +254,7 @@ export default function AIInterviewSystem() {
           <CardContent>
             {interviewStartTime && (
               <InterviewProgress
-                currentQuestion={questionCount + 1}
+                currentQuestion={questionCount}
                 totalQuestions={maxQuestions}
                 startTime={interviewStartTime}
               />

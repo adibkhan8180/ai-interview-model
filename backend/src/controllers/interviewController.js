@@ -91,7 +91,7 @@ export const submitInterview = async (req, res, next) => {
     const result = await interviewService.submitInterview(sessionId);
     res.json({
       success: true,
-      feedback: result.feedback,
+      overallFeedback: result.feedback,
       status: result.status,
     });
   } catch (error) {

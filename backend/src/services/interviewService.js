@@ -41,7 +41,7 @@ export class InterviewService {
   }
 
   async getNextQuestion(sessionId) {
-    console.log("session id in get question qpi", sessionId);
+    console.log("session id in get question api", sessionId);
     const session = storage.getSession(sessionId);
     if (!session) {
       throw new Error("Session not found");
@@ -57,9 +57,7 @@ export class InterviewService {
       chat_history: session.chatHistory,
     });
 
-    // console.log('Next question:', response);
-    // console.log('Next question answer:', response.answer);
-    // console.log('Next question answer content:', response.answer.content);
+
     session.chatHistory.push(new AIMessage(response.answer));
 
     return response.answer;
@@ -73,9 +71,9 @@ export class InterviewService {
 
     let { chatHistory } = session;
 
-    console.log("Chat history:", chatHistory); /*
-           console.log('Answer:', answer);
-           console.log("human message:", new HumanMessage(answer)); */
+    /*
+          console.log('Answer:', answer);
+          console.log("human message:", new HumanMessage(answer)); */
 
     // Add student answer to history
     chatHistory.push(new HumanMessage(answer));
@@ -92,6 +90,8 @@ export class InterviewService {
       currentStep: "feedback",
       lastFeedback: feedbackResponse.content,
     });
+    console.log("Chat history:", chatHistory);
+
 
     return { feedback: feedbackResponse.content };
   }

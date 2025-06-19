@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, Lightbulb, Target, TrendingUp } from "lucide-react";
 import { Button } from "./ui/button";
+import { useState } from "react";
 
 interface OverallFeedback {
   overall_score: number;
@@ -45,11 +46,13 @@ export function FeedbackDisplay({
   isLatestFeedback,
   interviewComplete,
 }: FeedbackDisplayProps) {
+  const [loading, setLoading] = useState(false);
   if (type === "immediate") {
     if (typeof feedback !== "string") {
       return null;
     }
     const handleReviseQuestion = async () => {
+      setLoading(true);
       try {
         const response = await fetch(
           `${
@@ -71,10 +74,13 @@ export function FeedbackDisplay({
         speakTextWithTTS(data.question);
       } catch (error) {
         console.error("Error reviseing answer:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     const getNextQuestion = async () => {
+      setLoading(true);
       try {
         const questionResponse = await fetch(
           `${
@@ -95,6 +101,8 @@ export function FeedbackDisplay({
         speakTextWithTTS(questionData?.question);
       } catch (error) {
         console.error("Error getting next question:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -120,14 +128,14 @@ export function FeedbackDisplay({
             </p>
             <Button
               onClick={handleReviseQuestion}
-              disabled={isAISpeaking}
+              disabled={isAISpeaking || loading}
               className="bg-green-500 hover:bg-green-600"
             >
               yes
             </Button>
             <Button
               onClick={getNextQuestion}
-              disabled={isAISpeaking}
+              disabled={isAISpeaking || loading}
               className="bg-red-500 hover:bg-red-600"
             >
               No

@@ -21,9 +21,14 @@ export const startInterview = async (req, res, next) => {
       interviewType === "domain_specific" ? domain : null
     );
 
+    const introQuestion = await interviewService.getIntroQuestion(
+      result?.sessionId
+    );
+
     res.status(201).json({
       success: true,
       sessionId: result.sessionId,
+      question: introQuestion,
     });
   } catch (error) {
     next(error);
@@ -34,7 +39,6 @@ export const getNextQuestion = async (req, res, next) => {
   try {
     const sessionId = req.params.sessionId;
     const result = await interviewService.getNextQuestion(sessionId);
-    console.log("result", result);
     res.status(200).json({
       success: true,
       question: result,

@@ -56,8 +56,8 @@ export default function AIInterviewSystem() {
       "Thank you for sharing your experiences and goals with us. Keep refining your responses to provide more depth and specificity in future interviews. Best of luck in your future endeavors!",
   });
   const [interviewComplete, setInterviewComplete] = useState(false);
-  const [questionCount, setQuestionCount] = useState(1);
-  const [maxQuestions] = useState(5); // Limit interview to 7 questions
+  const [questionCount, setQuestionCount] = useState(0);
+  const [maxQuestions] = useState(2); // Limit interview to 7 questions
   const [interviewStartTime, setInterviewStartTime] = useState<Date | null>(
     null
   );
@@ -115,30 +115,22 @@ export default function AIInterviewSystem() {
         throw new Error("Failed to start interview. Please try again.");
       }
 
+      console.log(data);
       localStorage.setItem("sessionId", data.sessionId);
 
-      const questionResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/interviews/${data.sessionId}/questions`,
-        {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-
-      const questionData = await questionResponse.json();
-      console.log("hello===>>>", questionData);
-      setCurrentQuestion(questionData?.question);
+      setQuestionCount((prev) => prev + 1);
+      setCurrentQuestion(data?.question);
       setConversation([
         {
           role: "ai",
-          content: questionData?.question,
-          isFeedback: questionData?.isFeedback ? true : false,
+          content: data?.question,
+          isFeedback: data?.isFeedback ? true : false,
         },
       ]);
       setInterviewStarted(true);
       // router.replace(`/${data.sessionId}`);
 
-      speakTextWithTTS(questionData?.question);
+      speakTextWithTTS(data?.question);
     } catch (error) {
       console.error("Error starting interview:", error);
     } finally {
@@ -176,7 +168,6 @@ export default function AIInterviewSystem() {
       { role: "user" as const, content: userResponse },
     ];
     setConversation(newConversation);
-    setQuestionCount((prev) => prev + 1);
 
     try {
       const response = await fetch(
@@ -285,6 +276,7 @@ export default function AIInterviewSystem() {
                       setConversation={setConversation}
                       speakTextWithTTS={speakTextWithTTS}
                       setCurrentQuestion={setCurrentQuestion}
+                      setQuestionCount={setQuestionCount}
                       isAISpeaking={isAISpeaking}
                       isLatestFeedback={index === conversation.length - 1}
                       interviewComplete={interviewComplete}
@@ -320,6 +312,7 @@ export default function AIInterviewSystem() {
                   setConversation={setConversation}
                   speakTextWithTTS={speakTextWithTTS}
                   setCurrentQuestion={setCurrentQuestion}
+                  setQuestionCount={setQuestionCount}
                   isAISpeaking={isAISpeaking}
                   isLatestFeedback={false}
                   interviewComplete={interviewComplete}

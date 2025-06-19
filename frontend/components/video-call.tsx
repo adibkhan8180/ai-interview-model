@@ -68,11 +68,11 @@ export function VideoCall({ isRecording, isAISpeaking, onStartRecording, onStopR
         audioTrack.enabled = !micEnabled
         setMicEnabled(!micEnabled)
 
-        if (!micEnabled) {
-          onStartRecording()
-        } else {
-          onStopRecording()
-        }
+        // if (!micEnabled) {
+        //   onStartRecording()
+        // } else {
+        //   onStopRecording()
+        // }
       }
     }
   }

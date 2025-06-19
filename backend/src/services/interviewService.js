@@ -41,22 +41,48 @@ export class InterviewService {
   }
 
   async getNextQuestion(sessionId) {
-    console.log("session id in get question api", sessionId);
     const session = storage.getSession(sessionId);
     if (!session) {
       throw new Error("Session not found");
     }
 
     const initialPrompt =
-      session.chatHistory.length === 0
-        ? "Start the interview with an introductory greeting and first question."
-        : "Generate the next question based on the conversation history.";
+      "Generate the next question based on the conversation history.";
 
     const response = await session.conversationChain.invoke({
       input: initialPrompt,
       chat_history: session.chatHistory,
     });
 
+    session.chatHistory.push(new AIMessage(response.answer));
+
+    return response.answer;
+  }
+
+  async getIntroQuestion(sessionId) {
+    const session = storage.getSession(sessionId);
+    if (!session) {
+      throw new Error("Session not found");
+    }
+
+    if (session.chatHistory.length > 0) {
+      throw new Error(
+        "Intro question can only be asked at the beginning of the session."
+      );
+    }
+
+    const { jobDescription, interviewType, domain, companyName } = session;
+
+    const input =
+      "Start the interview with an introductory greeting and first question like 'could you please introduce yourself'.";
+    const response = await this.aiService.askIntroQuestion(
+      jobDescription,
+      interviewType,
+      domain,
+      companyName,
+      session.chatHistory,
+      input
+    );
 
     session.chatHistory.push(new AIMessage(response.answer));
 
@@ -70,10 +96,6 @@ export class InterviewService {
     }
 
     let { chatHistory } = session;
-
-    /*
-          console.log('Answer:', answer);
-          console.log("human message:", new HumanMessage(answer)); */
 
     // Add student answer to history
     chatHistory.push(new HumanMessage(answer));
@@ -90,8 +112,6 @@ export class InterviewService {
       currentStep: "feedback",
       lastFeedback: feedbackResponse.content,
     });
-    console.log("Chat history:", chatHistory);
-
 
     return { feedback: feedbackResponse.content };
   }

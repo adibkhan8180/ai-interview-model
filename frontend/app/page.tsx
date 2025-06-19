@@ -62,6 +62,7 @@ export default function AIInterviewSystem() {
     null
   );
   const [transcribedText, setTranscribedText] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // Initialize audio recorder
   const { startRecording, stopRecording } = AudioRecorder({
@@ -80,6 +81,9 @@ export default function AIInterviewSystem() {
   };
 
   const startInterview = async (setupData: InterviewSetupData) => {
+    if (loading) return;
+
+    setLoading(true);
     setInterviewStartTime(new Date());
     const { companyName, jobRole, jobDescription, domain, interviewCategory } =
       setupData;
@@ -137,6 +141,8 @@ export default function AIInterviewSystem() {
       speakTextWithTTS(questionData?.question);
     } catch (error) {
       console.error("Error starting interview:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -235,7 +241,7 @@ export default function AIInterviewSystem() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
         <div className="max-w-2xl mx-auto pt-10">
-          <InterviewSetupForm onSubmit={handleSetupSubmit} />
+          <InterviewSetupForm onSubmit={handleSetupSubmit} loading={loading} />
         </div>
       </div>
     );

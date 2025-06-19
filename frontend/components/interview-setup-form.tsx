@@ -1,56 +1,70 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export interface InterviewSetupData {
-  companyName: string
-  jobRole: string
-  interviewCategory: "general" | "hr" | "domain-specific"
-  domain?: string
-  jobDescription: string
+  companyName: string;
+  jobRole: string;
+  interviewCategory: "general" | "hr" | "domain-specific";
+  domain?: string;
+  jobDescription: string;
 }
 
 interface InterviewSetupFormProps {
-  onSubmit: (data: InterviewSetupData) => void
+  onSubmit: (data: InterviewSetupData) => void;
+  loading: boolean;
 }
 
-export function InterviewSetupForm({ onSubmit }: InterviewSetupFormProps) {
+export function InterviewSetupForm({
+  onSubmit,
+  loading,
+}: InterviewSetupFormProps) {
   const [formData, setFormData] = useState<InterviewSetupData>({
     companyName: "",
     jobRole: "",
     interviewCategory: "general",
     domain: "",
     jobDescription: "",
-  })
+  });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSubmit(formData)
-  }
+    e.preventDefault();
+    onSubmit(formData);
+  };
 
-  const isDomainSpecific = formData.interviewCategory === "domain-specific"
+  const isDomainSpecific = formData.interviewCategory === "domain-specific";
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-2xl text-center">AI Video Interview Setup</CardTitle>
+        <CardTitle className="text-2xl text-center">
+          AI Video Interview Setup
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -84,7 +98,9 @@ export function InterviewSetupForm({ onSubmit }: InterviewSetupFormProps) {
             <Label htmlFor="interviewCategory">Interview Category</Label>
             <Select
               value={formData.interviewCategory}
-              onValueChange={(value) => handleSelectChange("interviewCategory", value)}
+              onValueChange={(value) =>
+                handleSelectChange("interviewCategory", value)
+              }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select interview type" />
@@ -112,7 +128,11 @@ export function InterviewSetupForm({ onSubmit }: InterviewSetupFormProps) {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="jobDescription">{isDomainSpecific ? "Detailed Job Description" : "Job Description"}</Label>
+            <Label htmlFor="jobDescription">
+              {isDomainSpecific
+                ? "Detailed Job Description"
+                : "Job Description"}
+            </Label>
             <Textarea
               id="jobDescription"
               name="jobDescription"
@@ -128,11 +148,11 @@ export function InterviewSetupForm({ onSubmit }: InterviewSetupFormProps) {
             />
           </div>
 
-          <Button type="submit" className="w-full">
-            Start AI Video Interview
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? "Starting..." : "Start AI Video Interview"}
           </Button>
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }

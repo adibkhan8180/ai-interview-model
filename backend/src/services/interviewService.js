@@ -54,7 +54,7 @@ export class InterviewService {
 
     const response = await session.conversationChain.invoke({
       input: initialPrompt,
-      chatHistory: session.chatHistory,
+      chat_history: session.chatHistory,
     });
 
     // console.log('Next question:', response);

@@ -31,6 +31,7 @@ interface FeedbackDisplayProps {
   >;
   speakTextWithTTS: (text: string) => Promise<void>;
   setCurrentQuestion: React.Dispatch<React.SetStateAction<string>>;
+  setQuestionCount: React.Dispatch<React.SetStateAction<number>>;
   isAISpeaking: boolean;
   isLatestFeedback?: boolean;
   interviewComplete?: boolean;
@@ -42,6 +43,7 @@ export function FeedbackDisplay({
   setConversation,
   speakTextWithTTS,
   setCurrentQuestion,
+  setQuestionCount,
   isAISpeaking,
   isLatestFeedback,
   interviewComplete,
@@ -93,6 +95,8 @@ export function FeedbackDisplay({
         );
 
         const questionData = await questionResponse.json();
+        setQuestionCount((prev) => prev + 1);
+
         setCurrentQuestion(questionData?.question);
         setConversation((prev) => [
           ...prev,
@@ -244,14 +248,14 @@ export function FeedbackDisplay({
           <CheckCircle className="w-4 h-4 text-purple-600 mt-1 flex-shrink-0" />
           <p className="text-sm leading-relaxed text-green-700">
             Career Goal Alignment:{" "}
-            {feedback?.coaching_scores.career_goal_alignment}
+            {feedback?.coaching_scores?.career_goal_alignment}
           </p>
         </div>
         <div className="flex items-start space-x-3">
           <CheckCircle className="w-4 h-4 text-purple-600 mt-1 flex-shrink-0" />
           <p className="text-sm leading-relaxed text-green-700">
             Specificity of Learning:{" "}
-            {feedback?.coaching_scores.specificity_of_learning}
+            {feedback?.coaching_scores?.specificity_of_learning}
           </p>
         </div>
         <div className="space-y-4">

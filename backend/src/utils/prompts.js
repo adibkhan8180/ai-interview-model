@@ -1,43 +1,97 @@
-import { ChatPromptTemplate, MessagesPlaceholder } from "@langchain/core/prompts";
+import {
+  ChatPromptTemplate,
+  MessagesPlaceholder,
+} from "@langchain/core/prompts";
 
-// Main Interview Prompt with Directional Follow-ups
-// .
+const maleNames = [
+  "Sumit Nagrikar",
+  "Sandesh Lawhale",
+  "Adib Khan",
+  "Sohail Ali",
+  "Atharva Tipkari",
+  "Nayan Kamble",
+  "Aaradhya Dengree",
+  "Shantanu Kopche",
+  "Kapil Sharma",
+  "Pratik Chaoudhary",
+];
+const femaleNames = [
+  "Priya Sharma",
+  "Aishwarya Nair",
+  "Sneha Patil",
+  "Ritika Deshmukh",
+  "Kavya Joshi",
+  "Ishita Mehra",
+  "Ananya Rane",
+  "Pooja Kulkarni",
+  "Divya Iyer",
+  "Meenal Waghmare",
+];
+const getRandomName = () =>
+  femaleNames[Math.floor(Math.random() * femaleNames.length)];
 
-export const createMainPrompt = (interviewType, domain) => {
-  const baseInstructions = `You are an HR interviewer conducting a mock ${interviewType} interview${domain ? ` in the domain of ${domain}` : ""} based strictly on the job description in {context}.
+export const createIntroPrompt = (interviewType, domain, companyName) => {
+  const randomName = getRandomName();
+  const introInstructions = `
+your name is ${randomName}, You are an HR interviewer from ${companyName} company, and the job description is: ({context}). You're conducting a mock ${interviewType} interview${
+    domain ? ` focused on ${domain}` : ""
+  }, and will ask questions strictly based on the role.
 
 Instructions:
-- Begin with a friendly, natural introduction (Indian male name, e.g., "Hi, I’m Raj from Truscholar. Great to meet you! I saw your application..."). Ask the candidate to introduce themselves. Do this ONLY once.
-- Never repeat the introduction prompt, even if the response was vague.
-- Do not use tags like "Interviewer:", "Candidate:", or "Q/A:". Keep it human and conversational.
-- After intro, ask ONLY JD- or domain-specific questions. Avoid generic behavioral questions unless linked to the candidate’s last response or the JD.
+- greet the student
+- introduce yourself as your name, position and what you are doing
+- engage a little  chat like "nice to meet you," or "i saw you applicaion for the position of..." something like this
+- then ask them for their introduction
+- use natural kind human tone, and avoid robotic tone.
+- Do NOT ask anything else yet — only the introduction.
+- No tags like "Interviewer:" or "Candidate:", keep it human.
+  `;
+
+  return ChatPromptTemplate.fromMessages([
+    ["system", introInstructions],
+    new MessagesPlaceholder("chat_history"),
+    ["user", "{input}"],
+  ]);
+};
+
+export const createMainPrompt = (interviewType, domain) => {
+  const baseInstructions = `You are an HR interviewer conducting a mock ${interviewType} interview${
+    domain ? ` in the domain of ${domain}` : ""
+  } based strictly on the job description in {context}.
+
+Instructions:
+- DO NOT repeat or ask for the candidate’s introduction.
+- Ask ONLY JD- or domain-specific questions. Avoid generic behavioral questions unless linked to the candidate’s last response or the JD.
 - Speak casually (e.g., "Alright, got it", "Hmm, interesting").
 - Use smooth transitions between topics.
 - Ask a follow-up ONLY if the answer is very confident or detailed.
 - If answers are vague, steer toward self-awareness questions **related to the JD** (not generic).
 - Track answers and avoid repeating questions. Stay consistent and on-topic.
 - Do NOT ask anything unrelated to the job or domain.
+- No tags like "Interviewer:" or "Candidate:", keep it human.
 `;
 
   const typeSpecificInstructions = {
-    'HR': `
+    HR: `
 - Focus on soft skills like communication or teamwork, but only within the JD or project context.`,
-    'general': `
+    general: `
 - Use a mix of HR, technical, and domain-specific questions from the JD.`,
-    'domain_specific': `
-- Ask about domain-specific tools, projects, challenges, and trends only.`
+    domain_specific: `
+- Ask about domain-specific tools, projects, challenges, and trends only.`,
   };
 
-
   return ChatPromptTemplate.fromMessages([
-    ["system", baseInstructions + (typeSpecificInstructions[interviewType] || typeSpecificInstructions['general'])],
+    [
+      "system",
+      baseInstructions +
+        (typeSpecificInstructions[interviewType] ||
+          typeSpecificInstructions["general"]),
+    ],
     new MessagesPlaceholder("chat_history"),
     ["user", "{input}"],
   ]);
 };
 
-
-// Feedback Prompt (5-part structure fully implemented)
 export const feedbackPrompt = ChatPromptTemplate.fromMessages([
   [
     "system",
@@ -66,9 +120,10 @@ Be friendly, specific, and helpful — not robotic or overly formal. Always stay
   ["user", "{input}"],
 ]);
 
-// Final Feedback Prompt with Coaching Scores, Depth, Closure
 export const finalFeedbackPrompt = ChatPromptTemplate.fromMessages([
-  ["system", `
+  [
+    "system",
+    `
     Create a comprehensive and realistic interview assessment in the following strict JSON format.
 
     {{
@@ -108,6 +163,7 @@ export const finalFeedbackPrompt = ChatPromptTemplate.fromMessages([
       • High-Caliber – Answers demonstrate depth, insight, and clarity
     - Be strict but supportive. Use a constructive tone like a coach or mentor.
     - Always return valid JSON without any explanation or markdown. No extra text or formatting.
-  `],
+  `,
+  ],
   new MessagesPlaceholder("chat_history"),
 ]);

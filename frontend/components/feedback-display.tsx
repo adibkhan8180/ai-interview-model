@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, Lightbulb, Target, TrendingUp } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
 
 interface OverallFeedback {
   overall_score: number;
@@ -119,9 +120,9 @@ export function FeedbackDisplay({
               <h4 className="font-semibold text-yellow-800 mb-1">
                 💡 Immediate Feedback
               </h4>
-              <p className="text-yellow-700 text-sm leading-relaxed">
-                {feedback}
-              </p>
+              <div className="text-yellow-700 text-sm leading-relaxed">
+                <ReactMarkdown>{feedback}</ReactMarkdown>
+              </div>
             </div>
           </div>
         </div>

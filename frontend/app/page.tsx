@@ -281,6 +281,7 @@ export default function AIInterviewSystem() {
                       setCurrentQuestion={setCurrentQuestion}
                       isAISpeaking={isAISpeaking}
                       isLatestFeedback={index === conversation.length - 1}
+                      interviewComplete={interviewComplete}
                     />
                   );
                 }

@@ -17,6 +17,11 @@ import {
 } from "@/components/interview-setup-form";
 import { ResponseInput } from "@/components/response-input";
 import { useRouter } from "next/navigation";
+import {
+  startInterviewAPI,
+  submitAnswerAPI,
+  submitFinalInterviewAPI,
+} from "@/lib/api";
 
 export default function AIInterviewSystem() {
   const router = useRouter();
@@ -85,33 +90,19 @@ export default function AIInterviewSystem() {
 
     setLoading(true);
     setInterviewStartTime(new Date());
-    const { companyName, jobRole, jobDescription, domain, interviewCategory } =
-      setupData;
+
+    const { companyName, jobRole, interviewCategory } = setupData;
 
     if (!companyName || !jobRole || !interviewCategory) {
       alert("Please fill in all required fields.");
+      setLoading(false);
       return;
     }
 
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/interviews`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            companyName,
-            jobRole,
-            jobDescription,
-            domain,
-            interviewType: interviewCategory,
-          }),
-        }
-      );
+      const data = await startInterviewAPI(setupData);
 
-      const data = await response.json();
-      if (data.success !== true) {
-        console.log("failed to generate sessionId");
+      if (!data.success || !data.sessionId || !data.question) {
         throw new Error("Failed to start interview. Please try again.");
       }
 
@@ -119,18 +110,17 @@ export default function AIInterviewSystem() {
       localStorage.setItem("sessionId", data.sessionId);
 
       setQuestionCount((prev) => prev + 1);
-      setCurrentQuestion(data?.question);
+      setCurrentQuestion(data.question);
       setConversation([
         {
           role: "ai",
-          content: data?.question,
-          isFeedback: data?.isFeedback ? true : false,
+          content: data.question,
+          isFeedback: data.isFeedback ?? false,
         },
       ]);
       setInterviewStarted(true);
-      // router.replace(`/${data.sessionId}`);
 
-      speakTextWithTTS(data?.question);
+      speakTextWithTTS(data.question);
     } catch (error) {
       console.error("Error starting interview:", error);
     } finally {
@@ -163,6 +153,12 @@ export default function AIInterviewSystem() {
   const handleUserResponse = async (userResponse: string) => {
     if (!interviewSetup) return;
 
+    const sessionId = localStorage.getItem("sessionId");
+    if (!sessionId) {
+      console.error("Session ID not found.");
+      return;
+    }
+
     const newConversation = [
       ...conversation,
       { role: "user" as const, content: userResponse },
@@ -170,35 +166,12 @@ export default function AIInterviewSystem() {
     setConversation(newConversation);
 
     try {
-      const response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_BACKEND_URL
-        }/api/interviews/${localStorage.getItem("sessionId")}/answers`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            answer: userResponse,
-          }),
-        }
-      );
-
-      const data = await response.json();
-      // Set immediate feedback
-      setCurrentFeedback(data?.feedback);
+      const data = await submitAnswerAPI(sessionId, userResponse);
+      setCurrentFeedback(data.feedback);
 
       if (questionCount >= maxQuestions) {
-        const finalResponse = await fetch(
-          `${
-            process.env.NEXT_PUBLIC_BACKEND_URL
-          }/api/interviews/${localStorage.getItem("sessionId")}/submit`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-          }
-        );
+        const overallData = await submitFinalInterviewAPI(sessionId);
 
-        const overallData = await finalResponse.json();
         setConversation((prev) => [
           ...prev,
           { role: "ai", content: data.feedback, isFeedback: true },
@@ -207,20 +180,19 @@ export default function AIInterviewSystem() {
         setInterviewComplete(true);
         setOverallFeedback(overallData.overallFeedback);
 
-        // Speak feedback and overall assessment
+        // Speak both feedback and final summary
         speakTextWithTTS(
           `${data.feedback} ${JSON.stringify(overallData.overallFeedback)}`
         );
       } else {
-        const aiResponse = data.nextQuestion;
         setConversation((prev) => [
           ...prev,
           { role: "ai", content: data.feedback, isFeedback: true },
-          // { role: "ai", content: aiResponse },
+          // Optional: add nextQuestion if needed
+          // { role: "ai", content: data.nextQuestion },
         ]);
 
-        // Speak feedback and next question
-        // speakTextWithTTS(`${data.feedback} ${aiResponse}`);
+        // Speak feedback only
         speakTextWithTTS(data.feedback);
       }
     } catch (error) {

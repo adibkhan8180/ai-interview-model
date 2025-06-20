@@ -3,6 +3,7 @@ import { CheckCircle, Lightbulb, Target, TrendingUp } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
+import { getNextQuestionAPI } from "@/lib/api";
 
 interface OverallFeedback {
   overall_score: number;
@@ -54,13 +55,16 @@ export function FeedbackDisplay({
     if (typeof feedback !== "string") {
       return null;
     }
+    const sessionId = localStorage.getItem("sessionId");
+    if (!sessionId) {
+      console.error("Session ID not found.");
+      return;
+    }
     const handleReviseQuestion = async () => {
       setLoading(true);
       try {
         const response = await fetch(
-          `${
-            process.env.NEXT_PUBLIC_BACKEND_URL
-          }/api/interviews/${localStorage.getItem("sessionId")}/revise`,
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/interviews/${sessionId}/revise`,
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },
@@ -85,17 +89,7 @@ export function FeedbackDisplay({
     const getNextQuestion = async () => {
       setLoading(true);
       try {
-        const questionResponse = await fetch(
-          `${
-            process.env.NEXT_PUBLIC_BACKEND_URL
-          }/api/interviews/${localStorage.getItem("sessionId")}/questions`,
-          {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-          }
-        );
-
-        const questionData = await questionResponse.json();
+        const questionData = await getNextQuestionAPI(sessionId);
         setQuestionCount((prev) => prev + 1);
 
         setCurrentQuestion(questionData?.question);

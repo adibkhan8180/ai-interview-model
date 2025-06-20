@@ -1,0 +1,97 @@
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
+
+export interface InterviewSetupData {
+  companyName: string;
+  jobRole: string;
+  jobDescription?: string;
+  domain?: string;
+  interviewCategory: string;
+}
+
+export interface InterviewStartResponse {
+  success: boolean;
+  sessionId?: string;
+  question?: string;
+  isFeedback?: boolean;
+}
+
+export async function startInterviewAPI(
+  setupData: InterviewSetupData
+): Promise<InterviewStartResponse> {
+  const { companyName, jobRole, jobDescription, domain, interviewCategory } =
+    setupData;
+
+  const response = await fetch(`${BASE_URL}/api/interviews`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      companyName,
+      jobRole,
+      jobDescription,
+      domain,
+      interviewType: interviewCategory,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to start interview. Please try again.");
+  }
+
+  const data = await response.json();
+  return data;
+}
+
+export async function submitAnswerAPI(
+  sessionId: string,
+  answer: string
+): Promise<{
+  feedback: string;
+  nextQuestion?: string;
+}> {
+  const response = await fetch(
+    `${BASE_URL}/api/interviews/${sessionId}/answers`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ answer }),
+    }
+  );
+
+  if (!response.ok) throw new Error("Failed to submit answer");
+
+  return response.json();
+}
+
+export async function getNextQuestionAPI(
+  sessionId: string
+): Promise<{ question: string }> {
+  const response = await fetch(
+    `${BASE_URL}/api/interviews/${sessionId}/questions`
+  );
+
+  if (!response.ok) throw new Error("Failed to get next answer");
+
+  return response.json();
+}
+
+export async function submitFinalInterviewAPI(
+  sessionId: string
+): Promise<{ overallFeedback: any }> {
+  const response = await fetch(
+    `${BASE_URL}/api/interviews/${sessionId}/submit`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  if (!response.ok) throw new Error("Failed to submit final interview");
+
+  return response.json();
+}

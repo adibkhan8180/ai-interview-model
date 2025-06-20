@@ -99,7 +99,7 @@ export function FeedbackDisplay({
 
     return (
       <div>
-        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-400 p-4 rounded-lg my-3">
+        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-400 p-4 rounded-lg w-fit max-w-[90%]">
           <div className="flex items-start space-x-3">
             <Lightbulb className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
             <div>

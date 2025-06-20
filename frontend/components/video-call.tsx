@@ -1,22 +1,27 @@
-"use client"
+"use client";
 
-import { useEffect, useRef, useState } from "react"
-import { Card } from "@/components/ui/card"
-import { Mic, MicOff, Camera, CameraOff, Volume2 } from "lucide-react"
-import Image from "next/image"
+import { useEffect, useRef, useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Mic, MicOff, Camera, CameraOff, Volume2 } from "lucide-react";
+import Image from "next/image";
 
 interface VideoCallProps {
-  isRecording: boolean
-  isAISpeaking: boolean
-  onStartRecording: () => void
-  onStopRecording: () => void
+  isRecording: boolean;
+  isAISpeaking: boolean;
+  onStartRecording: () => void;
+  onStopRecording: () => void;
 }
 
-export function VideoCall({ isRecording, isAISpeaking, onStartRecording, onStopRecording }: VideoCallProps) {
-  const userVideoRef = useRef<HTMLVideoElement>(null)
-  const [cameraEnabled, setCameraEnabled] = useState(false)
-  const [micEnabled, setMicEnabled] = useState(false)
-  const [stream, setStream] = useState<MediaStream | null>(null)
+export function VideoCall({
+  isRecording,
+  isAISpeaking,
+  onStartRecording,
+  onStopRecording,
+}: VideoCallProps) {
+  const userVideoRef = useRef<HTMLVideoElement>(null);
+  const [cameraEnabled, setCameraEnabled] = useState(false);
+  const [micEnabled, setMicEnabled] = useState(false);
+  const [stream, setStream] = useState<MediaStream | null>(null);
 
   useEffect(() => {
     // Initialize camera when component mounts
@@ -25,48 +30,48 @@ export function VideoCall({ isRecording, isAISpeaking, onStartRecording, onStopR
         const mediaStream = await navigator.mediaDevices.getUserMedia({
           video: true,
           audio: true,
-        })
+        });
 
         if (userVideoRef.current) {
-          userVideoRef.current.srcObject = mediaStream
+          userVideoRef.current.srcObject = mediaStream;
         }
 
-        setStream(mediaStream)
-        setCameraEnabled(true)
-        setMicEnabled(true)
+        setStream(mediaStream);
+        setCameraEnabled(true);
+        setMicEnabled(true);
       } catch (error) {
-        console.error("Error accessing camera:", error)
+        console.error("Error accessing camera:", error);
       }
-    }
+    };
 
-    initCamera()
+    initCamera();
 
     // Cleanup function
     return () => {
       if (stream) {
         stream.getTracks().forEach((track) => {
-          track.stop()
-        })
+          track.stop();
+        });
       }
-    }
-  }, [])
+    };
+  }, []);
 
   const toggleCamera = () => {
     if (stream) {
-      const videoTrack = stream.getVideoTracks()[0]
+      const videoTrack = stream.getVideoTracks()[0];
       if (videoTrack) {
-        videoTrack.enabled = !cameraEnabled
-        setCameraEnabled(!cameraEnabled)
+        videoTrack.enabled = !cameraEnabled;
+        setCameraEnabled(!cameraEnabled);
       }
     }
-  }
+  };
 
   const toggleMic = () => {
     if (stream) {
-      const audioTrack = stream.getAudioTracks()[0]
+      const audioTrack = stream.getAudioTracks()[0];
       if (audioTrack) {
-        audioTrack.enabled = !micEnabled
-        setMicEnabled(!micEnabled)
+        audioTrack.enabled = !micEnabled;
+        setMicEnabled(!micEnabled);
 
         // if (!micEnabled) {
         //   onStartRecording()
@@ -75,18 +80,20 @@ export function VideoCall({ isRecording, isAISpeaking, onStartRecording, onStopR
         // }
       }
     }
-  }
+  };
 
   return (
-    <div className="grid grid-cols-2 gap-4 mb-6">
+    <div className="flex flex-col gap-4 ">
       {/* User video */}
-      <Card className="overflow-hidden bg-black relative">
+      <Card className="overflow-hidden bg-black relative w-full aspect-[4/3]">
         <video
           ref={userVideoRef}
           autoPlay
           muted
           playsInline
-          className={`w-full h-[240px] object-cover ${!cameraEnabled ? "invisible" : ""}`}
+          className={`w-full h-full object-cover ${
+            !cameraEnabled ? "invisible" : ""
+          }`}
         />
 
         {!cameraEnabled && (
@@ -106,25 +113,37 @@ export function VideoCall({ isRecording, isAISpeaking, onStartRecording, onStopR
           <button
             onClick={toggleCamera}
             className={`p-2 rounded-full ${
-              cameraEnabled ? "bg-gray-700 hover:bg-gray-600" : "bg-red-600 hover:bg-red-500"
+              cameraEnabled
+                ? "bg-gray-700 hover:bg-gray-600"
+                : "bg-red-600 hover:bg-red-500"
             }`}
           >
-            {cameraEnabled ? <Camera className="w-4 h-4 text-white" /> : <CameraOff className="w-4 h-4 text-white" />}
+            {cameraEnabled ? (
+              <Camera className="w-4 h-4 text-white" />
+            ) : (
+              <CameraOff className="w-4 h-4 text-white" />
+            )}
           </button>
 
           <button
             onClick={toggleMic}
             className={`p-2 rounded-full ${
-              micEnabled ? "bg-gray-700 hover:bg-gray-600" : "bg-red-600 hover:bg-red-500"
+              micEnabled
+                ? "bg-gray-700 hover:bg-gray-600"
+                : "bg-red-600 hover:bg-red-500"
             }`}
           >
-            {micEnabled ? <Mic className="w-4 h-4 text-white" /> : <MicOff className="w-4 h-4 text-white" />}
+            {micEnabled ? (
+              <Mic className="w-4 h-4 text-white" />
+            ) : (
+              <MicOff className="w-4 h-4 text-white" />
+            )}
           </button>
         </div>
       </Card>
 
       {/* AI interviewer */}
-      <Card className="overflow-hidden bg-gradient-to-b from-blue-900 to-indigo-900 relative">
+      <Card className="overflow-hidden bg-gradient-to-b from-blue-900 to-indigo-900 relative w-full aspect-[4/3]">
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <div className="relative w-24 h-24 mb-3">
             <Image
@@ -144,18 +163,20 @@ export function VideoCall({ isRecording, isAISpeaking, onStartRecording, onStopR
           <div className="mt-3">
             {isAISpeaking ? (
               <Image
-                  src="/AIVoiceEffectCrop.gif"
-                  alt="AI Interviewer"
-                  width={50}
-                  height={50}
-                  className="rounded-full border-2 border-blue-400"
-                />
+                src="/AIVoiceEffectCrop.gif"
+                alt="AI Interviewer"
+                width={50}
+                height={50}
+                className="rounded-full border-2 border-blue-400"
+              />
             ) : (
-              <div className="text-blue-300 text-sm">Waiting for your response...</div>
+              <div className="text-blue-300 text-sm">
+                Waiting for your response...
+              </div>
             )}
           </div>
         </div>
       </Card>
     </div>
-  )
+  );
 }

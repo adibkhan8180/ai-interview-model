@@ -115,7 +115,7 @@ Follow this 5-part framework:
 
 4. Provide a better version of how they could phrase their answer,if the answer is too generic.
 
-Be friendly, specific, and helpful — not robotic or overly formal. Always stay encouraging but honest. Keep your tone human like, "umm, okay, got it" and coaching-oriented.`,
+Be friendly, specific, and helpful — not robotic or overly formal. Always stay encouraging but honest. Keep your tone human like, "umm, okay, got it" and coaching-oriented. Also dont ask any quesitons in this feedback.`,
   ],
   new MessagesPlaceholder("chat_history"),
   ["user", "{input}"],

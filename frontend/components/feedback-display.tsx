@@ -26,80 +26,17 @@ interface OverallFeedback {
 interface FeedbackDisplayProps {
   feedback: string | OverallFeedback;
   type: "immediate" | "overall";
-  setConversation: React.Dispatch<
-    React.SetStateAction<
-      Array<{ role: "ai" | "user"; content: string; isFeedback?: boolean }>
-    >
-  >;
-  speakTextWithTTS: (text: string) => Promise<void>;
-  setCurrentQuestion: React.Dispatch<React.SetStateAction<string>>;
-  setQuestionCount: React.Dispatch<React.SetStateAction<number>>;
-  isAISpeaking: boolean;
-  isLatestFeedback?: boolean;
-  interviewComplete?: boolean;
 }
 
-export function FeedbackDisplay({
-  feedback,
-  type,
-  setConversation,
-  speakTextWithTTS,
-  setCurrentQuestion,
-  setQuestionCount,
-  isAISpeaking,
-  isLatestFeedback,
-  interviewComplete,
-}: FeedbackDisplayProps) {
-  const [loading, setLoading] = useState(false);
+export function FeedbackDisplay({ feedback, type }: FeedbackDisplayProps) {
   if (type === "immediate") {
     if (typeof feedback !== "string") {
       return null;
     }
-    const sessionId = localStorage.getItem("sessionId");
-    if (!sessionId) {
-      console.error("Session ID not found.");
-      return;
-    }
-    const handleReviseQuestion = async () => {
-      setLoading(true);
-      try {
-        const data = await reviseAnswerAPI(sessionId);
-
-        setConversation((prev) => [
-          ...prev,
-          { role: "ai", content: data.question, isFeedback: false },
-        ]);
-
-        speakTextWithTTS(data.question);
-      } catch (error) {
-        console.error("Error reviseing answer:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const getNextQuestion = async () => {
-      setLoading(true);
-      try {
-        const data = await getNextQuestionAPI(sessionId);
-        setQuestionCount((prev) => prev + 1);
-
-        setCurrentQuestion(data?.question);
-        setConversation((prev) => [
-          ...prev,
-          { role: "ai", content: data?.question, isFeedback: false },
-        ]);
-        speakTextWithTTS(data?.question);
-      } catch (error) {
-        console.error("Error getting next question:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
 
     return (
       <div>
-        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-400 p-4 rounded-lg my-3">
+        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-400 p-4 rounded-lg w-fit max-w-[90%]">
           <div className="flex items-start space-x-3">
             <Lightbulb className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
             <div>
@@ -112,27 +49,6 @@ export function FeedbackDisplay({
             </div>
           </div>
         </div>
-        {!interviewComplete && isLatestFeedback && (
-          <div className="flex items-center justify-center gap-5">
-            <p className="text-yellow-700 text-sm leading-relaxed">
-              Do you want to revise the answer?
-            </p>
-            <Button
-              onClick={handleReviseQuestion}
-              disabled={isAISpeaking || loading}
-              className="bg-green-500 hover:bg-green-600"
-            >
-              yes
-            </Button>
-            <Button
-              onClick={getNextQuestion}
-              disabled={isAISpeaking || loading}
-              className="bg-red-500 hover:bg-red-600"
-            >
-              No
-            </Button>
-          </div>
-        )}
       </div>
     );
   }

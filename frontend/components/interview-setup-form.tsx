@@ -94,38 +94,42 @@ export function InterviewSetupForm({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="interviewCategory">Interview Category</Label>
-            <Select
-              value={formData.interviewCategory}
-              onValueChange={(value) =>
-                handleSelectChange("interviewCategory", value)
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select interview type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="general">General</SelectItem>
-                <SelectItem value="hr">HR</SelectItem>
-                <SelectItem value="domain-specific">Domain-specific</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {isDomainSpecific && (
-            <div className="space-y-2">
-              <Label htmlFor="domain">Domain</Label>
-              <Input
-                id="domain"
-                name="domain"
-                placeholder="e.g., Frontend Development, Machine Learning"
-                value={formData.domain}
-                onChange={handleChange}
-                required={isDomainSpecific}
-              />
+          <div className="flex gap-4">
+            <div className="space-y-2 w-1/2">
+              <Label htmlFor="interviewCategory">Interview Category</Label>
+              <Select
+                value={formData.interviewCategory}
+                onValueChange={(value) =>
+                  handleSelectChange("interviewCategory", value)
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select interview type" />
+                </SelectTrigger>
+                <SelectContent className="w-full">
+                  <SelectItem value="general">General</SelectItem>
+                  <SelectItem value="hr">HR</SelectItem>
+                  <SelectItem value="domain-specific">
+                    Domain-specific
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          )}
+
+            {isDomainSpecific && (
+              <div className="space-y-2 w-1/2">
+                <Label htmlFor="domain">Domain</Label>
+                <Input
+                  id="domain"
+                  name="domain"
+                  placeholder="e.g., Frontend Development, Machine Learning"
+                  value={formData.domain}
+                  onChange={handleChange}
+                  required={isDomainSpecific}
+                />
+              </div>
+            )}
+          </div>
 
           <div className="space-y-2">
             <Label htmlFor="jobDescription">

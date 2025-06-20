@@ -1,15 +1,21 @@
-import { Progress } from "@/components/ui/progress"
-import { Clock, MessageSquare } from "lucide-react"
+import { Progress } from "@/components/ui/progress";
+import { Clock, MessageSquare } from "lucide-react";
 
 interface InterviewProgressProps {
-  currentQuestion: number
-  totalQuestions: number
-  startTime: Date
+  currentQuestion: number;
+  totalQuestions: number;
+  startTime: Date;
 }
 
-export function InterviewProgress({ currentQuestion, totalQuestions, startTime }: InterviewProgressProps) {
-  const progress = (currentQuestion / totalQuestions) * 100
-  const elapsedTime = Math.floor((Date.now() - startTime.getTime()) / 1000 / 60) // minutes
+export function InterviewProgress({
+  currentQuestion,
+  totalQuestions,
+  startTime,
+}: InterviewProgressProps) {
+  const progress = (currentQuestion / totalQuestions) * 100;
+  const elapsedTime = Math.floor(
+    (Date.now() - startTime.getTime()) / 1000 / 60
+  ); // minutes
 
   return (
     <div className="bg-white border rounded-lg p-4 mb-4 shadow-sm">
@@ -27,5 +33,5 @@ export function InterviewProgress({ currentQuestion, totalQuestions, startTime }
       </div>
       <Progress value={progress} className="h-2" />
     </div>
-  )
+  );
 }

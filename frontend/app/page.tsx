@@ -211,112 +211,112 @@ export default function AIInterviewSystem() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="max-w-4xl mx-auto pt-8">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl">
-              {interviewSetup?.companyName} - {interviewSetup?.jobRole}{" "}
-              Interview
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {interviewStartTime && (
-              <InterviewProgress
-                currentQuestion={questionCount}
-                totalQuestions={maxQuestions}
-                startTime={interviewStartTime}
-              />
-            )}
-
-            {/* Video call component */}
-            <VideoCall
-              isRecording={isRecording}
-              isAISpeaking={isAISpeaking}
-              onStartRecording={startRecording}
-              onStopRecording={stopRecording}
+    <div className="h-screen w-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
+      <Card className="h-full max-w-7xl mx-auto ">
+        <CardHeader>
+          <CardTitle className="text-xl text-center capitalize">
+            {interviewSetup?.companyName} - {interviewSetup?.jobRole} Interview
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="h-full w-full flex flex-col gap-4 ">
+          {interviewStartTime && (
+            <InterviewProgress
+              currentQuestion={questionCount}
+              totalQuestions={maxQuestions}
+              startTime={interviewStartTime}
             />
-
-            <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
-              {conversation.map((message, index) => {
-                if (message?.isFeedback) {
-                  return (
-                    <FeedbackDisplay
-                      key={index}
-                      feedback={message.content}
-                      type="immediate"
-                      setConversation={setConversation}
-                      speakTextWithTTS={speakTextWithTTS}
-                      setCurrentQuestion={setCurrentQuestion}
-                      setQuestionCount={setQuestionCount}
-                      isAISpeaking={isAISpeaking}
-                      isLatestFeedback={index === conversation.length - 1}
-                      interviewComplete={interviewComplete}
-                    />
-                  );
-                }
-
-                return (
-                  <div
-                    key={index}
-                    className={`p-3 rounded-lg ${
-                      message.role === "ai"
-                        ? "bg-blue-100 text-blue-900"
-                        : "bg-green-100 text-green-900 ml-8"
-                    }`}
-                  >
-                    <strong>
-                      {message.role === "ai" ? "🤖 AI Interviewer:" : "👤 You:"}
-                    </strong>
-                    <p className="mt-1">{message.content}</p>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div></div>
-
-            {interviewComplete && overallFeedback ? (
-              <div className="mt-6">
-                <FeedbackDisplay
-                  feedback={overallFeedback}
-                  type="overall"
-                  setConversation={setConversation}
-                  speakTextWithTTS={speakTextWithTTS}
-                  setCurrentQuestion={setCurrentQuestion}
-                  setQuestionCount={setQuestionCount}
-                  isAISpeaking={isAISpeaking}
-                  isLatestFeedback={false}
-                  interviewComplete={interviewComplete}
-                />
-                <div className="mt-4 text-center">
-                  <button
-                    onClick={() => window.location.reload()}
-                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md"
-                  >
-                    🎯 Start New Interview
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <ResponseInput
-                onSubmitText={handleUserResponse}
-                onStartRecording={startRecording}
-                onStopRecording={stopRecording}
+          )}
+          <div className="w-full h-full grid grid-cols-[1fr_2fr] gap-8 ">
+            <div className="w-full h-fit">
+              {/* Video call component */}
+              <VideoCall
                 isRecording={isRecording}
                 isAISpeaking={isAISpeaking}
+                onStartRecording={startRecording}
+                onStopRecording={stopRecording}
               />
-            )}
+            </div>
+            <div className="h-full w-full flex flex-col justify-between ">
+              {/* scrollable div */}
+              <div className="h-full flex flex-col overflow-y-auto space-y-4 p-4 ">
+                {conversation.map((message, index) => {
+                  if (message?.isFeedback) {
+                    return (
+                      <FeedbackDisplay
+                        key={index}
+                        feedback={message.content}
+                        type="immediate"
+                      />
+                    );
+                  }
 
-            {isAISpeaking && (
-              <div className="flex items-center justify-center mt-4 text-blue-600">
-                <Play className="w-4 h-4 mr-2" />
-                AI is speaking...
+                  return (
+                    <div
+                      key={index}
+                      className={`p-3 relative rounded-lg w-fit max-w-[90%] flex flex-col after:content-[''] after:absolute after:top-0  after:border-[12px] after:border-transparent  ${
+                        message.role === "ai"
+                          ? "bg-blue-100 text-blue-900 self-start after:left-3 after:border-t-blue-100 after:-translate-x-full"
+                          : "bg-green-100 text-green-900 self-end after:right-3 after:border-t-green-100 after:translate-x-full"
+                      }
+                      
+                      `}
+                    >
+                      <strong>
+                        {message.role === "ai"
+                          ? "🤖 AI Interviewer:"
+                          : "👤 You:"}
+                      </strong>
+                      <p className="mt-1">{message.content}</p>
+                    </div>
+                  );
+                })}
               </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+
+              <div className="">
+                {interviewComplete && overallFeedback ? (
+                  <div className="">
+                    <FeedbackDisplay
+                      feedback={overallFeedback}
+                      type="overall"
+                    />
+                    <div className="mt-4 text-center">
+                      <button
+                        onClick={() => window.location.reload()}
+                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md"
+                      >
+                        🎯 Start New Interview
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <ResponseInput
+                    onSubmitText={handleUserResponse}
+                    onStartRecording={startRecording}
+                    onStopRecording={stopRecording}
+                    isRecording={isRecording}
+                    isAISpeaking={isAISpeaking}
+                    setConversation={setConversation}
+                    speakTextWithTTS={speakTextWithTTS}
+                    setCurrentQuestion={setCurrentQuestion}
+                    setQuestionCount={setQuestionCount}
+                    isLatestFeedback={
+                      conversation[conversation.length - 1].isFeedback || false
+                    }
+                    interviewComplete={interviewComplete}
+                  />
+                )}
+
+                {/* {isAISpeaking && (
+                    <div className="flex items-center justify-center mt-4 text-blue-600">
+                      <Play className="w-4 h-4 mr-2" />
+                      AI is speaking...
+                    </div>
+                  )} */}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

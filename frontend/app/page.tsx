@@ -246,13 +246,6 @@ export default function AIInterviewSystem() {
                         key={index}
                         feedback={message.content}
                         type="immediate"
-                        setConversation={setConversation}
-                        speakTextWithTTS={speakTextWithTTS}
-                        setCurrentQuestion={setCurrentQuestion}
-                        setQuestionCount={setQuestionCount}
-                        isAISpeaking={isAISpeaking}
-                        isLatestFeedback={index === conversation.length - 1}
-                        interviewComplete={interviewComplete}
                       />
                     );
                   }
@@ -260,11 +253,13 @@ export default function AIInterviewSystem() {
                   return (
                     <div
                       key={index}
-                      className={`p-3 rounded-lg w-fit max-w-[90%] flex flex-col ${
+                      className={`p-3 relative rounded-lg w-fit max-w-[90%] flex flex-col after:content-[''] after:absolute after:top-0  after:border-[12px] after:border-transparent  ${
                         message.role === "ai"
-                          ? "bg-blue-100 text-blue-900 self-start"
-                          : "bg-green-100 text-green-900 self-end"
-                      }`}
+                          ? "bg-blue-100 text-blue-900 self-start after:left-3 after:border-t-blue-100 after:-translate-x-full"
+                          : "bg-green-100 text-green-900 self-end after:right-3 after:border-t-green-100 after:translate-x-full"
+                      }
+                      
+                      `}
                     >
                       <strong>
                         {message.role === "ai"
@@ -283,13 +278,6 @@ export default function AIInterviewSystem() {
                     <FeedbackDisplay
                       feedback={overallFeedback}
                       type="overall"
-                      setConversation={setConversation}
-                      speakTextWithTTS={speakTextWithTTS}
-                      setCurrentQuestion={setCurrentQuestion}
-                      setQuestionCount={setQuestionCount}
-                      isAISpeaking={isAISpeaking}
-                      isLatestFeedback={false}
-                      interviewComplete={interviewComplete}
                     />
                     <div className="mt-4 text-center">
                       <button
@@ -307,6 +295,14 @@ export default function AIInterviewSystem() {
                     onStopRecording={stopRecording}
                     isRecording={isRecording}
                     isAISpeaking={isAISpeaking}
+                    setConversation={setConversation}
+                    speakTextWithTTS={speakTextWithTTS}
+                    setCurrentQuestion={setCurrentQuestion}
+                    setQuestionCount={setQuestionCount}
+                    isLatestFeedback={
+                      conversation[conversation.length - 1].isFeedback || false
+                    }
+                    interviewComplete={interviewComplete}
                   />
                 )}
 

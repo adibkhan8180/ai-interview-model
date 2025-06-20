@@ -2,6 +2,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, Lightbulb, Target, TrendingUp } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import { getNextQuestionAPI, reviseAnswerAPI } from "@/lib/api";
 
 interface OverallFeedback {
   overall_score: number;
@@ -53,20 +55,15 @@ export function FeedbackDisplay({
     if (typeof feedback !== "string") {
       return null;
     }
+    const sessionId = localStorage.getItem("sessionId");
+    if (!sessionId) {
+      console.error("Session ID not found.");
+      return;
+    }
     const handleReviseQuestion = async () => {
       setLoading(true);
       try {
-        const response = await fetch(
-          `${
-            process.env.NEXT_PUBLIC_BACKEND_URL
-          }/api/interviews/${localStorage.getItem("sessionId")}/revise`,
-          {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-          }
-        );
-
-        const data = await response.json();
+        const data = await reviseAnswerAPI(sessionId);
 
         setConversation((prev) => [
           ...prev,
@@ -84,25 +81,15 @@ export function FeedbackDisplay({
     const getNextQuestion = async () => {
       setLoading(true);
       try {
-        const questionResponse = await fetch(
-          `${
-            process.env.NEXT_PUBLIC_BACKEND_URL
-          }/api/interviews/${localStorage.getItem("sessionId")}/questions`,
-          {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-          }
-        );
-
-        const questionData = await questionResponse.json();
+        const data = await getNextQuestionAPI(sessionId);
         setQuestionCount((prev) => prev + 1);
 
-        setCurrentQuestion(questionData?.question);
+        setCurrentQuestion(data?.question);
         setConversation((prev) => [
           ...prev,
-          { role: "ai", content: questionData?.question, isFeedback: false },
+          { role: "ai", content: data?.question, isFeedback: false },
         ]);
-        speakTextWithTTS(questionData?.question);
+        speakTextWithTTS(data?.question);
       } catch (error) {
         console.error("Error getting next question:", error);
       } finally {
@@ -119,9 +106,9 @@ export function FeedbackDisplay({
               <h4 className="font-semibold text-yellow-800 mb-1">
                 💡 Immediate Feedback
               </h4>
-              <p className="text-yellow-700 text-sm leading-relaxed">
-                {feedback}
-              </p>
+              <div className="text-yellow-700 text-sm leading-relaxed">
+                <ReactMarkdown>{feedback}</ReactMarkdown>
+              </div>
             </div>
           </div>
         </div>

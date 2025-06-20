@@ -96,6 +96,7 @@ export const feedbackPrompt = ChatPromptTemplate.fromMessages([
   [
     "system",
     `You are an HR assistant providing personalized and constructive feedback to a student after each answer in a mock interview.
+    Differentiate each point with bold title and new lines.
 
 Follow this 5-part framework:
 

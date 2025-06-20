@@ -3,7 +3,7 @@ import { CheckCircle, Lightbulb, Target, TrendingUp } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { getNextQuestionAPI } from "@/lib/api";
+import { getNextQuestionAPI, reviseAnswerAPI } from "@/lib/api";
 
 interface OverallFeedback {
   overall_score: number;
@@ -63,15 +63,7 @@ export function FeedbackDisplay({
     const handleReviseQuestion = async () => {
       setLoading(true);
       try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/interviews/${sessionId}/revise`,
-          {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-          }
-        );
-
-        const data = await response.json();
+        const data = await reviseAnswerAPI(sessionId);
 
         setConversation((prev) => [
           ...prev,
@@ -89,15 +81,15 @@ export function FeedbackDisplay({
     const getNextQuestion = async () => {
       setLoading(true);
       try {
-        const questionData = await getNextQuestionAPI(sessionId);
+        const data = await getNextQuestionAPI(sessionId);
         setQuestionCount((prev) => prev + 1);
 
-        setCurrentQuestion(questionData?.question);
+        setCurrentQuestion(data?.question);
         setConversation((prev) => [
           ...prev,
-          { role: "ai", content: questionData?.question, isFeedback: false },
+          { role: "ai", content: data?.question, isFeedback: false },
         ]);
-        speakTextWithTTS(questionData?.question);
+        speakTextWithTTS(data?.question);
       } catch (error) {
         console.error("Error getting next question:", error);
       } finally {

@@ -78,6 +78,18 @@ export async function getNextQuestionAPI(
   return response.json();
 }
 
+export async function reviseAnswerAPI(
+  sessionId: string
+): Promise<{ question: string }> {
+  const response = await fetch(
+    `${BASE_URL}/api/interviews/${sessionId}/revise`
+  );
+
+  if (!response.ok) throw new Error("Failed to revise answer");
+
+  return response.json();
+}
+
 export async function submitFinalInterviewAPI(
   sessionId: string
 ): Promise<{ overallFeedback: any }> {

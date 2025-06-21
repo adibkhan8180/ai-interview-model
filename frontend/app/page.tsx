@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Play } from "lucide-react";
 import { FeedbackDisplay } from "@/components/feedback-display";
@@ -41,6 +41,7 @@ export default function AIInterviewSystem() {
   const [interviewStarted, setInterviewStarted] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isAISpeaking, setIsAISpeaking] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
   // const [conversation, setConversation] = useState<
   //   Array<{ role: "ai" | "user"; content: string; isFeedback?: boolean }>
   // >([
@@ -209,6 +210,10 @@ export default function AIInterviewSystem() {
     getFinalAssessment();
   }, [showFinalAssessment]);
 
+  useEffect(() => {
+    scrollRef?.current?.scrollIntoView({ behavior: "smooth" });
+  }, [conversation]);
+
   if (!interviewStarted) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
@@ -295,6 +300,7 @@ export default function AIInterviewSystem() {
                     </div>
                   </div>
                 )}
+                <div ref={scrollRef} />
               </div>
 
               <div>

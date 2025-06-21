@@ -18,3 +18,11 @@ export interface InterviewStartResponse {
   question?: string;
   isFeedback?: boolean;
 }
+
+export type MessageRole = "ai" | "user";
+
+export interface ConversationEntry {
+  role: MessageRole;
+  content: string;
+  isFeedback?: boolean;
+}

@@ -11,10 +11,7 @@ import {
   generateSpeech,
   playAudioFromArrayBuffer,
 } from "@/services/text-to-speech";
-import {
-  InterviewSetupForm,
-  type InterviewSetupData,
-} from "@/components/interview-setup-form";
+import { InterviewSetupForm } from "@/components/interview-setup-form";
 import { ResponseInput } from "@/components/response-input";
 import { useRouter } from "next/navigation";
 import {
@@ -23,19 +20,32 @@ import {
   submitFinalInterviewAPI,
 } from "@/lib/api";
 import { get } from "http";
+import { InterviewSetupData } from "@/types";
+import { useFormStore } from "@/lib/store/formStore";
+import { useInterviewStore } from "@/lib/store/interviewStore";
 
 export default function AIInterviewSystem() {
   const router = useRouter();
-  const [interviewSetup, setInterviewSetup] =
-    useState<InterviewSetupData | null>(null);
+  // const [interviewSetup, setInterviewSetup] =
+  //   useState<InterviewSetupData | null>(null);
+  const {
+    formData: interviewSetup,
+    setFormData: setInterviewSetup,
+    resetForm,
+  } = useFormStore();
+  const {
+    conversation,
+    addMessage: setConversation,
+    resetConversation,
+  } = useInterviewStore();
   const [interviewStarted, setInterviewStarted] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isAISpeaking, setIsAISpeaking] = useState(false);
-  const [conversation, setConversation] = useState<
-    Array<{ role: "ai" | "user"; content: string; isFeedback?: boolean }>
-  >([
-    { role: "ai", content: "Hi! How can I help you today?", isFeedback: true },
-  ]);
+  // const [conversation, setConversation] = useState<
+  //   Array<{ role: "ai" | "user"; content: string; isFeedback?: boolean }>
+  // >([
+  //   { role: "ai", content: "Hi! How can I help you today?", isFeedback: true },
+  // ]);
   const [currentQuestion, setCurrentQuestion] = useState("");
   const [currentFeedback, setCurrentFeedback] = useState("");
   const [overallFeedback, setOverallFeedback] = useState({
@@ -112,13 +122,11 @@ export default function AIInterviewSystem() {
 
       setQuestionCount((prev) => prev + 1);
       setCurrentQuestion(data.question);
-      setConversation([
-        {
-          role: "ai",
-          content: data.question,
-          isFeedback: data.isFeedback ?? false,
-        },
-      ]);
+      setConversation({
+        role: "ai",
+        content: data.question,
+        isFeedback: data.isFeedback ?? false,
+      });
       setInterviewStarted(true);
 
       speakTextWithTTS(data.question);
@@ -160,22 +168,14 @@ export default function AIInterviewSystem() {
       return;
     }
 
-    const newConversation = [
-      ...conversation,
-      { role: "user" as const, content: userResponse },
-    ];
+    const newConversation = { role: "user" as const, content: userResponse };
     setConversation(newConversation);
 
     try {
       const data = await submitAnswerAPI(sessionId, userResponse);
       setCurrentFeedback(data.feedback);
 
-      setConversation((prev) => [
-        ...prev,
-        { role: "ai", content: data.feedback, isFeedback: true },
-        // Optional: add nextQuestion if needed
-        // { role: "ai", content: data.nextQuestion },
-      ]);
+      setConversation({ role: "ai", content: data.feedback, isFeedback: true });
 
       // Speak feedback only
       speakTextWithTTS(data.feedback);

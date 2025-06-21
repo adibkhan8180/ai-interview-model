@@ -317,13 +317,6 @@ export default function AIInterviewSystem() {
                     setShowFinalAssessment={setShowFinalAssessment}
                   />
                 )}
-
-                {/* {isAISpeaking && (
-                    <div className="flex items-center justify-center mt-4 text-blue-600">
-                      <Play className="w-4 h-4 mr-2" />
-                      AI is speaking...
-                    </div>
-                  )} */}
               </div>
             </div>
           </div>

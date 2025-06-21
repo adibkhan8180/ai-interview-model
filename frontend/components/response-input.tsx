@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Mic, MicOff, Send } from "lucide-react";
@@ -45,6 +45,7 @@ export function ResponseInput({
 }: ResponseInputProps) {
   const [textResponse, setTextResponse] = useState("");
   const [loading, setLoading] = useState(false);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const sessionId = localStorage.getItem("sessionId");
   if (!sessionId) {
@@ -100,6 +101,24 @@ export function ResponseInput({
     }
   };
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (textResponse !== "" && event.key === "Enter") {
+        handleSubmit();
+      }
+
+      if (textResponse === "" && event.key === "Enter") {
+        event.preventDefault();
+        inputRef.current?.focus();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [textResponse, handleSubmit]);
+
   return (
     <div className="space-y-3 ">
       <div className="flex items-center justify-center space-x-2 mb-2">
@@ -141,6 +160,7 @@ export function ResponseInput({
                   ? "AI is speaking..."
                   : "Type your response here..."
               }
+              ref={inputRef}
               value={textResponse}
               onChange={(e) => setTextResponse(e.target.value)}
               className="rounded-xl resize-none p-2 px-4 shadow-md"

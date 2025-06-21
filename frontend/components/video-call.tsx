@@ -85,7 +85,7 @@ export function VideoCall({
   return (
     <div className="flex flex-col gap-4 ">
       {/* User video */}
-      <Card className="overflow-hidden bg-black relative w-full aspect-[4/3]">
+      <Card className="overflow-hidden bg-black relative w-full aspect-[5/3] 2xl:aspect-[4/3]">
         <video
           ref={userVideoRef}
           autoPlay
@@ -143,7 +143,7 @@ export function VideoCall({
       </Card>
 
       {/* AI interviewer */}
-      <Card className="overflow-hidden bg-gradient-to-b from-blue-900 to-indigo-900 relative w-full aspect-[4/3]">
+      <Card className="overflow-hidden bg-gradient-to-b from-blue-900 to-indigo-900 relative w-full aspect-[5/3] 2xl:aspect-[4/3]">
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <div className="relative w-24 h-24 mb-3">
             <Image

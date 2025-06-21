@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Mic, MicOff, Send } from "lucide-react";
 import { getNextQuestionAPI, reviseAnswerAPI } from "@/lib/api";
 import { useInterviewStore } from "@/lib/store/interviewStore";
+import { useParams } from "next/navigation";
 
 interface ResponseInputProps {
   onSubmitText: (text: string) => void;
@@ -41,9 +42,10 @@ export function ResponseInput({
     maxQuestions,
   } = useInterviewStore();
 
-  const sessionId = localStorage.getItem("sessionId");
+  const params = useParams();
+  const sessionId = params?.sessionId as string;
   if (!sessionId) {
-    console.error("Session ID not found.");
+    // console.error("Session ID not found.");
     return;
   }
   const handleReviseQuestion = async () => {

@@ -245,9 +245,9 @@ export default function AIInterviewSystem() {
                 onStopRecording={stopRecording}
               />
             </div>
-            <div className="h-full w-full flex flex-col justify-between ">
+            <div className="h-[65vh] 2xl:h-[72vh] w-full flex flex-col justify-between ">
               {/* scrollable div */}
-              <div className="h-full flex flex-col overflow-y-auto space-y-4 p-4 ">
+              <div className="flex flex-col overflow-y-auto space-y-4 p-4 ">
                 {conversation.map((message, index) => {
                   if (message?.isFeedback) {
                     return (
@@ -279,10 +279,7 @@ export default function AIInterviewSystem() {
                     </div>
                   );
                 })}
-              </div>
-
-              <div className="">
-                {interviewComplete && overallFeedback ? (
+                {interviewComplete && overallFeedback && (
                   <div className="">
                     <FeedbackDisplay
                       feedback={overallFeedback}
@@ -297,7 +294,11 @@ export default function AIInterviewSystem() {
                       </button>
                     </div>
                   </div>
-                ) : (
+                )}
+              </div>
+
+              <div>
+                {!interviewComplete && (
                   <ResponseInput
                     onSubmitText={handleUserResponse}
                     onStartRecording={startRecording}

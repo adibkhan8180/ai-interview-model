@@ -236,9 +236,9 @@ export default function AIInterviewSystem() {
                 onStopRecording={stopRecording}
               />
             </div>
-            <div className="h-full w-full flex flex-col justify-between ">
+            <div className="h-[72vh] w-full flex flex-col justify-between ">
               {/* scrollable div */}
-              <div className="h-full flex flex-col overflow-y-auto space-y-4 p-4 ">
+              <div className="flex flex-col overflow-y-auto space-y-4 p-4 ">
                 {conversation.map((message, index) => {
                   if (message?.isFeedback) {
                     return (

@@ -22,6 +22,9 @@ interface ResponseInputProps {
   setQuestionCount: React.Dispatch<React.SetStateAction<number>>;
   isLatestFeedback?: boolean;
   interviewComplete?: boolean;
+  maxQuestions?: number;
+  questionCount?: number;
+  setShowFinalAssessment: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export function ResponseInput({
@@ -36,6 +39,9 @@ export function ResponseInput({
   setQuestionCount,
   isLatestFeedback,
   interviewComplete,
+  maxQuestions,
+  questionCount,
+  setShowFinalAssessment,
 }: ResponseInputProps) {
   const [textResponse, setTextResponse] = useState("");
   const [loading, setLoading] = useState(false);
@@ -65,6 +71,11 @@ export function ResponseInput({
 
   const getNextQuestion = async () => {
     setLoading(true);
+    if (questionCount === maxQuestions) {
+      setShowFinalAssessment(true);
+      return;
+    }
+
     try {
       const data = await getNextQuestionAPI(sessionId);
       setQuestionCount((prev) => prev + 1);
@@ -113,9 +124,13 @@ export function ResponseInput({
             <Button
               onClick={getNextQuestion}
               disabled={isAISpeaking || loading}
-              className="bg-red-500 hover:bg-red-600 cursor-pointer"
+              className={`${
+                maxQuestions === questionCount
+                  ? "bg-blue-400 hover:bg-blue-500"
+                  : "bg-red-500 hover:bg-red-600 "
+              } cursor-pointer`}
             >
-              No
+              {maxQuestions === questionCount ? "Get Assessment!" : "No"}
             </Button>
           </div>
         ) : (

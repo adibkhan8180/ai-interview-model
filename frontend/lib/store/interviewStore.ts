@@ -1,14 +1,13 @@
 import { create } from "zustand";
-import { ConversationEntry } from "@/types";
+import { InterviewStoreState } from "@/types";
 
-interface ConversationState {
-  conversation: ConversationEntry[];
-  addMessage: (message: ConversationEntry) => void;
-  resetConversation: () => void;
-}
-
-export const useInterviewStore = create<ConversationState>((set) => ({
+export const useInterviewStore = create<InterviewStoreState>((set) => ({
   conversation: [],
+  overallFeedback: {},
+  interviewComplete: false,
+  questionCount: 0,
+  maxQuestions: 1,
+  interviewStartTime: null,
 
   addMessage: (message) =>
     set((state) => ({
@@ -19,4 +18,15 @@ export const useInterviewStore = create<ConversationState>((set) => ({
     set({
       conversation: [],
     }),
+
+  setOverallFeedback: (feedback) => set({ overallFeedback: feedback }),
+
+  setInterviewComplete: (complete) => set({ interviewComplete: complete }),
+
+  incrementQuestionCount: () =>
+    set((state) => ({ questionCount: state.questionCount + 1 })),
+
+  resetQuestionCount: () => set({ questionCount: 0 }),
+
+  setInterviewStartTime: (time) => set({ interviewStartTime: time }),
 }));

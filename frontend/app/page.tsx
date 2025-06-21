@@ -37,6 +37,16 @@ export default function AIInterviewSystem() {
     conversation,
     addMessage: setConversation,
     resetConversation,
+    overallFeedback,
+    setOverallFeedback,
+    interviewComplete,
+    setInterviewComplete,
+    questionCount,
+    incrementQuestionCount,
+    resetQuestionCount,
+    interviewStartTime,
+    setInterviewStartTime,
+    maxQuestions,
   } = useInterviewStore();
   const [interviewStarted, setInterviewStarted] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -49,35 +59,13 @@ export default function AIInterviewSystem() {
   // ]);
   const [currentQuestion, setCurrentQuestion] = useState("");
   const [currentFeedback, setCurrentFeedback] = useState("");
-  const [overallFeedback, setOverallFeedback] = useState({
-    overall_score: 60,
-    summary:
-      "The candidate demonstrated a strong technical background in software development and showcased experience with relevant technologies. However, the lack of specific examples and depth in responses impacted the assessment.",
-    questions_analysis: [],
-    skill_assessment: {
-      communication: 6,
-      technical_knowledge: 7,
-      problem_solving: 6,
-      cultural_fit: 7,
-    },
-    coaching_scores: {
-      clarity_of_motivation: 3,
-      specificity_of_learning: 2,
-      career_goal_alignment: 3,
-    },
-    recommendations: [
-      "Provide more specific examples to showcase your experience and problem-solving skills.",
-      "Work on articulating your motivations and career goals with more clarity and alignment to the role.",
-    ],
-    closure_message:
-      "Thank you for sharing your experiences and goals with us. Keep refining your responses to provide more depth and specificity in future interviews. Best of luck in your future endeavors!",
-  });
-  const [interviewComplete, setInterviewComplete] = useState(false);
-  const [questionCount, setQuestionCount] = useState(0);
-  const [maxQuestions] = useState(1); // Limit interview to 7 questions
-  const [interviewStartTime, setInterviewStartTime] = useState<Date | null>(
-    null
-  );
+  // const [overallFeedback, setOverallFeedback] = useState({});
+  // const [interviewComplete, setInterviewComplete] = useState(false);
+  // const [questionCount, setQuestionCount] = useState(0);
+  // const [maxQuestions] = useState(1); // Limit interview to 7 questions
+  // const [interviewStartTime, setInterviewStartTime] = useState<Date | null>(
+  //   null
+  // );
   const [transcribedText, setTranscribedText] = useState("");
   const [showFinalAssessment, setShowFinalAssessment] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -121,7 +109,7 @@ export default function AIInterviewSystem() {
 
       localStorage.setItem("sessionId", data.sessionId);
 
-      setQuestionCount((prev) => prev + 1);
+      incrementQuestionCount();
       setCurrentQuestion(data.question);
       setConversation({
         role: "ai",
@@ -233,13 +221,7 @@ export default function AIInterviewSystem() {
           </CardTitle>
         </CardHeader>
         <CardContent className="h-full w-full flex flex-col gap-4 ">
-          {interviewStartTime && (
-            <InterviewProgress
-              currentQuestion={questionCount}
-              totalQuestions={maxQuestions}
-              startTime={interviewStartTime}
-            />
-          )}
+          {interviewStartTime && <InterviewProgress />}
           <div className="w-full h-full grid grid-cols-[1fr_2fr] gap-8 ">
             <div className="w-full h-fit">
               {/* Video call component */}
@@ -311,16 +293,11 @@ export default function AIInterviewSystem() {
                     onStopRecording={stopRecording}
                     isRecording={isRecording}
                     isAISpeaking={isAISpeaking}
-                    setConversation={setConversation}
                     speakTextWithTTS={speakTextWithTTS}
                     setCurrentQuestion={setCurrentQuestion}
-                    setQuestionCount={setQuestionCount}
                     isLatestFeedback={
                       conversation[conversation.length - 1].isFeedback || false
                     }
-                    interviewComplete={interviewComplete}
-                    maxQuestions={maxQuestions}
-                    questionCount={questionCount}
                     setShowFinalAssessment={setShowFinalAssessment}
                   />
                 )}

@@ -26,3 +26,21 @@ export interface ConversationEntry {
   content: string;
   isFeedback?: boolean;
 }
+
+export interface InterviewStoreState {
+  conversation: ConversationEntry[];
+  overallFeedback: any;
+  interviewComplete: boolean;
+  questionCount: number;
+  maxQuestions: number;
+  interviewStartTime: Date | null;
+
+  addMessage: (message: ConversationEntry) => void;
+  resetConversation: () => void;
+
+  setOverallFeedback: (feedback: any) => void;
+  setInterviewComplete: (complete: boolean) => void;
+  incrementQuestionCount: () => void;
+  resetQuestionCount: () => void;
+  setInterviewStartTime: (time: Date | null) => void;
+}

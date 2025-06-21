@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Mic, MicOff, Send } from "lucide-react";
 import { getNextQuestionAPI, reviseAnswerAPI } from "@/lib/api";
-import { ConversationEntry } from "@/types";
+import { useInterviewStore } from "@/lib/store/interviewStore";
 
 interface ResponseInputProps {
   onSubmitText: (text: string) => void;
@@ -13,14 +13,9 @@ interface ResponseInputProps {
   onStopRecording: () => void;
   isRecording: boolean;
   isAISpeaking: boolean;
-  setConversation: (message: ConversationEntry) => void;
   speakTextWithTTS: (text: string) => Promise<void>;
   setCurrentQuestion: React.Dispatch<React.SetStateAction<string>>;
-  setQuestionCount: React.Dispatch<React.SetStateAction<number>>;
   isLatestFeedback?: boolean;
-  interviewComplete?: boolean;
-  maxQuestions?: number;
-  questionCount?: number;
   setShowFinalAssessment: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
@@ -30,19 +25,21 @@ export function ResponseInput({
   onStopRecording,
   isRecording,
   isAISpeaking,
-  setConversation,
   speakTextWithTTS,
   setCurrentQuestion,
-  setQuestionCount,
   isLatestFeedback,
-  interviewComplete,
-  maxQuestions,
-  questionCount,
   setShowFinalAssessment,
 }: ResponseInputProps) {
   const [textResponse, setTextResponse] = useState("");
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const {
+    addMessage: setConversation,
+    interviewComplete,
+    questionCount,
+    incrementQuestionCount,
+    maxQuestions,
+  } = useInterviewStore();
 
   const sessionId = localStorage.getItem("sessionId");
   if (!sessionId) {
@@ -77,7 +74,7 @@ export function ResponseInput({
 
     try {
       const data = await getNextQuestionAPI(sessionId);
-      setQuestionCount((prev) => prev + 1);
+      incrementQuestionCount();
 
       setCurrentQuestion(data?.question);
       setConversation({

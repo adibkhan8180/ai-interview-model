@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Play } from "lucide-react";
 import { FeedbackDisplay } from "@/components/feedback-display";
@@ -22,6 +22,7 @@ import {
   submitAnswerAPI,
   submitFinalInterviewAPI,
 } from "@/lib/api";
+import { get } from "http";
 
 export default function AIInterviewSystem() {
   const router = useRouter();
@@ -62,11 +63,12 @@ export default function AIInterviewSystem() {
   });
   const [interviewComplete, setInterviewComplete] = useState(false);
   const [questionCount, setQuestionCount] = useState(0);
-  const [maxQuestions] = useState(2); // Limit interview to 7 questions
+  const [maxQuestions] = useState(1); // Limit interview to 7 questions
   const [interviewStartTime, setInterviewStartTime] = useState<Date | null>(
     null
   );
   const [transcribedText, setTranscribedText] = useState("");
+  const [showFinalAssessment, setShowFinalAssessment] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // Initialize audio recorder
@@ -106,7 +108,6 @@ export default function AIInterviewSystem() {
         throw new Error("Failed to start interview. Please try again.");
       }
 
-      console.log(data);
       localStorage.setItem("sessionId", data.sessionId);
 
       setQuestionCount((prev) => prev + 1);
@@ -169,36 +170,44 @@ export default function AIInterviewSystem() {
       const data = await submitAnswerAPI(sessionId, userResponse);
       setCurrentFeedback(data.feedback);
 
-      if (questionCount >= maxQuestions) {
-        const overallData = await submitFinalInterviewAPI(sessionId);
+      setConversation((prev) => [
+        ...prev,
+        { role: "ai", content: data.feedback, isFeedback: true },
+        // Optional: add nextQuestion if needed
+        // { role: "ai", content: data.nextQuestion },
+      ]);
 
-        setConversation((prev) => [
-          ...prev,
-          { role: "ai", content: data.feedback, isFeedback: true },
-        ]);
-
-        setInterviewComplete(true);
-        setOverallFeedback(overallData.overallFeedback);
-
-        // Speak both feedback and final summary
-        speakTextWithTTS(
-          `${data.feedback} ${JSON.stringify(overallData.overallFeedback)}`
-        );
-      } else {
-        setConversation((prev) => [
-          ...prev,
-          { role: "ai", content: data.feedback, isFeedback: true },
-          // Optional: add nextQuestion if needed
-          // { role: "ai", content: data.nextQuestion },
-        ]);
-
-        // Speak feedback only
-        speakTextWithTTS(data.feedback);
-      }
+      // Speak feedback only
+      speakTextWithTTS(data.feedback);
     } catch (error) {
       console.error("Error getting AI response:", error);
     }
   };
+
+  useEffect(() => {
+    const getFinalAssessment = async () => {
+      if (!interviewSetup) return;
+
+      const sessionId = localStorage.getItem("sessionId");
+      if (!sessionId) {
+        console.error("Session ID not found.");
+        return;
+      }
+
+      if (showFinalAssessment) {
+        console.log("showFinalAssessment", showFinalAssessment);
+        const overallData = await submitFinalInterviewAPI(sessionId);
+
+        setInterviewComplete(true);
+        setOverallFeedback(overallData.overallFeedback);
+
+        // Speak final summary
+        speakTextWithTTS(`${JSON.stringify(overallData.overallFeedback)}`);
+      }
+    };
+
+    getFinalAssessment();
+  }, [showFinalAssessment]);
 
   if (!interviewStarted) {
     return (
@@ -303,15 +312,11 @@ export default function AIInterviewSystem() {
                       conversation[conversation.length - 1].isFeedback || false
                     }
                     interviewComplete={interviewComplete}
+                    maxQuestions={maxQuestions}
+                    questionCount={questionCount}
+                    setShowFinalAssessment={setShowFinalAssessment}
                   />
                 )}
-
-                {/* {isAISpeaking && (
-                    <div className="flex items-center justify-center mt-4 text-blue-600">
-                      <Play className="w-4 h-4 mr-2" />
-                      AI is speaking...
-                    </div>
-                  )} */}
               </div>
             </div>
           </div>

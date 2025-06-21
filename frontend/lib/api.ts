@@ -1,19 +1,6 @@
+import { InterviewSetupData } from "@/types";
+
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
-
-export interface InterviewSetupData {
-  companyName: string;
-  jobRole: string;
-  jobDescription?: string;
-  domain?: string;
-  interviewCategory: string;
-}
-
-export interface InterviewStartResponse {
-  success: boolean;
-  sessionId?: string;
-  question?: string;
-  isFeedback?: boolean;
-}
 
 export async function startInterviewAPI(
   setupData: InterviewSetupData

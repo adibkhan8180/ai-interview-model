@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Mic, MicOff, Send } from "lucide-react";
 import { getNextQuestionAPI, reviseAnswerAPI } from "@/lib/api";
+import { useInterviewStore } from "@/lib/store/interviewStore";
+import { useParams } from "next/navigation";
 
 interface ResponseInputProps {
   onSubmitText: (text: string) => void;
@@ -12,18 +14,9 @@ interface ResponseInputProps {
   onStopRecording: () => void;
   isRecording: boolean;
   isAISpeaking: boolean;
-  setConversation: React.Dispatch<
-    React.SetStateAction<
-      Array<{ role: "ai" | "user"; content: string; isFeedback?: boolean }>
-    >
-  >;
   speakTextWithTTS: (text: string) => Promise<void>;
   setCurrentQuestion: React.Dispatch<React.SetStateAction<string>>;
-  setQuestionCount: React.Dispatch<React.SetStateAction<number>>;
   isLatestFeedback?: boolean;
-  interviewComplete?: boolean;
-  maxQuestions?: number;
-  questionCount?: number;
   setShowFinalAssessment: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
@@ -33,23 +26,26 @@ export function ResponseInput({
   onStopRecording,
   isRecording,
   isAISpeaking,
-  setConversation,
   speakTextWithTTS,
   setCurrentQuestion,
-  setQuestionCount,
   isLatestFeedback,
-  interviewComplete,
-  maxQuestions,
-  questionCount,
   setShowFinalAssessment,
 }: ResponseInputProps) {
   const [textResponse, setTextResponse] = useState("");
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const {
+    addMessage: setConversation,
+    interviewComplete,
+    questionCount,
+    incrementQuestionCount,
+    maxQuestions,
+  } = useInterviewStore();
 
-  const sessionId = localStorage.getItem("sessionId");
+  const params = useParams();
+  const sessionId = params?.sessionId as string;
   if (!sessionId) {
-    console.error("Session ID not found.");
+    // console.error("Session ID not found.");
     return;
   }
   const handleReviseQuestion = async () => {
@@ -57,10 +53,11 @@ export function ResponseInput({
     try {
       const data = await reviseAnswerAPI(sessionId);
 
-      setConversation((prev) => [
-        ...prev,
-        { role: "ai", content: data.question, isFeedback: false },
-      ]);
+      setConversation({
+        role: "ai",
+        content: data.question,
+        isFeedback: false,
+      });
 
       speakTextWithTTS(data.question);
     } catch (error) {
@@ -79,13 +76,14 @@ export function ResponseInput({
 
     try {
       const data = await getNextQuestionAPI(sessionId);
-      setQuestionCount((prev) => prev + 1);
+      incrementQuestionCount();
 
       setCurrentQuestion(data?.question);
-      setConversation((prev) => [
-        ...prev,
-        { role: "ai", content: data?.question, isFeedback: false },
-      ]);
+      setConversation({
+        role: "ai",
+        content: data?.question,
+        isFeedback: false,
+      });
       speakTextWithTTS(data?.question);
     } catch (error) {
       console.error("Error getting next question:", error);

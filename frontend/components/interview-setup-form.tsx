@@ -15,14 +15,8 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-export interface InterviewSetupData {
-  companyName: string;
-  jobRole: string;
-  interviewCategory: "general" | "hr" | "domain-specific";
-  domain?: string;
-  jobDescription: string;
-}
+import { useFormStore } from "@/lib/store/formStore";
+import { InterviewSetupData } from "@/types";
 
 interface InterviewSetupFormProps {
   onSubmit: (data: InterviewSetupData) => void;
@@ -33,23 +27,25 @@ export function InterviewSetupForm({
   onSubmit,
   loading,
 }: InterviewSetupFormProps) {
-  const [formData, setFormData] = useState<InterviewSetupData>({
-    companyName: "",
-    jobRole: "",
-    interviewCategory: "general",
-    domain: "",
-    jobDescription: "",
-  });
+  // const [formData, setFormData] = useState<InterviewSetupData>({
+  //   companyName: "",
+  //   jobRole: "",
+  //   interviewCategory: "general",
+  //   domain: "",
+  //   jobDescription: "",
+  // });
+
+  const { formData, setFormData, resetForm } = useFormStore();
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData({ [name]: value });
   };
 
   const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData({ [name]: value });
   };
 
   const handleSubmit = (e: React.FormEvent) => {

@@ -1,4 +1,4 @@
-import { InterviewSetupData } from "@/types";
+import { InterviewSetupData, InterviewStartResponse } from "@/types";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
 

@@ -121,16 +121,27 @@ export class AIService {
       chat_history: chatHistory,
     });
 
+    let jsonContent = response.content;
+
+    // Try to extract JSON block if present in mixed response
+    const jsonMatch = jsonContent.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      jsonContent = jsonMatch[0];
+    }
+
     try {
-      return JSON.parse(response.content);
+      const parsed = JSON.parse(jsonContent);
+      return { success: true, result: parsed };
     } catch (error) {
-      console.error("Failed to parse final assessment:", error);
+      console.error(
+        "Failed to parse final assessment:",
+        error,
+        "\nRaw response:",
+        response.content
+      );
       return {
-        overall_score: 0,
-        summary: "Assessment generation failed",
-        questions_analysis: [],
-        skill_assessment: {},
-        recommendations: [],
+        success: false,
+        result: "Assessment generation failed due to invalid output format.",
       };
     }
   }

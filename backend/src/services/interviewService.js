@@ -1,7 +1,6 @@
-import { v4 as uuidv4 } from "uuid";
-import { storage } from "../config/database.js";
+import { AIMessage, HumanMessage } from "@langchain/core/messages";
+import { InterviewSession } from "../../models/interviewSession.js";
 import { AIService } from "./aiService.js";
-import { HumanMessage, AIMessage } from "@langchain/core/messages";
 
 export class InterviewService {
   constructor() {
@@ -15,166 +14,164 @@ export class InterviewService {
     interviewType,
     domain
   ) {
-    const sessionId = uuidv4();
-
-    // Create interview chain
-    const conversationChain = await this.aiService.createInterviewChain(
-      jobDescription,
-      interviewType,
-      domain
-    );
-
-    // Store session in in-memory storage
-    storage.createSession(sessionId, {
+    const newSession = new InterviewSession({
       companyName,
       jobRole,
       jobDescription,
       interviewType,
       domain,
       chatHistory: [],
-      conversationChain,
       status: "active",
       currentStep: "questioning",
     });
 
-    return { sessionId };
+    const savedSession = await newSession.save();
+
+    return { sessionId: savedSession._id.toString() };
   }
 
   async getNextQuestion(sessionId) {
-    const session = storage.getSession(sessionId);
-    if (!session) {
-      throw new Error("Session not found");
-    }
+    const session = await InterviewSession.findById(sessionId);
+    if (!session) throw new Error("Session not found");
 
-    const initialPrompt =
-      "Generate the next question based on the conversation history.";
+    const conversationChain = await this.aiService.createInterviewChain(
+      session.jobDescription,
+      session.interviewType,
+      session.domain
+    );
 
-    const response = await session.conversationChain.invoke({
-      input: initialPrompt,
-      chat_history: session.chatHistory,
+    const response = await conversationChain.invoke({
+      input: "Generate the next question based on the conversation history.",
+      chat_history: session.chatHistory.map((msg) =>
+        msg.role === "human"
+          ? new HumanMessage(msg.content)
+          : new AIMessage(msg.content)
+      ),
     });
 
-    session.chatHistory.push(new AIMessage(response.answer));
+    session.chatHistory.push({ role: "ai", content: response.answer });
+    await session.save();
 
     return response.answer;
   }
 
   async getIntroQuestion(sessionId) {
-    const session = storage.getSession(sessionId);
-    if (!session) {
-      throw new Error("Session not found");
-    }
-
-    if (session.chatHistory.length > 0) {
-      throw new Error(
-        "Intro question can only be asked at the beginning of the session."
-      );
-    }
-
-    const { jobDescription, interviewType, domain, companyName } = session;
+    const session = await InterviewSession.findById(sessionId);
+    if (!session) throw new Error("Session not found");
+    if (session.chatHistory.length > 0)
+      throw new Error("Intro question can only be asked at the beginning.");
 
     const input =
-      "Start the interview with an introductory greeting and first question like 'could you please introduce yourself'.";
+      "Start the interview with an introductory greeting and first question.";
     const response = await this.aiService.askIntroQuestion(
-      jobDescription,
-      interviewType,
-      domain,
-      companyName,
+      session.jobDescription,
+      session.interviewType,
+      session.domain,
+      session.companyName,
       session.chatHistory,
       input
     );
 
-    session.chatHistory.push(new AIMessage(response.answer));
+    session.chatHistory.push({ role: "ai", content: response.answer });
+    await session.save();
 
     return response.answer;
   }
 
   async postAnswer(sessionId, answer) {
-    const session = storage.getSession(sessionId);
-    if (!session) {
-      throw new Error("Session not found");
-    }
+    const session = await InterviewSession.findById(sessionId);
+    if (!session) throw new Error("Session not found");
 
-    let { chatHistory } = session;
+    session.chatHistory.push({ role: "human", content: answer });
 
-    // Add student answer to history
-    chatHistory.push(new HumanMessage(answer));
-
-    // Generate feedback
     const feedbackResponse = await this.aiService.generateFeedback(
       answer,
-      chatHistory
+      session.chatHistory.map((msg) =>
+        msg.role === "human"
+          ? new HumanMessage(msg.content)
+          : new AIMessage(msg.content)
+      )
     );
 
-    // Update session in in-memory storage
-    storage.updateSession(sessionId, {
-      chatHistory,
-      currentStep: "feedback",
-      lastFeedback: feedbackResponse.content,
-    });
+    session.currentStep = "feedback";
+    session.lastFeedback = feedbackResponse.content;
+    await session.save();
 
     return { feedback: feedbackResponse.content };
   }
 
   async getFeedback(sessionId) {
-    const session = storage.getSession(sessionId);
-    if (!session) {
-      throw new Error("Session not found");
-    }
+    const session = await InterviewSession.findById(sessionId);
+    if (!session) throw new Error("Session not found");
 
-    const chatHistory = session.chatHistory;
-    const lastAnswer = chatHistory.slice(-1)[0].answer;
+    const lastAnswer = session.chatHistory
+      .filter((m) => m.role === "human")
+      .slice(-1)[0]?.content;
+    if (!lastAnswer)
+      throw new Error("No answer found to provide feedback for.");
+
     const feedback = await this.aiService.generateFeedback(
       lastAnswer,
-      chatHistory
+      session.chatHistory.map((msg) =>
+        msg.role === "human"
+          ? new HumanMessage(msg.content)
+          : new AIMessage(msg.content)
+      )
     );
 
     return feedback;
   }
 
   async reviseAnswer(sessionId) {
-    const session = storage.getSession(sessionId);
-    if (!session) {
-      throw new Error("Session not found");
-    }
+    const session = await InterviewSession.findById(sessionId);
+    if (!session) throw new Error("Session not found");
 
-    let { chatHistory } = session;
+    const lastMessage = session.chatHistory.pop();
+    if (!lastMessage || lastMessage.role !== "human")
+      throw new Error("No recent human answer to revise.");
 
-    chatHistory.pop();
+    await session.save();
 
-    return { question: chatHistory[chatHistory.length - 1].content };
+    const lastQuestion = session.chatHistory
+      .filter((m) => m.role === "ai")
+      .slice(-1)[0]?.content;
+    return { question: lastQuestion };
   }
 
   async submitInterview(sessionId) {
-    const session = storage.getSession(sessionId);
-    if (!session) {
-      throw new Error("Session not found");
-    }
+    const session = await InterviewSession.findById(sessionId);
+    if (!session) throw new Error("Session not found");
 
     const feedback = await this.getFinalFeedback(sessionId);
-    session.status = "completed";
-    storage.updateSession(sessionId, session);
 
-    return { feedback, status: session.status };
+    if (!feedback.success) {
+      return { feedback: feedback.result, status: "error" };
+    }
+
+    session.overallFeedback = feedback.result;
+
+    session.status = "completed";
+    await session.save();
+
+    return { feedback: feedback.result, status: session.status };
   }
 
   async getFinalFeedback(sessionId) {
-    const session = storage.getSession(sessionId);
-    if (!session) {
-      throw new Error("Session not found");
-    }
+    const session = await InterviewSession.findById(sessionId);
+    if (!session) throw new Error("Session not found");
 
-    const chatHistory = session.chatHistory;
-    const feedback = await this.aiService.generateFinalAssessment(chatHistory);
-
-    return feedback;
+    return await this.aiService.generateFinalAssessment(
+      session.chatHistory.map((msg) =>
+        msg.role === "human"
+          ? new HumanMessage(msg.content)
+          : new AIMessage(msg.content)
+      )
+    );
   }
 
   async getInterviewStatus(sessionId) {
-    const session = storage.getSession(sessionId);
-    if (!session) {
-      throw new Error("Session not found");
-    }
+    const session = await InterviewSession.findById(sessionId);
+    if (!session) throw new Error("Session not found");
 
     return session.status;
   }

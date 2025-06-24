@@ -9,7 +9,7 @@ export const useInterviewStore = create<InterviewStoreState>()(
       overallFeedback: {},
       interviewComplete: false,
       questionCount: 0,
-      maxQuestions: 1,
+      maxQuestions: 2,
       interviewStartTime: null,
 
       addMessage: (message) =>

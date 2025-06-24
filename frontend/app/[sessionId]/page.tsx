@@ -19,7 +19,8 @@ import { useInterviewStore } from "@/lib/store/interviewStore";
 export default function AIInterviewSystem() {
   const router = useRouter();
   const pathname = usePathname();
-  const { formData: interviewSetup } = useFormStore();
+  const { formData: interviewSetup, resetForm: resetInterviewSetup } =
+    useFormStore();
   const {
     conversation,
     addMessage: setConversation,
@@ -28,6 +29,7 @@ export default function AIInterviewSystem() {
     interviewComplete,
     setInterviewComplete,
     interviewStartTime,
+    resetStore: resetInterviewStore,
   } = useInterviewStore();
 
   const [isRecording, setIsRecording] = useState(false);
@@ -51,6 +53,12 @@ export default function AIInterviewSystem() {
     onRecordingStart: () => setIsRecording(true),
     onRecordingStop: () => setIsRecording(false),
   });
+
+  const startNewInterview = async () => {
+    resetInterviewStore();
+    resetInterviewSetup();
+    router.replace("/");
+  };
 
   const speakTextWithTTS = async (text: string) => {
     try {
@@ -114,8 +122,8 @@ export default function AIInterviewSystem() {
         setInterviewComplete(true);
         setOverallFeedback(overallData.overallFeedback);
 
-        // Speak final summary
-        speakTextWithTTS(`${JSON.stringify(overallData.overallFeedback)}`);
+        // Speak final summary commented for now - you know the reason
+        // speakTextWithTTS(`${JSON.stringify(overallData.overallFeedback)}`);
       }
     };
 
@@ -126,6 +134,9 @@ export default function AIInterviewSystem() {
     scrollRef?.current?.scrollIntoView({ behavior: "smooth" });
   }, [conversation, overallFeedback]);
 
+  // ################################################################
+  // ########## not working properly, need more focus here ##########
+  // ################################################################
   useEffect(() => {
     // Push dummy state to block immediate back navigation
     history.pushState(null, "", window.location.href);
@@ -214,8 +225,8 @@ export default function AIInterviewSystem() {
                     />
                     <div className="mt-4 text-center">
                       <button
-                        onClick={() => window.location.reload()}
-                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md"
+                        onClick={startNewInterview}
+                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md cursor-pointer"
                       >
                         🎯 Start New Interview
                       </button>

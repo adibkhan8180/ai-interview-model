@@ -17,6 +17,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useFormStore } from "@/lib/store/formStore";
 import { InterviewSetupData } from "@/types";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Badge } from "./ui/badge";
+import { IoMdClose } from "react-icons/io";
 
 interface InterviewSetupFormProps {
   onSubmit: (data: InterviewSetupData) => void;
@@ -35,6 +38,8 @@ export function InterviewSetupForm({
   //   jobDescription: "",
   // });
 
+  const [radioInput, setRadioInput] = useState("skills-based");
+  const [skill, setSkill] = useState("");
   const { formData, setFormData, resetForm } = useFormStore();
 
   const handleChange = (
@@ -55,6 +60,22 @@ export function InterviewSetupForm({
 
   const isDomainSpecific = formData.interviewCategory === "domain-specific";
 
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && skill.trim()) {
+      e.preventDefault();
+      if (!formData?.skills?.includes(skill.trim())) {
+        setFormData({ skills: [...(formData.skills || []), skill.trim()] });
+      }
+      setSkill("");
+    }
+  };
+
+  const removeSkill = (removedSkill: string) => {
+    setFormData({
+      skills: (formData.skills || []).filter((s) => s !== removedSkill),
+    });
+  };
   return (
     <Card>
       <CardHeader>
@@ -127,28 +148,75 @@ export function InterviewSetupForm({
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="jobDescription">
-              {isDomainSpecific
-                ? "Detailed Job Description"
-                : "Job Description"}
-            </Label>
-            <Textarea
-              id="jobDescription"
-              name="jobDescription"
-              placeholder={
-                isDomainSpecific
-                  ? "Paste the detailed job description including responsibilities and required skills..."
-                  : "Paste the job description here..."
-              }
-              value={formData.jobDescription}
-              onChange={handleChange}
-              className="min-h-[150px]"
-              required
-            />
-          </div>
+          <RadioGroup
+            defaultValue="skills-based"
+            value={formData.inputType}
+            onValueChange={(value) => handleSelectChange("inputType", value)}
+            className="flex gap-4"
+          >
+            <div className="flex items-center space-x-2 cursor-pointer w-fit">
+              <RadioGroupItem value="skills-based" id="skills-based" />
+              <Label htmlFor="skills-based" className="cursor-pointer">
+                Skills Based (recommended)
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2 cursor-pointer w-fit">
+              <RadioGroupItem value="job-description" id="job-description" />
+              <Label htmlFor="job-description" className="cursor-pointer">
+                Job Description
+              </Label>
+            </div>
+          </RadioGroup>
+          {formData.inputType === "skills-based" ? (
+            <div className="space-y-2">
+              <Input
+                placeholder="Type a skill and press Enter"
+                value={skill}
+                onChange={(e) => setSkill(e.target.value)}
+                onKeyDown={handleKeyDown}
+              />
 
-          <Button type="submit" className="w-full" disabled={loading}>
+              <div className="flex flex-wrap gap-2">
+                {formData?.skills?.map((skill) => (
+                  <Badge
+                    key={skill}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    {skill}
+                    <p
+                      className="cursor-pointer"
+                      onClick={() => removeSkill(skill)}
+                    >
+                      x
+                    </p>
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Textarea
+                id="jobDescription"
+                name="jobDescription"
+                placeholder={
+                  isDomainSpecific
+                    ? "Paste the detailed job description including responsibilities and required skills..."
+                    : "Paste the job description here..."
+                }
+                value={formData.jobDescription}
+                onChange={handleChange}
+                className="min-h-[150px]"
+                required
+              />
+            </div>
+          )}
+
+          <Button
+            type="submit"
+            className="w-full cursor-pointer"
+            disabled={loading}
+          >
             {loading ? "Starting..." : "Start AI Video Interview"}
           </Button>
         </form>

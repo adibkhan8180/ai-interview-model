@@ -11,13 +11,14 @@ import {
   playAudioFromArrayBuffer,
 } from "@/services/text-to-speech";
 import { ResponseInput } from "@/components/response-input";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { submitAnswerAPI, submitFinalInterviewAPI } from "@/lib/api";
 import { useFormStore } from "@/lib/store/formStore";
 import { useInterviewStore } from "@/lib/store/interviewStore";
 
 export default function AIInterviewSystem() {
   const router = useRouter();
+  const pathname = usePathname();
   const { formData: interviewSetup } = useFormStore();
   const {
     conversation,
@@ -123,7 +124,32 @@ export default function AIInterviewSystem() {
 
   useEffect(() => {
     scrollRef?.current?.scrollIntoView({ behavior: "smooth" });
-  }, [conversation]);
+  }, [conversation, overallFeedback]);
+
+  useEffect(() => {
+    // Push dummy state to block immediate back navigation
+    history.pushState(null, "", window.location.href);
+
+    const handlePopState = (e: PopStateEvent) => {
+      const confirmLeave = window.confirm(
+        "Are you sure you want to leave the interview? Your progress will be lost."
+      );
+
+      if (confirmLeave) {
+        console.log("User confirmed leave");
+        router.back();
+      } else {
+        console.log("User chose to stay");
+        history.pushState(null, "", window.location.href);
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
 
   return (
     <div className="h-screen w-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
@@ -179,8 +205,9 @@ export default function AIInterviewSystem() {
                     </div>
                   );
                 })}
+                <div ref={scrollRef} />
                 {interviewComplete && overallFeedback && (
-                  <div className="">
+                  <div ref={scrollRef}>
                     <FeedbackDisplay
                       feedback={overallFeedback}
                       type="overall"
@@ -195,7 +222,6 @@ export default function AIInterviewSystem() {
                     </div>
                   </div>
                 )}
-                <div ref={scrollRef} />
               </div>
 
               <div>

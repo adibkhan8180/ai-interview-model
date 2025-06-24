@@ -10,7 +10,7 @@ export function InterviewProgress() {
   } = useInterviewStore();
   const progress = (currentQuestion / totalQuestions) * 100;
   const elapsedTime = Math.floor(
-    (Date.now() - (startTime?.getTime() || 0)) / 1000 / 60
+    (Date.now() - (startTime ? new Date(startTime).getTime() : 0)) / 1000 / 60
   );
 
   return (

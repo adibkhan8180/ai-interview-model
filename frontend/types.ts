@@ -43,4 +43,5 @@ export interface InterviewStoreState {
   incrementQuestionCount: () => void;
   resetQuestionCount: () => void;
   setInterviewStartTime: (time: Date | null) => void;
+  resetStore: () => void;
 }

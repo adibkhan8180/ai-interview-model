@@ -1,5 +1,6 @@
 import { FormState, InterviewSetupData } from "@/types";
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 const defaultFormData: InterviewSetupData = {
   companyName: "",
@@ -9,16 +10,23 @@ const defaultFormData: InterviewSetupData = {
   jobDescription: "",
 };
 
-export const useFormStore = create<FormState>((set) => ({
-  formData: defaultFormData,
-
-  setFormData: (data) =>
-    set((state) => ({
-      formData: { ...state.formData, ...data },
-    })),
-
-  resetForm: () =>
-    set(() => ({
+export const useFormStore = create<FormState>()(
+  persist(
+    (set) => ({
       formData: defaultFormData,
-    })),
-}));
+
+      setFormData: (data) =>
+        set((state) => ({
+          formData: { ...state.formData, ...data },
+        })),
+
+      resetForm: () =>
+        set(() => ({
+          formData: defaultFormData,
+        })),
+    }),
+    {
+      name: "form-storage", // key name in localStorage
+    }
+  )
+);

@@ -10,14 +10,18 @@ export class InterviewService {
   async startInterview(
     companyName,
     jobRole,
+    inputType,
     jobDescription,
+    skills,
     interviewType,
     domain
   ) {
     const newSession = new InterviewSession({
       companyName,
       jobRole,
+      inputType,
       jobDescription,
+      skills,
       interviewType,
       domain,
       chatHistory: [],
@@ -34,11 +38,21 @@ export class InterviewService {
     const session = await InterviewSession.findById(sessionId);
     if (!session) throw new Error("Session not found");
 
-    const conversationChain = await this.aiService.createInterviewChain(
-      session.jobDescription,
-      session.interviewType,
-      session.domain
-    );
+    let conversationChain;
+
+    if (session.inputType === "skills-based") {
+      conversationChain = await this.aiService.createInterviewChainSkillsBased(
+        session.skills,
+        session.interviewType,
+        session.domain
+      );
+    } else {
+      conversationChain = await this.aiService.createInterviewChain(
+        session.jobDescription,
+        session.interviewType,
+        session.domain
+      );
+    }
 
     const response = await conversationChain.invoke({
       input: "Generate the next question based on the conversation history.",
@@ -49,10 +63,17 @@ export class InterviewService {
       ),
     });
 
-    session.chatHistory.push({ role: "ai", content: response.answer });
-    await session.save();
+    if (session.inputType === "skills-based") {
+      session.chatHistory.push({ role: "ai", content: response.content });
+      await session.save();
 
-    return response.answer;
+      return response.content;
+    } else {
+      session.chatHistory.push({ role: "ai", content: response.answer });
+      await session.save();
+
+      return response.answer;
+    }
   }
 
   async getIntroQuestion(sessionId) {
@@ -63,19 +84,44 @@ export class InterviewService {
 
     const input =
       "Start the interview with an introductory greeting and first question.";
-    const response = await this.aiService.askIntroQuestion(
-      session.jobDescription,
-      session.interviewType,
-      session.domain,
-      session.companyName,
-      session.chatHistory,
-      input
+
+    let response;
+    let data;
+    console.log(
+      "role in getIntroQuestion ===>>>",
+      session.jobRole,
+      session.inputType
     );
 
-    session.chatHistory.push({ role: "ai", content: response.answer });
+    if (session.inputType === "skills-based") {
+      // Skip vector store, pass skills directly
+      response = await this.aiService.askIntroQuestionSkillsBased(
+        session.skills,
+        session.interviewType,
+        session.domain,
+        session.companyName,
+        session.chatHistory,
+        session.jobRole,
+        input
+      );
+      data = response.content;
+    } else {
+      // JD-based flow
+      response = await this.aiService.askIntroQuestion(
+        session.jobDescription,
+        session.interviewType,
+        session.domain,
+        session.companyName,
+        session.chatHistory,
+        input
+      );
+      data = response.answer;
+    }
+
+    session.chatHistory.push({ role: "ai", content: data });
     await session.save();
 
-    return response.answer;
+    return data;
   }
 
   async postAnswer(sessionId, answer) {

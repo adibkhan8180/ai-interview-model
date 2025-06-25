@@ -12,6 +12,8 @@ import { createModel, createEmbeddings } from "../config/openai.js";
 import {
   createIntroPrompt,
   createMainPrompt,
+  createSkillsBasedIntroPrompt,
+  createSkillsBasedMainPrompt,
   feedbackPrompt,
   finalFeedbackPrompt,
 } from "../utils/prompts.js";
@@ -63,6 +65,15 @@ export class AIService {
       retriever: retrieverChain,
     });
   }
+  async createInterviewChainSkillsBased(skills, interviewType, domain) {
+    const mainPrompt = createSkillsBasedMainPrompt(
+      skills,
+      interviewType,
+      domain
+    );
+
+    return mainPrompt.pipe(this.model);
+  }
 
   async askIntroQuestion(
     jobDescription,
@@ -100,6 +111,32 @@ export class AIService {
       combineDocsChain: introChain,
       retriever: retrieverChain,
     });
+
+    return await chain.invoke({
+      input,
+      chat_history: chatHistory,
+    });
+  }
+
+  async askIntroQuestionSkillsBased(
+    skills,
+    interviewType,
+    domain,
+    companyName,
+    chatHistory,
+    jobRole,
+    input
+  ) {
+    const skillsPrompt = createSkillsBasedIntroPrompt(
+      skills,
+      interviewType,
+      domain,
+      companyName,
+      jobRole
+    );
+
+    // Use simple prompt pipe chain without document chaining
+    const chain = skillsPrompt.pipe(this.model);
 
     return await chain.invoke({
       input,

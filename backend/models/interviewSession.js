@@ -9,13 +9,21 @@ const interviewSessionSchema = new mongoose.Schema(
   {
     companyName: String,
     jobRole: String,
-    jobDescription: String,
     interviewType: String,
     chatHistory: [messageSchema],
     status: { type: String, default: "active" },
     currentStep: { type: String, default: "questioning" },
     lastFeedback: String,
     overallFeedback: Object,
+    inputType: String,
+    skills: {
+      type: [String],
+      default: [],
+    },
+    jobDescription: {
+      type: String,
+      default: "",
+    },
   },
   { timestamps: true }
 );

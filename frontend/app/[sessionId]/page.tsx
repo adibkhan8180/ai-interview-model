@@ -6,19 +6,15 @@ import { FeedbackDisplay } from "@/components/feedback-display";
 import { InterviewProgress } from "@/components/interview-progress";
 import { VideoCall } from "@/components/video-call";
 import { AudioRecorder } from "@/components/audio-recorder";
-import {
-  generateSpeech,
-  playAudioFromArrayBuffer,
-} from "@/services/text-to-speech";
 import { ResponseInput } from "@/components/response-input";
-import { useParams, usePathname, useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { submitAnswerAPI, submitFinalInterviewAPI } from "@/lib/api";
 import { useFormStore } from "@/lib/store/formStore";
 import { useInterviewStore } from "@/lib/store/interviewStore";
+import { speakTextWithTTS } from "@/lib/audioApi";
 
 export default function AIInterviewSystem() {
   const router = useRouter();
-  const pathname = usePathname();
   const { formData: interviewSetup, resetForm: resetInterviewSetup } =
     useFormStore();
   const {
@@ -31,24 +27,17 @@ export default function AIInterviewSystem() {
     interviewStartTime,
     resetStore: resetInterviewStore,
     isAISpeaking,
-    setIsAISpeaking,
   } = useInterviewStore();
 
   const [isRecording, setIsRecording] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const params = useParams();
   const sessionId = params?.sessionId as string;
-  const [currentQuestion, setCurrentQuestion] = useState("");
-  const [currentFeedback, setCurrentFeedback] = useState("");
-  const [transcribedText, setTranscribedText] = useState("");
   const [showFinalAssessment, setShowFinalAssessment] = useState(false);
   const [finalAssessmentLoading, setFinalAssessmentLoading] = useState(false);
-  const [loading, setLoading] = useState(false);
 
-  // Initialize audio recorder
   const { startRecording, stopRecording } = AudioRecorder({
     onTranscription: (text) => {
-      setTranscribedText(text);
       handleUserResponse(text);
     },
     isRecording,
@@ -60,28 +49,6 @@ export default function AIInterviewSystem() {
     resetInterviewStore();
     resetInterviewSetup();
     router.replace("/");
-  };
-
-  const speakTextWithTTS = async (text: string) => {
-    try {
-      setIsAISpeaking(true);
-      const audioData = await generateSpeech({ text });
-      await playAudioFromArrayBuffer(audioData);
-      setIsAISpeaking(false);
-    } catch (error) {
-      console.error("Error with TTS:", error);
-      // Fallback to browser TTS
-      speakTextWithBrowser(text);
-    }
-  };
-
-  const speakTextWithBrowser = (text: string) => {
-    if ("speechSynthesis" in window) {
-      setIsAISpeaking(true);
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.onend = () => setIsAISpeaking(false);
-      speechSynthesis.speak(utterance);
-    }
   };
 
   const handleUserResponse = async (userResponse: string) => {
@@ -97,11 +64,9 @@ export default function AIInterviewSystem() {
 
     try {
       const data = await submitAnswerAPI(sessionId, userResponse);
-      setCurrentFeedback(data.feedback);
 
       setConversation({ role: "ai", content: data.feedback, isFeedback: true });
 
-      // Speak feedback only
       speakTextWithTTS(data.feedback);
     } catch (error) {
       console.error("Error getting AI response:", error);
@@ -120,8 +85,7 @@ export default function AIInterviewSystem() {
       if (showFinalAssessment) {
         setFinalAssessmentLoading(true);
         const overallData = await submitFinalInterviewAPI(sessionId);
-        //@ts-ignore
-
+        //@ts-expect-error
         if (overallData.status && overallData.status === "error") {
           console.error("Error fetching final assessment data:", overallData);
           setFinalAssessmentLoading(false);
@@ -132,7 +96,7 @@ export default function AIInterviewSystem() {
         setInterviewComplete(true);
         setOverallFeedback(overallData.overallFeedback);
 
-        // Speak final summary commented for now - you know the reason
+        // uncomment this line if  you want to use TTS for overall feedback
         // speakTextWithTTS(`${JSON.stringify(overallData.overallFeedback)}`);
       }
     };
@@ -148,10 +112,9 @@ export default function AIInterviewSystem() {
   // ########## not working properly, need more focus here ##########
   // ################################################################
   useEffect(() => {
-    // Push dummy state to block immediate back navigation
     history.pushState(null, "", window.location.href);
 
-    const handlePopState = (e: PopStateEvent) => {
+    const handlePopState = () => {
       const confirmLeave = window.confirm(
         "Are you sure you want to leave the interview? Your progress will be lost."
       );
@@ -184,7 +147,6 @@ export default function AIInterviewSystem() {
           {interviewStartTime && <InterviewProgress />}
           <div className="w-full h-full grid grid-cols-[1fr_2fr] gap-8 ">
             <div className="w-full h-fit">
-              {/* Video call component */}
               <VideoCall
                 isRecording={isRecording}
                 isAISpeaking={isAISpeaking}
@@ -193,7 +155,6 @@ export default function AIInterviewSystem() {
               />
             </div>
             <div className="h-[65vh] 2xl:h-[72vh] w-full flex flex-col justify-between ">
-              {/* scrollable div */}
               <div className="flex flex-col overflow-y-auto space-y-4 p-4 ">
                 {conversation.map((message, index) => {
                   if (message?.isFeedback) {
@@ -254,7 +215,6 @@ export default function AIInterviewSystem() {
                     isRecording={isRecording}
                     isAISpeaking={isAISpeaking}
                     speakTextWithTTS={speakTextWithTTS}
-                    setCurrentQuestion={setCurrentQuestion}
                     isLatestFeedback={
                       conversation.length > 0
                         ? conversation[conversation.length - 1]?.isFeedback ??

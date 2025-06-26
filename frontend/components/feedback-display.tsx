@@ -1,9 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, Lightbulb, Target, TrendingUp } from "lucide-react";
-import { Button } from "./ui/button";
-import { useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { getNextQuestionAPI, reviseAnswerAPI } from "@/lib/api";
 
 interface OverallFeedback {
   overall_score: number;
@@ -56,9 +53,6 @@ export function FeedbackDisplay({ feedback, type }: FeedbackDisplayProps) {
   if (typeof feedback === "string") {
     return null;
   }
-
-  // Parse overall feedback into sections
-  // const sections = feedback.split("\n").filter((line) => line.trim());
 
   return (
     <Card className="border-2 border-green-500 bg-gradient-to-br from-green-50 to-emerald-50">

@@ -49,3 +49,15 @@ export interface InterviewStoreState {
   resetStore: () => void;
   setIsAISpeaking: (value: boolean) => void;
 }
+
+export interface ResponseInputProps {
+  onSubmitText: (text: string) => void;
+  onStartRecording: () => void;
+  onStopRecording: () => void;
+  isRecording: boolean;
+  isAISpeaking: boolean;
+  speakTextWithTTS: (text: string) => Promise<void>;
+  isLatestFeedback?: boolean;
+  setShowFinalAssessment: React.Dispatch<React.SetStateAction<boolean>>;
+  finalAssessmentLoading: boolean;
+}

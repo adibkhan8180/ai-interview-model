@@ -18,6 +18,7 @@ interface ResponseInputProps {
   setCurrentQuestion: React.Dispatch<React.SetStateAction<string>>;
   isLatestFeedback?: boolean;
   setShowFinalAssessment: React.Dispatch<React.SetStateAction<boolean>>;
+  finalAssessmentLoading: boolean;
 }
 
 export function ResponseInput({
@@ -30,6 +31,7 @@ export function ResponseInput({
   setCurrentQuestion,
   isLatestFeedback,
   setShowFinalAssessment,
+  finalAssessmentLoading,
 }: ResponseInputProps) {
   const [textResponse, setTextResponse] = useState("");
   const [loading, setLoading] = useState(false);
@@ -68,13 +70,13 @@ export function ResponseInput({
   };
 
   const getNextQuestion = async () => {
-    setLoading(true);
     if (questionCount === maxQuestions) {
       setShowFinalAssessment(true);
       return;
     }
 
     try {
+      setLoading(true);
       const data = await getNextQuestionAPI(sessionId);
       incrementQuestionCount();
 
@@ -133,14 +135,26 @@ export function ResponseInput({
             </p>
             <Button
               onClick={handleReviseQuestion}
-              disabled={isAISpeaking || loading}
+              disabled={
+                isAISpeaking
+                  ? true
+                  : maxQuestions === questionCount
+                  ? finalAssessmentLoading
+                  : loading
+              }
               className="bg-green-500 hover:bg-green-600 cursor-pointer"
             >
               yes
             </Button>
             <Button
               onClick={getNextQuestion}
-              disabled={isAISpeaking || loading}
+              disabled={
+                isAISpeaking
+                  ? true
+                  : maxQuestions === questionCount
+                  ? finalAssessmentLoading
+                  : loading
+              }
               className={`${
                 maxQuestions === questionCount
                   ? "bg-blue-400 hover:bg-blue-500"
@@ -164,7 +178,7 @@ export function ResponseInput({
               className="rounded-xl resize-none p-2 px-4 shadow-md"
               disabled={isRecording || isAISpeaking}
             />
-            {textResponse ? (
+            {textResponse.trim() ? (
               <div className="">
                 <Button
                   onClick={handleSubmit}

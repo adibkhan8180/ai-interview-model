@@ -1,9 +1,11 @@
 export interface InterviewSetupData {
   companyName: string;
   jobRole: string;
-  interviewCategory: "general" | "hr" | "domain-specific";
-  domain?: string;
+  interviewCategory: string;
+  domain: string;
   jobDescription: string;
+  inputType: "skills-based" | "job-description"; // Added for radio input selection
+  skills: string[]; // Added for skills array
 }
 
 export interface FormState {
@@ -34,6 +36,7 @@ export interface InterviewStoreState {
   questionCount: number;
   maxQuestions: number;
   interviewStartTime: Date | null;
+  isAISpeaking: boolean;
 
   addMessage: (message: ConversationEntry) => void;
   resetConversation: () => void;
@@ -43,4 +46,6 @@ export interface InterviewStoreState {
   incrementQuestionCount: () => void;
   resetQuestionCount: () => void;
   setInterviewStartTime: (time: Date | null) => void;
+  resetStore: () => void;
+  setIsAISpeaking: (value: boolean) => void;
 }

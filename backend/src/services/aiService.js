@@ -12,6 +12,8 @@ import { createModel, createEmbeddings } from "../config/openai.js";
 import {
   createIntroPrompt,
   createMainPrompt,
+  createSkillsBasedIntroPrompt,
+  createSkillsBasedMainPrompt,
   feedbackPrompt,
   finalFeedbackPrompt,
 } from "../utils/prompts.js";
@@ -63,6 +65,15 @@ export class AIService {
       retriever: retrieverChain,
     });
   }
+  async createInterviewChainSkillsBased(skills, interviewType, domain) {
+    const mainPrompt = createSkillsBasedMainPrompt(
+      skills,
+      interviewType,
+      domain
+    );
+
+    return mainPrompt.pipe(this.model);
+  }
 
   async askIntroQuestion(
     jobDescription,
@@ -107,6 +118,32 @@ export class AIService {
     });
   }
 
+  async askIntroQuestionSkillsBased(
+    skills,
+    interviewType,
+    domain,
+    companyName,
+    chatHistory,
+    jobRole,
+    input
+  ) {
+    const skillsPrompt = createSkillsBasedIntroPrompt(
+      skills,
+      interviewType,
+      domain,
+      companyName,
+      jobRole
+    );
+
+    // Use simple prompt pipe chain without document chaining
+    const chain = skillsPrompt.pipe(this.model);
+
+    return await chain.invoke({
+      input,
+      chat_history: chatHistory,
+    });
+  }
+
   async generateFeedback(studentAnswer, chatHistory) {
     const feedbackChain = feedbackPrompt.pipe(this.model);
     return await feedbackChain.invoke({
@@ -121,16 +158,27 @@ export class AIService {
       chat_history: chatHistory,
     });
 
+    let jsonContent = response.content;
+
+    // Try to extract JSON block if present in mixed response
+    const jsonMatch = jsonContent.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      jsonContent = jsonMatch[0];
+    }
+
     try {
-      return JSON.parse(response.content);
+      const parsed = JSON.parse(jsonContent);
+      return { success: true, result: parsed };
     } catch (error) {
-      console.error("Failed to parse final assessment:", error);
+      console.error(
+        "Failed to parse final assessment:",
+        error,
+        "\nRaw response:",
+        response.content
+      );
       return {
-        overall_score: 0,
-        summary: "Assessment generation failed",
-        questions_analysis: [],
-        skill_assessment: {},
-        recommendations: [],
+        success: false,
+        result: "Assessment generation failed due to invalid output format.",
       };
     }
   }

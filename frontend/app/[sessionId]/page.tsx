@@ -11,14 +11,16 @@ import {
   playAudioFromArrayBuffer,
 } from "@/services/text-to-speech";
 import { ResponseInput } from "@/components/response-input";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { submitAnswerAPI, submitFinalInterviewAPI } from "@/lib/api";
 import { useFormStore } from "@/lib/store/formStore";
 import { useInterviewStore } from "@/lib/store/interviewStore";
 
 export default function AIInterviewSystem() {
   const router = useRouter();
-  const { formData: interviewSetup } = useFormStore();
+  const pathname = usePathname();
+  const { formData: interviewSetup, resetForm: resetInterviewSetup } =
+    useFormStore();
   const {
     conversation,
     addMessage: setConversation,
@@ -27,10 +29,12 @@ export default function AIInterviewSystem() {
     interviewComplete,
     setInterviewComplete,
     interviewStartTime,
+    resetStore: resetInterviewStore,
+    isAISpeaking,
+    setIsAISpeaking,
   } = useInterviewStore();
 
   const [isRecording, setIsRecording] = useState(false);
-  const [isAISpeaking, setIsAISpeaking] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const params = useParams();
   const sessionId = params?.sessionId as string;
@@ -38,6 +42,7 @@ export default function AIInterviewSystem() {
   const [currentFeedback, setCurrentFeedback] = useState("");
   const [transcribedText, setTranscribedText] = useState("");
   const [showFinalAssessment, setShowFinalAssessment] = useState(false);
+  const [finalAssessmentLoading, setFinalAssessmentLoading] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // Initialize audio recorder
@@ -50,6 +55,12 @@ export default function AIInterviewSystem() {
     onRecordingStart: () => setIsRecording(true),
     onRecordingStop: () => setIsRecording(false),
   });
+
+  const startNewInterview = async () => {
+    resetInterviewStore();
+    resetInterviewSetup();
+    router.replace("/");
+  };
 
   const speakTextWithTTS = async (text: string) => {
     try {
@@ -107,14 +118,22 @@ export default function AIInterviewSystem() {
       }
 
       if (showFinalAssessment) {
-        console.log("showFinalAssessment", showFinalAssessment);
+        setFinalAssessmentLoading(true);
         const overallData = await submitFinalInterviewAPI(sessionId);
+        //@ts-ignore
 
+        if (overallData.status && overallData.status === "error") {
+          console.error("Error fetching final assessment data:", overallData);
+          setFinalAssessmentLoading(false);
+          return;
+        }
+
+        console.log("final assessment data", overallData);
         setInterviewComplete(true);
         setOverallFeedback(overallData.overallFeedback);
 
-        // Speak final summary
-        speakTextWithTTS(`${JSON.stringify(overallData.overallFeedback)}`);
+        // Speak final summary commented for now - you know the reason
+        // speakTextWithTTS(`${JSON.stringify(overallData.overallFeedback)}`);
       }
     };
 
@@ -123,7 +142,35 @@ export default function AIInterviewSystem() {
 
   useEffect(() => {
     scrollRef?.current?.scrollIntoView({ behavior: "smooth" });
-  }, [conversation]);
+  }, [conversation, overallFeedback]);
+
+  // ################################################################
+  // ########## not working properly, need more focus here ##########
+  // ################################################################
+  useEffect(() => {
+    // Push dummy state to block immediate back navigation
+    history.pushState(null, "", window.location.href);
+
+    const handlePopState = (e: PopStateEvent) => {
+      const confirmLeave = window.confirm(
+        "Are you sure you want to leave the interview? Your progress will be lost."
+      );
+
+      if (confirmLeave) {
+        console.log("User confirmed leave");
+        router.back();
+      } else {
+        console.log("User chose to stay");
+        history.pushState(null, "", window.location.href);
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
 
   return (
     <div className="h-screen w-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
@@ -179,23 +226,23 @@ export default function AIInterviewSystem() {
                     </div>
                   );
                 })}
+                <div ref={scrollRef} />
                 {interviewComplete && overallFeedback && (
-                  <div className="">
+                  <div ref={scrollRef}>
                     <FeedbackDisplay
                       feedback={overallFeedback}
                       type="overall"
                     />
                     <div className="mt-4 text-center">
                       <button
-                        onClick={() => window.location.reload()}
-                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md"
+                        onClick={startNewInterview}
+                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md cursor-pointer"
                       >
                         🎯 Start New Interview
                       </button>
                     </div>
                   </div>
                 )}
-                <div ref={scrollRef} />
               </div>
 
               <div>
@@ -215,6 +262,7 @@ export default function AIInterviewSystem() {
                         : false
                     }
                     setShowFinalAssessment={setShowFinalAssessment}
+                    finalAssessmentLoading={finalAssessmentLoading}
                   />
                 )}
               </div>

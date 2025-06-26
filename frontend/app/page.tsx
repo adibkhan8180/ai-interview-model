@@ -23,10 +23,11 @@ export default function AIInterviewSetup() {
     addMessage: setConversation,
     incrementQuestionCount,
     setInterviewStartTime,
+    resetStore: resetInterviewStore,
+    setIsAISpeaking,
   } = useInterviewStore();
   const [interviewStarted, setInterviewStarted] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [isAISpeaking, setIsAISpeaking] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const params = useParams();
   const sessionId = params?.sessionId as string;
@@ -57,6 +58,8 @@ export default function AIInterviewSetup() {
     if (loading) return;
 
     setLoading(true);
+    resetInterviewStore();
+
     setInterviewStartTime(new Date());
 
     const { companyName, jobRole, interviewCategory } = setupData;
@@ -82,6 +85,7 @@ export default function AIInterviewSetup() {
         isFeedback: data.isFeedback ?? false,
       });
       setInterviewStarted(true);
+
       router.push(`/${data.sessionId}`);
 
       speakTextWithTTS(data.question);

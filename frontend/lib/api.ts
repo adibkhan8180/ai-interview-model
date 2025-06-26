@@ -1,12 +1,19 @@
-import { InterviewSetupData } from "@/types";
+import { InterviewSetupData, InterviewStartResponse } from "@/types";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
 
 export async function startInterviewAPI(
   setupData: InterviewSetupData
 ): Promise<InterviewStartResponse> {
-  const { companyName, jobRole, jobDescription, domain, interviewCategory } =
-    setupData;
+  const {
+    companyName,
+    jobRole,
+    jobDescription,
+    domain,
+    interviewCategory,
+    inputType,
+    skills,
+  } = setupData;
 
   const response = await fetch(`${BASE_URL}/api/interviews`, {
     method: "POST",
@@ -19,6 +26,8 @@ export async function startInterviewAPI(
       jobDescription,
       domain,
       interviewType: interviewCategory,
+      inputType,
+      skills,
     }),
   });
 

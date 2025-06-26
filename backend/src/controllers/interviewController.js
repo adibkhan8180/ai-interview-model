@@ -4,19 +4,35 @@ const interviewService = new InterviewService();
 
 export const startInterview = async (req, res, next) => {
   try {
-    const { companyName, jobRole, jobDescription, interviewType, domain } =
-      req.body;
+    const {
+      companyName,
+      jobRole,
+      jobDescription,
+      skills,
+      inputType,
+      interviewType,
+      domain,
+    } = req.body;
+
     if (interviewType === "domain_specific" && !domain) {
       return res.status(400).json({
         success: false,
         message: "Domain is required for domain specific interviews",
       });
     }
+    if (inputType === "skills-based" && (!skills || !skills.length)) {
+      return res.status(400).json({
+        success: false,
+        message: "At least one skill is required for Skills-based interviews",
+      });
+    }
 
     const result = await interviewService.startInterview(
       companyName,
       jobRole,
-      jobDescription,
+      inputType,
+      inputType === "job-description" ? jobDescription : "",
+      inputType === "skills-based" ? skills : [],
       interviewType,
       interviewType === "domain_specific" ? domain : null
     );

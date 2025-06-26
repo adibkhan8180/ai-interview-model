@@ -1,32 +1,54 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import { InterviewStoreState } from "@/types";
 
-export const useInterviewStore = create<InterviewStoreState>((set) => ({
+const initialState = {
   conversation: [],
   overallFeedback: {},
   interviewComplete: false,
   questionCount: 0,
   maxQuestions: 1,
   interviewStartTime: null,
+  isAISpeaking: false,
+};
 
-  addMessage: (message) =>
-    set((state) => ({
-      conversation: [...state.conversation, message],
-    })),
+export const useInterviewStore = create<InterviewStoreState>()(
+  persist(
+    (set) => ({
+      ...initialState,
 
-  resetConversation: () =>
-    set({
-      conversation: [],
+      addMessage: (message) =>
+        set((state) => ({
+          conversation: [...state.conversation, message],
+        })),
+
+      resetConversation: () =>
+        set(() => ({
+          conversation: [],
+        })),
+
+      setOverallFeedback: (feedback) => set({ overallFeedback: feedback }),
+
+      setInterviewComplete: (complete) => set({ interviewComplete: complete }),
+
+      incrementQuestionCount: () =>
+        set((state) => ({
+          questionCount: state.questionCount + 1,
+        })),
+
+      resetQuestionCount: () =>
+        set(() => ({
+          questionCount: 0,
+        })),
+
+      setInterviewStartTime: (time) => set({ interviewStartTime: time }),
+
+      setIsAISpeaking: (value: boolean) => set({ isAISpeaking: value }),
+
+      resetStore: () => set({ ...initialState }),
     }),
-
-  setOverallFeedback: (feedback) => set({ overallFeedback: feedback }),
-
-  setInterviewComplete: (complete) => set({ interviewComplete: complete }),
-
-  incrementQuestionCount: () =>
-    set((state) => ({ questionCount: state.questionCount + 1 })),
-
-  resetQuestionCount: () => set({ questionCount: 0 }),
-
-  setInterviewStartTime: (time) => set({ interviewStartTime: time }),
-}));
+    {
+      name: "interview-storage",
+    }
+  )
+);

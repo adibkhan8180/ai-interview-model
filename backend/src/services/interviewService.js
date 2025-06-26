@@ -186,12 +186,15 @@ export class InterviewService {
 
     const feedback = await this.getFinalFeedback(sessionId);
 
+    const retries = 3;
     if (!feedback.success) {
-      return { feedback: feedback.result, status: "error" };
+      if (retries <= 0) {
+        throw new Error("Max retries reached for submitInterview");
+      }
+      return await this.submitInterview(sessionId, retries - 1);
     }
 
     session.overallFeedback = feedback.result;
-
     session.status = "completed";
     await session.save();
 

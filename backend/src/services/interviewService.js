@@ -1,6 +1,7 @@
 import { AIMessage, HumanMessage } from "@langchain/core/messages";
 import { InterviewSession } from "../../models/interviewSession.js";
 import { AIService } from "./aiService.js";
+import { AppError } from "../utils/AppError.js";
 
 export class InterviewService {
   constructor() {
@@ -37,6 +38,10 @@ export class InterviewService {
   async getNextQuestion(sessionId) {
     const session = await InterviewSession.findById(sessionId);
     if (!session) throw new Error("Session not found");
+
+    if (session.status === "completed") {
+      throw new AppError("Interview is already completed, can not get next question", 400);
+    }
 
     let conversationChain;
 
@@ -89,7 +94,7 @@ export class InterviewService {
     let data;
 
     if (session.inputType === "skills-based") {
-      // Skip vector store, pass skills directly
+      // Skills-based flow
       response = await this.aiService.askIntroQuestionSkillsBased(
         session.skills,
         session.interviewType,
@@ -123,6 +128,10 @@ export class InterviewService {
     const session = await InterviewSession.findById(sessionId);
     if (!session) throw new Error("Session not found");
 
+    if (session.status === "completed") {
+      throw new AppError("Interview is already completed, can not post answer", 400);
+    }
+
     session.chatHistory.push({ role: "human", content: answer });
 
     const feedbackResponse = await this.aiService.generateFeedback(
@@ -141,35 +150,17 @@ export class InterviewService {
     return { feedback: feedbackResponse.content };
   }
 
-  async getFeedback(sessionId) {
-    const session = await InterviewSession.findById(sessionId);
-    if (!session) throw new Error("Session not found");
-
-    const lastAnswer = session.chatHistory
-      .filter((m) => m.role === "human")
-      .slice(-1)[0]?.content;
-    if (!lastAnswer)
-      throw new Error("No answer found to provide feedback for.");
-
-    const feedback = await this.aiService.generateFeedback(
-      lastAnswer,
-      session.chatHistory.map((msg) =>
-        msg.role === "human"
-          ? new HumanMessage(msg.content)
-          : new AIMessage(msg.content)
-      )
-    );
-
-    return feedback;
-  }
-
   async reviseAnswer(sessionId) {
     const session = await InterviewSession.findById(sessionId);
     if (!session) throw new Error("Session not found");
 
+    if (session.status === "completed") {
+      throw new AppError("Interview is already completed, can not revise answer", 400);
+    }
+
     const lastMessage = session.chatHistory.pop();
     if (!lastMessage || lastMessage.role !== "human")
-      throw new Error("No recent human answer to revise.");
+      throw new AppError("No recent human answer to revise.", 400);
 
     session.currentStep = "revise";
     await session.save();
@@ -180,38 +171,72 @@ export class InterviewService {
     return { question: lastQuestion };
   }
 
-  async submitInterview(sessionId) {
+  async submitInterview(sessionId, retries = 3) {
     const session = await InterviewSession.findById(sessionId);
-    if (!session) throw new Error("Session not found");
+    if (!session) throw new AppError("Session not found", 400);
 
-    const feedback = await this.getFinalFeedback(sessionId);
+    let feedback = null;
 
-    const retries = 3;
-    if (!feedback.success) {
-      if (retries <= 0) {
-        throw new Error("Max retries reached for submitInterview");
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      feedback = await this.getFinalFeedback(sessionId);
+
+      const isValid =
+        feedback.success &&
+        feedback.result &&
+        typeof feedback.result === "object" &&
+        Object.keys(feedback.result).length > 0;
+
+      if (isValid) {
+        break;
       }
-      return await this.submitInterview(sessionId, retries - 1);
+
+      console.warn(
+        `Attempt ${attempt}/${retries} to generate final feedback failed. Retrying...`
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+
+    if (
+      !feedback?.success ||
+      typeof feedback.result !== "object" ||
+      Object.keys(feedback.result).length === 0
+    ) {
+      throw new AppError(
+        "Final assessment failed after multiple retries. Please try again later.",
+        500
+      );
     }
 
     session.overallFeedback = feedback.result;
     session.status = "completed";
     await session.save();
 
-    return { feedback: feedback.result, status: session.status };
+    return {
+      feedback: feedback.result,
+      status: session.status,
+    };
   }
 
   async getFinalFeedback(sessionId) {
     const session = await InterviewSession.findById(sessionId);
-    if (!session) throw new Error("Session not found");
+    if (!session) throw new AppError("Session not found", 400);
 
-    return await this.aiService.generateFinalAssessment(
-      session.chatHistory.map((msg) =>
-        msg.role === "human"
-          ? new HumanMessage(msg.content)
-          : new AIMessage(msg.content)
-      )
-    );
+    try {
+      return await this.aiService.generateFinalAssessment(
+        session.chatHistory.map((msg) =>
+          msg.role === "human"
+            ? new HumanMessage(msg.content)
+            : new AIMessage(msg.content)
+        )
+      );
+    } catch (err) {
+      console.error("AI feedback generation error:", err.message);
+      return {
+        success: false,
+        result: null,
+      };
+    }
   }
 
   async getInterviewStatus(sessionId) {

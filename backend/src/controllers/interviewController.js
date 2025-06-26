@@ -78,19 +78,6 @@ export const postAnswer = async (req, res, next) => {
   }
 };
 
-export const getFeedback = async (req, res, next) => {
-  try {
-    const sessionId = req.params.sessionId;
-    const result = await interviewService.getFeedback(sessionId);
-    res.json({
-      success: true,
-      feedback: result,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
 export const reviseAnswer = async (req, res, next) => {
   try {
     const sessionId = req.params.sessionId;
@@ -109,12 +96,14 @@ export const submitInterview = async (req, res, next) => {
   try {
     const sessionId = req.params.sessionId;
     const result = await interviewService.submitInterview(sessionId);
-    res.json({
-      success: true,
-      overallFeedback: result.feedback,
-      status: result.status,
-    });
+    res.status(200).json
+      ({
+        success: true,
+        overallFeedback: result.feedback,
+        status: result.status,
+      });
   } catch (error) {
+    console.error("Error in submitInterview:", error.message);
     next(error);
   }
 };

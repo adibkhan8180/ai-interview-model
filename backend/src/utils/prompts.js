@@ -38,9 +38,8 @@ export const createIntroPrompt = (
 ) => {
   const randomName = getRandomName();
   const introInstructions = `
-Your name is ${randomName}, you are an HR interviewer from ${companyName} company, for the JD : ({context}). The job description is provided in context. You're conducting a mock ${interviewType} interview${
-    domain ? ` focused on ${domain}` : ""
-  } and will ask questions strictly based on the role.
+Your name is ${randomName}, you are an HR interviewer from ${companyName} company, for the JD : ({context}). The job description is provided in context. You're conducting a mock ${interviewType} interview${domain ? ` focused on ${domain}` : ""
+    } and will ask questions strictly based on the role.
 
 Instructions:
 - Greet the student
@@ -68,11 +67,10 @@ export const createSkillsBasedIntroPrompt = (
 ) => {
   const randomName = getRandomName();
   const skillsBasedIntroInstructions = `
-Your name is ${randomName}, you are an HR interviewer from ${companyName} company, for the position of ${jobRole}. You're conducting a mock ${interviewType} interview${
-    domain ? ` focused on ${domain}` : ""
-  }. The candidate has mentioned the following skills: ${skills.join(
-    ", "
-  )}. You will ask questions strictly based on the role.
+Your name is ${randomName}, you are an HR interviewer from ${companyName} company, for the position of ${jobRole}. You're conducting a mock ${interviewType} interview${domain ? ` focused on ${domain}` : ""
+    }. The candidate has mentioned the following skills: ${skills.join(
+      ", "
+    )}. You will ask questions strictly based on the role.
 
 Instructions:
 - Greet the student
@@ -91,9 +89,8 @@ Instructions:
 };
 
 export const createMainPrompt = (interviewType, domain) => {
-  const baseInstructions = `You are an HR interviewer conducting a mock ${interviewType} interview${
-    domain ? ` in the domain of ${domain}` : ""
-  } based strictly on the job description in {context}.
+  const baseInstructions = `You are an HR interviewer conducting a mock ${interviewType} interview${domain ? ` in the domain of ${domain}` : ""
+    } based strictly on the job description in {context}.
 
 Instructions:
 - DO NOT repeat or ask for the candidate’s introduction.
@@ -120,8 +117,8 @@ Instructions:
     [
       "system",
       baseInstructions +
-        (typeSpecificInstructions[interviewType] ||
-          typeSpecificInstructions["general"]),
+      (typeSpecificInstructions[interviewType] ||
+        typeSpecificInstructions["general"]),
     ],
     new MessagesPlaceholder("chat_history"),
     ["user", "{input}"],
@@ -156,8 +153,8 @@ Instructions:
     [
       "system",
       baseInstructions +
-        (typeSpecificInstructions[interviewType] ||
-          typeSpecificInstructions["general"]),
+      (typeSpecificInstructions[interviewType] ||
+        typeSpecificInstructions["general"]),
     ],
     new MessagesPlaceholder("chat_history"),
     ["user", "{input}"],
@@ -200,8 +197,10 @@ export const finalFeedbackPrompt = ChatPromptTemplate.fromMessages([
   [
     "system",
     `
-    Create a comprehensive and realistic interview assessment in the following strict JSON format, always provide the JSON format in below structure.
+    You are an AI assessment generator. You will return ONLY valid JSON in the **exact format** described below — no explanations, no markdown, no text before or after.
 
+    STRICT FORMAT:
+    
     {{
       "overall_score": {{number between 0 and 100}} this score should be relavent to the score of all questions' answer and the coaching scores,
       "level": One of ["Basic", "Competent", "High-Caliber"] based on the candidate's overall performance and overall score,
@@ -225,6 +224,7 @@ export const finalFeedbackPrompt = ChatPromptTemplate.fromMessages([
       "recommendations": ["recommendation1"] look at the improvements provided in each question and make a summary here,
       "closure_message": "Friendly, personalized final note reflecting on their performance and encouraging future attempts."
     }}
+
 
     Guidelines:
     - ONLY use actual Q&A pairs from the chat history, important. Do NOT fabricate answers or feedback.

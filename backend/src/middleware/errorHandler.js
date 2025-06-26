@@ -1,16 +1,14 @@
 export const errorHandler = (err, req, res, next) => {
-    console.error(err.stack);
+  console.error(err.stack);
 
-    if (err.message === 'Session not found') {
-        return res.status(404).json({
-            success: false,
-            message: 'Interview session not found'
-        });
-    }
+  const statusCode = err.statusCode || 500;
+  const message =
+    err.isOperational && err.message
+      ? err.message
+      : "Internal server error";
 
-    res.status(500).json({
-        success: false,
-        message: 'Internal server error',
-        error: process.env.NODE_ENV === 'development' ? err.message : undefined
-    });
+  res.status(statusCode).json({
+    success: false,
+    message,
+  });
 };

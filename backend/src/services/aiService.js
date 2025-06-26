@@ -154,32 +154,50 @@ export class AIService {
 
   async generateFinalAssessment(chatHistory) {
     const finalChain = finalFeedbackPrompt.pipe(this.model);
-    const response = await finalChain.invoke({
-      chat_history: chatHistory,
-    });
+
+    let response;
+    try {
+      response = await finalChain.invoke({
+        chat_history: chatHistory,
+      });
+    } catch (err) {
+      console.error("LLM call failed:", err.message);
+      return {
+        success: false,
+        result: "Model error during final assessment.",
+      };
+    }
 
     let jsonContent = response.content;
 
-    // Try to extract JSON block if present in mixed response
-    const jsonMatch = jsonContent.match(/\{[\s\S]*\}/);
+    // Extract JSON if surrounded by extra text
+    const jsonMatch = jsonContent.match(/\{[\s\S]*?\}/);
     if (jsonMatch) {
       jsonContent = jsonMatch[0];
     }
 
     try {
       const parsed = JSON.parse(jsonContent);
-      return { success: true, result: parsed };
+
+      // Optional: Check structure here (fields like summary, score, etc.)
+      // if (!parsed || typeof parsed !== "object") {
+      //   throw new Error("Parsed content is not an object");
+      // }
+
+      return { success: true, result: jsonContent };
     } catch (error) {
       console.error(
         "Failed to parse final assessment:",
-        error,
-        "\nRaw response:",
+        error.message,
+        "\nRaw output:\n",
         response.content
       );
+
       return {
         success: false,
-        result: "Assessment generation failed due to invalid output format.",
+        result: response.content,
       };
     }
   }
+
 }

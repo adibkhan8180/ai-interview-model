@@ -9,6 +9,7 @@ const initialState = {
   questionCount: 0,
   maxQuestions: 2,
   interviewStartTime: null,
+  isAISpeaking: false,
 };
 
 export const useInterviewStore = create<InterviewStoreState>()(
@@ -41,6 +42,8 @@ export const useInterviewStore = create<InterviewStoreState>()(
         })),
 
       setInterviewStartTime: (time) => set({ interviewStartTime: time }),
+
+      setIsAISpeaking: (value: boolean) => set({ isAISpeaking: value }),
 
       resetStore: () => set({ ...initialState }),
     }),

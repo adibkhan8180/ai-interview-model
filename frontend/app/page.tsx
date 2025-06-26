@@ -24,10 +24,10 @@ export default function AIInterviewSetup() {
     incrementQuestionCount,
     setInterviewStartTime,
     resetStore: resetInterviewStore,
+    setIsAISpeaking,
   } = useInterviewStore();
   const [interviewStarted, setInterviewStarted] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [isAISpeaking, setIsAISpeaking] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const params = useParams();
   const sessionId = params?.sessionId as string;

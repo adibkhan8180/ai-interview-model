@@ -165,7 +165,7 @@ export function ResponseInput({
               className="rounded-xl resize-none p-2 px-4 shadow-md"
               disabled={isRecording || isAISpeaking}
             />
-            {textResponse ? (
+            {textResponse.trim() ? (
               <div className="">
                 <Button
                   onClick={handleSubmit}

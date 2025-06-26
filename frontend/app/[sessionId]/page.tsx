@@ -30,10 +30,11 @@ export default function AIInterviewSystem() {
     setInterviewComplete,
     interviewStartTime,
     resetStore: resetInterviewStore,
+    isAISpeaking,
+    setIsAISpeaking,
   } = useInterviewStore();
 
   const [isRecording, setIsRecording] = useState(false);
-  const [isAISpeaking, setIsAISpeaking] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const params = useParams();
   const sessionId = params?.sessionId as string;
@@ -119,7 +120,7 @@ export default function AIInterviewSystem() {
       if (showFinalAssessment) {
         const overallData = await submitFinalInterviewAPI(sessionId);
         //@ts-ignore
-        
+
         if (overallData.status && overallData.status === "error") {
           console.error("Error fetching final assessment data:", overallData);
           return;

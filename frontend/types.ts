@@ -36,6 +36,7 @@ export interface InterviewStoreState {
   questionCount: number;
   maxQuestions: number;
   interviewStartTime: Date | null;
+  isAISpeaking: boolean;
 
   addMessage: (message: ConversationEntry) => void;
   resetConversation: () => void;
@@ -46,4 +47,5 @@ export interface InterviewStoreState {
   resetQuestionCount: () => void;
   setInterviewStartTime: (time: Date | null) => void;
   resetStore: () => void;
+  setIsAISpeaking: (value: boolean) => void;
 }

@@ -7,22 +7,31 @@ const messageSchema = new mongoose.Schema({
 
 const interviewSessionSchema = new mongoose.Schema(
   {
-    companyName: String,
-    jobRole: String,
-    interviewType: String,
+    companyName: { type: String, required: true },
+    jobRole: { type: String, required: true },
+    interviewType: {
+      type: String,
+      enum: ["general", "HR", "domain-specific"],
+      required: true,
+    },
+    domain: { type: String, trim: true },
     chatHistory: [messageSchema],
     status: { type: String, default: "active" },
     currentStep: { type: String, default: "questioning" },
     lastFeedback: String,
     overallFeedback: Object,
-    inputType: String,
+    inputType: {
+      type: String,
+      enum: ["skills-based", "job-description"],
+      required: true,
+    },
     skills: {
       type: [String],
-      default: [],
+      trim: true,
     },
     jobDescription: {
       type: String,
-      default: "",
+      trim: true,
     },
   },
   { timestamps: true }

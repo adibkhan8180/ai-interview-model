@@ -42,6 +42,7 @@ export default function AIInterviewSystem() {
   const [currentFeedback, setCurrentFeedback] = useState("");
   const [transcribedText, setTranscribedText] = useState("");
   const [showFinalAssessment, setShowFinalAssessment] = useState(false);
+  const [finalAssessmentLoading, setFinalAssessmentLoading] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // Initialize audio recorder
@@ -101,7 +102,6 @@ export default function AIInterviewSystem() {
       setConversation({ role: "ai", content: data.feedback, isFeedback: true });
 
       // Speak feedback only
-      // speakTextWithTTS("");
       speakTextWithTTS(data.feedback);
     } catch (error) {
       console.error("Error getting AI response:", error);
@@ -118,11 +118,13 @@ export default function AIInterviewSystem() {
       }
 
       if (showFinalAssessment) {
+        setFinalAssessmentLoading(true);
         const overallData = await submitFinalInterviewAPI(sessionId);
         //@ts-ignore
 
         if (overallData.status && overallData.status === "error") {
           console.error("Error fetching final assessment data:", overallData);
+          setFinalAssessmentLoading(false);
           return;
         }
 
@@ -260,6 +262,7 @@ export default function AIInterviewSystem() {
                         : false
                     }
                     setShowFinalAssessment={setShowFinalAssessment}
+                    finalAssessmentLoading={finalAssessmentLoading}
                   />
                 )}
               </div>

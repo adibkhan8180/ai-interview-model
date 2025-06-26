@@ -100,6 +100,7 @@ export default function AIInterviewSystem() {
       setConversation({ role: "ai", content: data.feedback, isFeedback: true });
 
       // Speak feedback only
+      // speakTextWithTTS("");
       speakTextWithTTS(data.feedback);
     } catch (error) {
       console.error("Error getting AI response:", error);
@@ -116,9 +117,15 @@ export default function AIInterviewSystem() {
       }
 
       if (showFinalAssessment) {
-        console.log("showFinalAssessment", showFinalAssessment);
         const overallData = await submitFinalInterviewAPI(sessionId);
+        //@ts-ignore
+        
+        if (overallData.status && overallData.status === "error") {
+          console.error("Error fetching final assessment data:", overallData);
+          return;
+        }
 
+        console.log("final assessment data", overallData);
         setInterviewComplete(true);
         setOverallFeedback(overallData.overallFeedback);
 

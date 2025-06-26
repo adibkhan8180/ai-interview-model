@@ -2,15 +2,19 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { InterviewStoreState } from "@/types";
 
+const initialState = {
+  conversation: [],
+  overallFeedback: {},
+  interviewComplete: false,
+  questionCount: 0,
+  maxQuestions: 2,
+  interviewStartTime: null,
+};
+
 export const useInterviewStore = create<InterviewStoreState>()(
   persist(
     (set) => ({
-      conversation: [],
-      overallFeedback: {},
-      interviewComplete: false,
-      questionCount: 0,
-      maxQuestions: 2,
-      interviewStartTime: null,
+      ...initialState,
 
       addMessage: (message) =>
         set((state) => ({
@@ -38,15 +42,7 @@ export const useInterviewStore = create<InterviewStoreState>()(
 
       setInterviewStartTime: (time) => set({ interviewStartTime: time }),
 
-      resetStore: () =>
-        set(() => ({
-          conversation: [],
-          overallFeedback: {},
-          interviewComplete: false,
-          questionCount: 0,
-          maxQuestions: 1,
-          interviewStartTime: null,
-        })),
+      resetStore: () => set({ ...initialState }),
     }),
     {
       name: "interview-storage",

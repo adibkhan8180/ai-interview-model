@@ -87,11 +87,6 @@ export class InterviewService {
 
     let response;
     let data;
-    console.log(
-      "role in getIntroQuestion ===>>>",
-      session.jobRole,
-      session.inputType
-    );
 
     if (session.inputType === "skills-based") {
       // Skip vector store, pass skills directly
@@ -176,6 +171,7 @@ export class InterviewService {
     if (!lastMessage || lastMessage.role !== "human")
       throw new Error("No recent human answer to revise.");
 
+    session.currentStep = "revise";
     await session.save();
 
     const lastQuestion = session.chatHistory

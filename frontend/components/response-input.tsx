@@ -60,6 +60,7 @@ export function ResponseInput({
       });
 
       speakTextWithTTS(data.question);
+      // speakTextWithTTS("");
     } catch (error) {
       console.error("Error reviseing answer:", error);
     } finally {

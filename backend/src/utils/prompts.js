@@ -200,14 +200,14 @@ export const finalFeedbackPrompt = ChatPromptTemplate.fromMessages([
   [
     "system",
     `
-    Create a comprehensive and realistic interview assessment in the following strict JSON format.
+    Create a comprehensive and realistic interview assessment in the following strict JSON format, always provide the JSON format in below structure.
 
     {{
       "overall_score": {{number between 0 and 100}} this score should be relavent to the score of all questions' answer and the coaching scores,
       "level": One of ["Basic", "Competent", "High-Caliber"] based on the candidate's overall performance and overall score,
       "summary": "Brief overall assessment of the candidate’s performance. based on all qusetions and coaching scores",
       "questions_analysis": [
-        {{
+      {{
           "question": "The exact question asked",
           "response": "User's original answer",
           "feedback": "Detailed and constructive feedback, highlighting both strengths and areas of improvement.",
@@ -215,8 +215,8 @@ export const finalFeedbackPrompt = ChatPromptTemplate.fromMessages([
           "improvements": ["improvement1"] provide the strength found in answer relavent to question,
           "score": {{number between 0 and 10}} this score should be based on answer relavent to question derived by rubrik method,
           "response_depth": One of ["Novice", "Intermediate", "Advanced"]
-        }}
-      ],
+  }}, repeate for all question and answer pair...
+  ],
       "coaching_scores": {{
         "clarity_of_motivation": {{1–5}},
         "specificity_of_learning": {{1–5}},
@@ -227,7 +227,8 @@ export const finalFeedbackPrompt = ChatPromptTemplate.fromMessages([
     }}
 
     Guidelines:
-    - ONLY use actual Q&A pairs from the chat history. Do NOT fabricate answers or feedback.
+    - ONLY use actual Q&A pairs from the chat history, important. Do NOT fabricate answers or feedback.
+    - questions_analysis should be the array of all questions that is in chat history, including the introduction question.
     - If the number of meaningful answers is less than 3, reduce scores and explain this in the summary.
     - Rate 'response_depth' as:
       • Novice – Vague, lacks structure or relevance

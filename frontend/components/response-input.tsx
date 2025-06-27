@@ -7,19 +7,7 @@ import { Mic, MicOff, Send } from "lucide-react";
 import { getNextQuestionAPI, reviseAnswerAPI } from "@/lib/api";
 import { useInterviewStore } from "@/lib/store/interviewStore";
 import { useParams } from "next/navigation";
-
-interface ResponseInputProps {
-  onSubmitText: (text: string) => void;
-  onStartRecording: () => void;
-  onStopRecording: () => void;
-  isRecording: boolean;
-  isAISpeaking: boolean;
-  speakTextWithTTS: (text: string) => Promise<void>;
-  setCurrentQuestion: React.Dispatch<React.SetStateAction<string>>;
-  isLatestFeedback?: boolean;
-  setShowFinalAssessment: React.Dispatch<React.SetStateAction<boolean>>;
-  finalAssessmentLoading: boolean;
-}
+import { ResponseInputProps } from "@/types";
 
 export function ResponseInput({
   onSubmitText,
@@ -28,7 +16,6 @@ export function ResponseInput({
   isRecording,
   isAISpeaking,
   speakTextWithTTS,
-  setCurrentQuestion,
   isLatestFeedback,
   setShowFinalAssessment,
   finalAssessmentLoading,
@@ -47,9 +34,9 @@ export function ResponseInput({
   const params = useParams();
   const sessionId = params?.sessionId as string;
   if (!sessionId) {
-    // console.error("Session ID not found.");
     return;
   }
+
   const handleReviseQuestion = async () => {
     setLoading(true);
     try {
@@ -80,7 +67,6 @@ export function ResponseInput({
       const data = await getNextQuestionAPI(sessionId);
       incrementQuestionCount();
 
-      setCurrentQuestion(data?.question);
       setConversation({
         role: "ai",
         content: data?.question,

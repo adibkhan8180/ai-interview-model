@@ -31,9 +31,6 @@ export function ConfirmDialog({ openDialogue, setOpenDialog }: Props) {
   };
   return (
     <AlertDialog open={openDialogue} onOpenChange={() => setOpenDialog(false)}>
-      <AlertDialogTrigger asChild>
-        <Button variant="outline">Show Dialog</Button>
-      </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>

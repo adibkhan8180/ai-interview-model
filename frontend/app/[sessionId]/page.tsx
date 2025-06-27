@@ -12,6 +12,7 @@ import { submitAnswerAPI, submitFinalInterviewAPI } from "@/lib/api";
 import { useFormStore } from "@/lib/store/formStore";
 import { useInterviewStore } from "@/lib/store/interviewStore";
 import { speakTextWithTTS } from "@/lib/audioApi";
+import { ConfirmDialog } from "./ConfirmDialog";
 
 export default function AIInterviewSystem() {
   const router = useRouter();
@@ -34,6 +35,7 @@ export default function AIInterviewSystem() {
   const params = useParams();
   const sessionId = params?.sessionId as string;
   const [showFinalAssessment, setShowFinalAssessment] = useState(false);
+  const [openDialog, setOpenDialog] = useState<boolean>(false);
   const [finalAssessmentLoading, setFinalAssessmentLoading] = useState(false);
 
   const { startRecording, stopRecording } = AudioRecorder({
@@ -108,24 +110,12 @@ export default function AIInterviewSystem() {
     scrollRef?.current?.scrollIntoView({ behavior: "smooth" });
   }, [conversation, overallFeedback]);
 
-  // ################################################################
-  // ########## not working properly, need more focus here ##########
-  // ################################################################
   useEffect(() => {
     history.pushState(null, "", window.location.href);
 
     const handlePopState = () => {
-      const confirmLeave = window.confirm(
-        "Are you sure you want to leave the interview? Your progress will be lost."
-      );
-
-      if (confirmLeave) {
-        console.log("User confirmed leave");
-        router.back();
-      } else {
-        console.log("User chose to stay");
-        history.pushState(null, "", window.location.href);
-      }
+      setOpenDialog(true);
+      history.pushState(null, "", window.location.href);
     };
 
     window.addEventListener("popstate", handlePopState);
@@ -230,6 +220,7 @@ export default function AIInterviewSystem() {
           </div>
         </CardContent>
       </Card>
+      <ConfirmDialog openDialogue={openDialog} setOpenDialog={setOpenDialog} />
     </div>
   );
 }

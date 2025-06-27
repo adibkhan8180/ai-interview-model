@@ -30,17 +30,8 @@ export function InterviewSetupForm({
   onSubmit,
   loading,
 }: InterviewSetupFormProps) {
-  // const [formData, setFormData] = useState<InterviewSetupData>({
-  //   companyName: "",
-  //   jobRole: "",
-  //   interviewCategory: "general",
-  //   domain: "",
-  //   jobDescription: "",
-  // });
-
-  const [radioInput, setRadioInput] = useState("skills-based");
   const [skill, setSkill] = useState("");
-  const { formData, setFormData, resetForm } = useFormStore();
+  const { formData, setFormData } = useFormStore();
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -60,7 +51,6 @@ export function InterviewSetupForm({
 
   const isDomainSpecific = formData.interviewCategory === "domain-specific";
 
-
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && skill.trim()) {
       e.preventDefault();
@@ -76,6 +66,7 @@ export function InterviewSetupForm({
       skills: (formData.skills || []).filter((s) => s !== removedSkill),
     });
   };
+
   return (
     <Card>
       <CardHeader>
@@ -217,7 +208,9 @@ export function InterviewSetupForm({
             className="w-full cursor-pointer"
             disabled={loading}
           >
-            {loading ? "Starting..." : "Start AI Video Interview"}
+            {loading
+              ? "Starting Your Interview..."
+              : "Start AI Video Interview"}
           </Button>
         </form>
       </CardContent>

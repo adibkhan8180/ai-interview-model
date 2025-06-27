@@ -24,7 +24,6 @@ export function VideoCall({
   const [stream, setStream] = useState<MediaStream | null>(null);
 
   useEffect(() => {
-    // Initialize camera when component mounts
     const initCamera = async () => {
       try {
         const mediaStream = await navigator.mediaDevices.getUserMedia({
@@ -46,7 +45,6 @@ export function VideoCall({
 
     initCamera();
 
-    // Cleanup function
     return () => {
       if (stream) {
         stream.getTracks().forEach((track) => {
@@ -84,7 +82,6 @@ export function VideoCall({
 
   return (
     <div className="flex flex-col gap-4 ">
-      {/* User video */}
       <Card className="overflow-hidden bg-black relative w-full aspect-[5/3] 2xl:aspect-[4/3]">
         <video
           ref={userVideoRef}
@@ -142,7 +139,6 @@ export function VideoCall({
         </div>
       </Card>
 
-      {/* AI interviewer */}
       <Card className="overflow-hidden bg-gradient-to-b from-blue-900 to-indigo-900 relative w-full aspect-[5/3] 2xl:aspect-[4/3]">
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <div className="relative w-24 h-24 mb-3">

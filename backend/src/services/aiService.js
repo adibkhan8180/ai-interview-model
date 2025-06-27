@@ -17,6 +17,8 @@ import {
   feedbackPrompt,
   finalFeedbackPrompt,
 } from "../utils/prompts.js";
+import { z } from "zod";
+import { StructuredOutputParser } from "@langchain/core/output_parsers";
 
 export class AIService {
   constructor() {
@@ -153,51 +155,178 @@ export class AIService {
   }
 
   async generateFinalAssessment(chatHistory) {
-    const finalChain = finalFeedbackPrompt.pipe(this.model);
+    const assessmentSchema = z.object({
+      overall_score: z
+        .number()
+        .min(0)
+        .max(100)
+        .describe(
+          "Overall score evaluated by rubric's method based on the scores of all question-answer pairs from the questions_analysis array and the coaching scores."
+        ),
 
-    let response;
+      level: z.enum(["Basic", "Competent", "High-Caliber"]),
+
+      summary: z
+        .string()
+        .describe(
+          "Brief summary of the candidate's overall interview performance."
+        ),
+
+      questions_analysis: z.array(
+        z.object({
+          question: z
+            .string()
+            .describe("Question asked by the AI interviewer."),
+          response: z
+            .string()
+            .describe("Exact response provided by the student."),
+          feedback: z
+            .string()
+            .describe(
+              "Detailed feedback based on the question and response pair."
+            ),
+          strengths: z
+            .array(z.string())
+            .describe("Strengths identified in the student's response."),
+          improvements: z
+            .array(z.string())
+            .describe("Areas for improvement in the student's response."),
+          score: z
+            .number()
+            .min(0)
+            .max(10)
+            .describe(
+              "Score for the response according to the rubric's method."
+            ),
+          response_depth: z.enum(["Novice", "Intermediate", "Advanced"]),
+        })
+      ),
+
+      coaching_scores: z
+        .object({
+          clarity_of_motivation: z
+            .number()
+            .min(1)
+            .max(5)
+            .describe(
+              "Score (1 to 5) reflecting how clearly the student expressed their motivation or reasons for applying."
+            ),
+
+          specificity_of_learning: z
+            .number()
+            .min(1)
+            .max(5)
+            .describe(
+              "Score (1 to 5) indicating how specifically the student articulated what they have learned or intend to learn."
+            ),
+
+          career_goal_alignment: z
+            .number()
+            .min(1)
+            .max(5)
+            .describe(
+              "Score (1 to 5) evaluating how well the student's answers and aspirations align with their stated career goals."
+            ),
+        })
+        .describe(
+          "Coaching scores providing additional evaluation of the student's motivation, learning clarity, and career goal alignment."
+        ),
+
+      recommendations: z
+        .array(z.string())
+        .describe(
+          "Summary of key recommendations derived from the improvements across all questions."
+        ),
+
+      closure_message: z
+        .string()
+        .describe("Friendly, personalized closing message for the student."),
+    });
+
+
+
+
     try {
-      response = await finalChain.invoke({
+
+      console.log('1====>>>>', chatHistory)
+
+      const outputParser = StructuredOutputParser.fromZodSchema(assessmentSchema);
+      console.log('2====>>>>')
+
+      const finalChain = finalFeedbackPrompt.pipe(this.model).pipe(outputParser);
+      const format_instructions= outputParser.getFormatInstructions();
+      console.log('3===>>>', format_instructions)
+      const result = await finalChain.invoke({
+        format_instructions: outputParser.getFormatInstructions(),
         chat_history: chatHistory,
       });
-    } catch (err) {
-      console.error("LLM call failed:", err.message);
-      return {
-        success: false,
-        result: "Model error during final assessment.",
-      };
-    }
+      console.log('4====>>>>')
+      console.log('result===>>>', result)
 
-    let jsonContent = response.content;
-
-    // Extract JSON if surrounded by extra text
-    const jsonMatch = jsonContent.match(/\{[\s\S]*?\}/);
-    if (jsonMatch) {
-      jsonContent = jsonMatch[0];
-    }
-
-    try {
-      const parsed = JSON.parse(jsonContent);
-
-      // Optional: Check structure here (fields like summary, score, etc.)
-      // if (!parsed || typeof parsed !== "object") {
-      //   throw new Error("Parsed content is not an object");
-      // }
-
-      return { success: true, result: jsonContent };
+      return { success: true, result };
     } catch (error) {
-      console.error(
-        "Failed to parse final assessment:",
-        error.message,
-        "\nRaw output:\n",
-        response.content
-      );
-
+      console.error("Failed to generate final assessment:", error);
       return {
         success: false,
-        result: response.content,
+        result: "Assessment generation failed due to invalid output format.",
       };
     }
   }
+
+
+  // async generateFinalAssessment(chatHistory) {
+  //   const finalChain = finalFeedbackPrompt.pipe(this.model);
+
+  //   let response;
+  //   try {
+  //     response = await finalChain.invoke({ chat_history: chatHistory });
+  //   } catch (err) {
+  //     console.error("LLM call failed:", err.message);
+  //     return { success: false, result: "Model error during final assessment." };
+  //   }
+
+  //   const rawOutput = response.content;
+  //   console.log("🔍 Raw AI Output:\n", rawOutput); // for debugging
+
+  //   let fixedJson, parsed;
+
+  //   try {
+  //     // Use jsonrepair to fix broken strings/quotes
+  //     fixedJson = jsonrepair(rawOutput);
+  //     parsed = JSON.parse(fixedJson);
+  //   } catch (err) {
+  //     console.error("❌ Failed to repair or parse JSON:", err.message);
+  //     return { success: false, result: null };
+  //   }
+
+  //   // If LLM wrongly returns array instead of object
+  //   if (Array.isArray(parsed)) {
+  //     if (parsed.length === 1 && typeof parsed[0] === "object") {
+  //       console.warn("⚠️ Wrapped object in array, auto-unwrapped");
+  //       parsed = parsed[0];
+  //     } else {
+  //       console.error("❌ Parsed value is an array, expected object.");
+  //       return { success: false, result: null };
+  //     }
+  //   }
+
+  //   if (typeof parsed !== "object" || parsed === null) {
+  //     console.error("❌ Parsed value is not a valid object");
+  //     return { success: false, result: null };
+  //   }
+
+  //   const validation = finalFeedbackSchema.safeParse(parsed);
+
+  //   if (!validation.success) {
+  //     console.error("❌ Zod validation failed:", validation.error.issues);
+  //     console.log("🛠️ Final Parsed JSON for reference:", parsed);
+  //     return { success: false, result: null };
+  //   }
+
+  //   return { success: true, result: validation.data };
+  // }
+
+
+
 
 }

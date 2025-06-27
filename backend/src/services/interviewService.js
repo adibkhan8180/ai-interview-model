@@ -176,37 +176,37 @@ export class InterviewService {
     if (!session) throw new AppError("Session not found", 400);
 
     let feedback = null;
+    feedback = await this.getFinalFeedback(sessionId);
 
-    for (let attempt = 1; attempt <= retries; attempt++) {
-      feedback = await this.getFinalFeedback(sessionId);
-
-      const isValid =
-        feedback.success &&
-        feedback.result &&
-        typeof feedback.result === "object" &&
-        Object.keys(feedback.result).length > 0;
-
-      if (isValid) {
-        break;
-      }
-
-      console.warn(
-        `Attempt ${attempt}/${retries} to generate final feedback failed. Retrying...`
-      );
-
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
-
-    if (
-      !feedback?.success ||
-      typeof feedback.result !== "object" ||
-      Object.keys(feedback.result).length === 0
-    ) {
-      throw new AppError(
-        "Final assessment failed after multiple retries. Please try again later.",
-        500
-      );
-    }
+    /*     for (let attempt = 1; attempt <= retries; attempt++) {
+    
+          const isValid =
+            feedback.success &&
+            feedback.result &&
+            typeof feedback.result === "object" &&
+            Object.keys(feedback.result).length > 0;
+    
+          if (isValid) {
+            break;
+          }
+    
+          console.warn(
+            `Attempt ${attempt}/${retries} to generate final feedback failed. Retrying...`
+          );
+    
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        } */
+    /* 
+        if (
+          !feedback?.success ||
+          typeof feedback.result !== "object" ||
+          Object.keys(feedback.result).length === 0
+        ) {
+          throw new AppError(
+            "Final assessment failed after multiple retries. Please try again later.",
+            500
+          );
+        } */
 
     session.overallFeedback = feedback.result;
     session.status = "completed";

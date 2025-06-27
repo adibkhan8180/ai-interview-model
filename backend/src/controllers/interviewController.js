@@ -14,7 +14,7 @@ export const startInterview = async (req, res, next) => {
       domain,
     } = req.body;
 
-    if (interviewType === "domain_specific" && !domain) {
+    if (interviewType === "domain-specific" && !domain) {
       return res.status(400).json({
         success: false,
         message: "Domain is required for domain specific interviews",
@@ -34,7 +34,7 @@ export const startInterview = async (req, res, next) => {
       inputType === "job-description" ? jobDescription : "",
       inputType === "skills-based" ? skills : [],
       interviewType,
-      interviewType === "domain_specific" ? domain : null
+      interviewType === "domain-specific" ? domain : null,
     );
 
     const introQuestion = await interviewService.getIntroQuestion(

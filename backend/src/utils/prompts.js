@@ -193,46 +193,50 @@ Be friendly, specific, and helpful — not robotic or overly formal. Always stay
   ["user", "{input}"],
 ]);
 
+
 export const finalFeedbackPrompt = ChatPromptTemplate.fromMessages([
   [
     "system",
-    `You are an AI assessment assistant. The interview is now complete.
+    `You are a JSON assessment generator. You MUST respond with ONLY a valid JSON object, nothing else.
 
-Your task is to generate a comprehensive and realistic interview assessment strictly in the following JSON format:
+CRITICAL RULES:
+1. Your response must start with an opening brace and end with a closing brace
+2. NO conversational text before or after the JSON
+3. NO explanations, NO markdown, NO additional commentary
+4. ONLY return the JSON assessment object
 
-{format_instructions}
+Required JSON structure:
+- overall_score: number between 0-100
+- level: must be exactly "Basic", "Competent", or "High-Caliber"
+- summary: string describing overall performance
+- questions_analysis: array of objects, each containing:
+  * question: the actual question asked
+  * response: the candidate's actual response
+  * feedback: assessment of the response
+  * strengths: array of positive aspects
+  * improvements: array of areas to improve
+  * score: number between 0-10
+  * response_depth: must be exactly "Novice", "Intermediate", or "Advanced"
+- coaching_scores: object with three properties (all numbers 1-5):
+  * clarity_of_motivation
+  * specificity_of_learning  
+  * career_goal_alignment
+- recommendations: array of improvement suggestions
+- closure_message: final message to candidate
 
-Guidelines:
-- Use only ASCII characters. No emojis, no markdown.
-- ONLY use actual Q&A pairs from the chat history provided. Do NOT fabricate answers or feedback.
-- The 'questions_analysis' array must contain all questions asked in the chat history, including the introduction.
-- If fewer than 3 meaningful answers were given, lower scores accordingly and reflect that in the summary.
-- Rate 'response_depth' as:
-  • Novice – Vague, lacks structure or relevance
-  • Intermediate – Reasonable effort, some clarity or partial relevance
-  • Advanced – Clear, thoughtful, well-structured, goal-linked
-- Classify overall 'level' as:
-  • Basic – Answers lack clarity, depth, or relevance to the question
-  • Competent – Answers show moderate understanding and structure
-  • High-Caliber – Answers demonstrate depth, insight, and clarity
-- Be strict but supportive. Use a constructive, coaching tone.
-IMPORTANT RULES:
-- ❗ Return ONLY a valid JSON object.
-- ❗ JSON must start with and end with — no markdown or extra text.
-- ❗ DO NOT include any explanations, greetings, or comments before or after the JSON.
-- ❗ DO NOT use single quotes — use only double quotes for all keys and strings.
-- ❗ DO NOT wrap JSON in triple backticks or any markdown.
-- ❗ DO NOT write phrases like "It's great to hear..." — ONLY return JSON.
-- ❗ Use only ASCII characters — no emojis or special symbols.
-- ❗ If fewer than 3 answers were given, reduce scores and reflect that in summary.
-`
+IMPORTANT: Analyze the actual conversation history to extract real questions and responses. Do not make up content.
+
+Response depth guidelines:
+- "Novice": Short, basic responses with minimal detail
+- "Intermediate": Moderate detail with some examples or structure
+- "Advanced": Comprehensive, well-structured responses with specific examples
+
+Remember: Return ONLY the JSON object. Start with opening brace, end with closing brace.`
   ],
   new MessagesPlaceholder("chat_history"),
+  ["user", "Generate assessment JSON"],
 ]);
 
-
-
-// export const finalFeedbackPrompt = ChatPromptTemplate.fromMessages([
 //   [
 //     "system",
 //     `

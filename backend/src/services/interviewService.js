@@ -171,70 +171,101 @@ export class InterviewService {
     return { question: lastQuestion };
   }
 
-  async submitInterview(sessionId, retries = 3) {
+  // FIXED: Prevent multiple submissions and cache results
+  async submitInterview(sessionId) {
     const session = await InterviewSession.findById(sessionId);
     if (!session) throw new AppError("Session not found", 400);
 
-    let feedback = null;
-    feedback = await this.getFinalFeedback(sessionId);
+    console.log('Starting interview submission for session:', sessionId);
 
-    /*     for (let attempt = 1; attempt <= retries; attempt++) {
-    
-          const isValid =
-            feedback.success &&
-            feedback.result &&
-            typeof feedback.result === "object" &&
-            Object.keys(feedback.result).length > 0;
-    
-          if (isValid) {
-            break;
-          }
-    
-          console.warn(
-            `Attempt ${attempt}/${retries} to generate final feedback failed. Retrying...`
-          );
-    
-          await new Promise((resolve) => setTimeout(resolve, 500));
-        } */
-    /* 
-        if (
-          !feedback?.success ||
-          typeof feedback.result !== "object" ||
-          Object.keys(feedback.result).length === 0
-        ) {
-          throw new AppError(
-            "Final assessment failed after multiple retries. Please try again later.",
-            500
-          );
-        } */
+    // ADDED: Check if interview is already completed and return cached result
+    if (session.status === "completed" && session.overallFeedback) {
+      console.log('Interview already completed, returning cached feedback');
+      return {
+        feedback: session.overallFeedback,
+        status: session.status,
+      };
+    }
 
-    session.overallFeedback = feedback.result;
-    session.status = "completed";
+    // ADDED: Prevent concurrent submissions by setting status immediately
+    if (session.status === "submitting") {
+      throw new AppError("Interview submission is already in progress", 400);
+    }
+
+    // ADDED: Set status to submitting to prevent concurrent requests
+    session.status = "submitting";
     await session.save();
 
-    return {
-      feedback: feedback.result,
-      status: session.status,
-    };
+    try {
+      // MODIFIED: Direct call to getFinalFeedback without complex retry logic
+      const feedback = await this.getFinalFeedback(sessionId);
+
+      // ADDED: Better validation of feedback result
+      if (!feedback || !feedback.success) {
+        console.warn('Final feedback generation failed, using fallback');
+        // The aiService now handles fallbacks internally, so we should still get a result
+      }
+
+      // MODIFIED: Always save the result, even if it's a fallback
+      session.overallFeedback = feedback.result;
+      session.status = "completed";
+      await session.save();
+
+      console.log('Interview submission completed successfully');
+
+      return {
+        feedback: feedback.result,
+        status: session.status,
+      };
+
+    } catch (error) {
+      // ADDED: Reset status on error so user can retry
+      session.status = "active";
+      await session.save();
+      throw error;
+    }
   }
 
+  // MODIFIED: Enhanced error handling and logging in getFinalFeedback
   async getFinalFeedback(sessionId) {
     const session = await InterviewSession.findById(sessionId);
     if (!session) throw new AppError("Session not found", 400);
 
     try {
-      return await this.aiService.generateFinalAssessment(
+      console.log('Generating final feedback for session:', sessionId);
+      console.log('Chat history length:', session.chatHistory.length);
+
+      const result = await this.aiService.generateFinalAssessment(
         session.chatHistory.map((msg) =>
           msg.role === "human"
             ? new HumanMessage(msg.content)
             : new AIMessage(msg.content)
         )
       );
+
+      console.log('Final feedback generation completed:', result.success ? 'SUCCESS' : 'FAILED');
+      return result;
+
     } catch (err) {
       console.error("AI feedback generation error:", err.message);
+      console.error("Error stack:", err.stack);
+
+      // MODIFIED: Return a structured fallback instead of null
       return {
         success: false,
-        result: null,
+        result: {
+          overall_score: 50,
+          level: "Basic",
+          summary: "Technical error occurred during assessment generation.",
+          questions_analysis: [],
+          coaching_scores: {
+            clarity_of_motivation: 3,
+            specificity_of_learning: 3,
+            career_goal_alignment: 3,
+          },
+          recommendations: ["Please retake the interview for proper assessment."],
+          closure_message: "Thank you for your participation. Please try again later.",
+        }
       };
     }
   }

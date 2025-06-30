@@ -157,8 +157,6 @@ export class AIService {
 
   async generateFinalAssessment(chatHistory) {
     const assessmentSchema = z.object({
-      overall_score: z.number().min(0).max(100),
-      level: z.enum(["Basic", "Competent", "High-Caliber"]),
       summary: z.string(),
       questions_analysis: z.array(
         z.object({
@@ -181,56 +179,43 @@ export class AIService {
     });
 
     try {
-      console.log('Starting final assessment generation...');
 
-      // STRATEGY 1: Direct JSON generation with explicit instructions
       for (let attempt = 1; attempt <= 3; attempt++) {
         console.log(`Assessment attempt ${attempt}/3`);
 
         try {
-          // MODIFIED: Use direct model call with very explicit JSON-only instructions
           const directChain = finalFeedbackPrompt.pipe(this.model);
           const response = await directChain.invoke({
             chat_history: chatHistory,
           });
 
-          console.log('Raw response received, attempting to parse...');
-          console.log('Response preview:', response.content.substring(0, 200) + '...');
 
-          // ENHANCED: Better JSON extraction and cleaning
           const jsonResult = this.extractAndValidateJSON(response.content, assessmentSchema);
 
           if (jsonResult) {
-            console.log(`Attempt ${attempt} succeeded with direct approach`);
             return { success: true, result: jsonResult };
           }
 
         } catch (attemptError) {
           console.warn(`Attempt ${attempt} failed:`, attemptError.message);
 
-          // ADDED: Log the actual response for debugging
           if (attemptError.response) {
             console.log('Failed response preview:', attemptError.response.substring(0, 200) + '...');
           }
         }
 
-        // ADDED: Brief delay between attempts
         if (attempt < 3) {
           await new Promise(resolve => setTimeout(resolve, 1000));
         }
       }
 
-      // FALLBACK: If all attempts fail, generate a structured fallback
-      console.log('All attempts failed, generating fallback assessment...');
       const fallbackResult = this.generateFallbackAssessment(chatHistory);
-      console.log('Fallback assessment generated successfully');
 
       return { success: true, result: fallbackResult };
 
     } catch (error) {
       console.error("Critical error in final assessment generation:", error);
 
-      // LAST RESORT: Return minimal valid structure
       return {
         success: false,
         result: {
@@ -250,25 +235,19 @@ export class AIService {
     }
   }
 
-  // ENHANCED: Much more robust JSON extraction and validation
   extractAndValidateJSON(responseContent, schema) {
     try {
-      console.log('Extracting JSON from response...');
-      console.log('Response preview:', responseContent.substring(0, 100) + '...');
 
-      // STEP 1: Remove any markdown formatting
       let cleaned = responseContent
         .replace(/```json\s*/gi, '')
         .replace(/```\s*/g, '')
         .replace(/^\s*json\s*/gi, '')
         .trim();
 
-      // STEP 2: Find JSON boundaries more aggressively
       let jsonStart = cleaned.indexOf('{');
       let jsonEnd = -1;
 
       if (jsonStart !== -1) {
-        // Count braces to find the matching closing brace
         let braceCount = 0;
         for (let i = jsonStart; i < cleaned.length; i++) {
           if (cleaned[i] === '{') braceCount++;
@@ -288,44 +267,32 @@ export class AIService {
 
       cleaned = cleaned.substring(jsonStart, jsonEnd);
 
-      // STEP 3: Try to repair common JSON issues
       try {
         cleaned = jsonrepair(cleaned);
-        console.log('JSON repair successful');
       } catch (repairError) {
         console.warn('JSON repair failed, using original:', repairError.message);
       }
 
-      // STEP 4: Parse and validate
       const parsed = JSON.parse(cleaned);
       const validated = schema.parse(parsed);
 
-      console.log('JSON extraction and validation successful');
       return validated;
 
     } catch (error) {
       console.error('JSON extraction failed:', error.message);
-      // Store the response for debugging
       error.response = responseContent;
       throw error;
     }
   }
 
-  // ENHANCED: Better fallback assessment generation based on actual chat history
   generateFallbackAssessment(chatHistory) {
-    console.log('Generating enhanced fallback assessment...');
-    console.log('Chat history received:', chatHistory.length, 'messages');
-
-    // FIXED: Better Q&A pair extraction logic
     const qaPairs = [];
 
     for (let i = 0; i < chatHistory.length - 1; i++) {
       const currentMessage = chatHistory[i];
       const nextMessage = chatHistory[i + 1];
 
-      // Look for AI question followed by human response
       if (currentMessage.role === 'ai' && nextMessage.role === 'human') {
-        // Check if AI message looks like a question
         const aiContent = currentMessage.content.toLowerCase();
         if (aiContent.includes('?') ||
           aiContent.includes('tell me') ||
@@ -345,9 +312,6 @@ export class AIService {
       }
     }
 
-    console.log(`Found ${qaPairs.length} Q&A pairs for analysis`);
-
-    // ENHANCED: Generate analysis for each Q&A pair with better scoring
     const questionsAnalysis = qaPairs.map((qa, index) => {
       const responseLength = qa.response.length;
       const hasSpecificExamples = qa.response.toLowerCase().includes('project') ||
@@ -362,7 +326,6 @@ export class AIService {
         qa.response.toLowerCase().includes('framework') ||
         qa.response.toLowerCase().includes('technology');
 
-      // IMPROVED: Calculate score based on multiple quality indicators
       let score = 3; // Base score
       if (responseLength > 50) score += 1;
       if (responseLength > 100) score += 1;
@@ -373,7 +336,6 @@ export class AIService {
       if (hasTechnicalTerms) score += 0.5;
       score = Math.min(10, Math.max(1, Math.round(score)));
 
-      // IMPROVED: Determine response depth based on multiple factors
       let responseDepth = "Novice";
       if (responseLength > 80 && (hasSpecificExamples || isStructured)) {
         responseDepth = "Intermediate";
@@ -393,7 +355,6 @@ export class AIService {
       };
     });
 
-    // FIXED: Calculate overall metrics properly
     const averageScore = questionsAnalysis.length > 0
       ? questionsAnalysis.reduce((sum, q) => sum + q.score, 0) / questionsAnalysis.length
       : 3;
@@ -404,7 +365,6 @@ export class AIService {
     if (averageScore >= 7) level = "High-Caliber";
     else if (averageScore >= 5) level = "Competent";
 
-    // ENHANCED: Better summary generation
     const summary = questionsAnalysis.length > 0
       ? `Interview completed with ${questionsAnalysis.length} questions answered. Overall performance demonstrates ${level.toLowerCase()} level responses with an average score of ${averageScore.toFixed(1)}/10. ${this.generatePerformanceSummary(questionsAnalysis)}`
       : `Interview session completed. Limited interaction detected for comprehensive assessment.`;
@@ -426,7 +386,6 @@ export class AIService {
     };
   }
 
-  // ADDED: Generate performance summary based on analysis
   generatePerformanceSummary(questionsAnalysis) {
     const avgDepth = questionsAnalysis.reduce((acc, q) => {
       const depthScore = q.response_depth === "Advanced" ? 3 : q.response_depth === "Intermediate" ? 2 : 1;
@@ -438,14 +397,12 @@ export class AIService {
     return "Responses were basic and would benefit from more specific examples and detail.";
   }
 
-  // ADDED: Generate appropriate closure message
   generateClosureMessage(level, averageScore) {
     if (level === "High-Caliber") return "Excellent performance! Continue practicing to maintain this high standard.";
     if (level === "Competent") return "Good performance with clear potential. Focus on the recommendations to reach the next level.";
     return "Keep practicing! Focus on providing more detailed responses with specific examples.";
   }
 
-  // ADDED: Helper methods for better fallback assessment
   generateBasicFeedback(response, score) {
     if (score >= 8) return "Excellent response with good detail and structure.";
     if (score >= 6) return "Good response but could benefit from more specific examples.";

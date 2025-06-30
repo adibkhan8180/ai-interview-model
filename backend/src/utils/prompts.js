@@ -206,8 +206,6 @@ CRITICAL RULES:
 4. ONLY return the JSON assessment object
 
 Required JSON structure:
-- overall_score: number between 0-100
-- level: must be exactly "Basic", "Competent", or "High-Caliber"
 - summary: string describing overall performance
 - questions_analysis: array of objects, each containing:
   * question: the actual question asked
@@ -236,54 +234,3 @@ Remember: Return ONLY the JSON object. Start with opening brace, end with closin
   new MessagesPlaceholder("chat_history"),
   ["user", "Generate assessment JSON"],
 ]);
-
-//   [
-//     "system",
-//     `
-//     Create a comprehensive and realistic interview assessment in the following strict JSON format, always provide the JSON format in below structure.
-
-//     {{
-//       "overall_score": {{number between 0 and 100}} this score should be relavent to the score of all questions' answer and the coaching scores,
-//       "level": One of ["Basic", "Competent", "High-Caliber"] based on the candidate's overall performance and overall score,
-//       "summary": "Brief overall assessment of the candidate’s performance. based on all qusetions and coaching scores",
-//       "questions_analysis": [
-//       {{
-//           "question": "The exact question asked",
-//           "response": "User's original answer",
-//           "feedback": "Detailed and constructive feedback, highlighting both strengths and areas of improvement.",
-//           "strengths": ["strength1"] provide the strength found in answer relavent to question,
-//           "improvements": ["improvement1"] provide the strength found in answer relavent to question,
-//           "score": {{number between 0 and 10}} this score should be based on answer relavent to question derived by rubrik method,
-//           "response_depth": One of ["Novice", "Intermediate", "Advanced"]
-//   }}, repeate for all question and answer pair...
-//   ],
-//       "coaching_scores": {{
-//         "clarity_of_motivation": {{1–5}},
-//         "specificity_of_learning": {{1–5}},
-//         "career_goal_alignment": {{1–5}}
-//       }},
-//       "recommendations": ["recommendation1"] look at the improvements provided in each question and make a summary here,
-//       "closure_message": "Friendly, personalized final note reflecting on their performance and encouraging future attempts."
-//     }}
-
-//     Guidelines:
-//     - ONLY use actual Q&A pairs from the chat history, important. Do NOT fabricate answers or feedback.
-//     - questions_analysis should be the array of all questions that is in chat history, including the introduction question.
-//     - If the number of meaningful answers is less than 3, reduce scores and explain this in the summary.
-//     - Rate 'response_depth' as:
-//       • Novice – Vague, lacks structure or relevance
-//       • Intermediate – Reasonable effort, some clarity or partial relevance
-//       • Advanced – Clear, thoughtful, well-structured, goal-linked
-//     - Classify overall 'level' as:
-//       • Basic – Answers lack clarity, depth, or relevance to the question
-//       • Competent – Answers show moderate understanding and structure
-//       • High-Caliber – Answers demonstrate depth, insight, and clarity
-//     - Be strict but supportive. Use a constructive tone like a coach or mentor.
-//     - Always return valid JSON without any explanation or markdown. No extra text or formatting.
-//     - Do NOT wrap the response inside an array [].
-//     - Do NOT use single quotes. Use double quotes only.
-//     - Return a valid JSON object, not markdown, text, or explanation.
-//   `,
-//   ],
-//   new MessagesPlaceholder("chat_history"),
-// ]); 

@@ -171,14 +171,11 @@ export class InterviewService {
     return { question: lastQuestion };
   }
 
-  // FIXED: Prevent multiple submissions and cache results
   async submitInterview(sessionId) {
     const session = await InterviewSession.findById(sessionId);
     if (!session) throw new AppError("Session not found", 400);
 
-    console.log('Starting interview submission for session:', sessionId);
 
-    // ADDED: Check if interview is already completed and return cached result
     if (session.status === "completed" && session.overallFeedback) {
       console.log('Interview already completed, returning cached feedback');
       return {
@@ -187,31 +184,24 @@ export class InterviewService {
       };
     }
 
-    // ADDED: Prevent concurrent submissions by setting status immediately
     if (session.status === "submitting") {
       throw new AppError("Interview submission is already in progress", 400);
     }
 
-    // ADDED: Set status to submitting to prevent concurrent requests
     session.status = "submitting";
     await session.save();
 
     try {
-      // MODIFIED: Direct call to getFinalFeedback without complex retry logic
       const feedback = await this.getFinalFeedback(sessionId);
 
-      // ADDED: Better validation of feedback result
       if (!feedback || !feedback.success) {
         console.warn('Final feedback generation failed, using fallback');
-        // The aiService now handles fallbacks internally, so we should still get a result
       }
 
-      // MODIFIED: Always save the result, even if it's a fallback
       session.overallFeedback = feedback.result;
       session.status = "completed";
       await session.save();
 
-      console.log('Interview submission completed successfully');
 
       return {
         feedback: feedback.result,
@@ -219,21 +209,17 @@ export class InterviewService {
       };
 
     } catch (error) {
-      // ADDED: Reset status on error so user can retry
       session.status = "active";
       await session.save();
       throw error;
     }
   }
 
-  // MODIFIED: Enhanced error handling and logging in getFinalFeedback
   async getFinalFeedback(sessionId) {
     const session = await InterviewSession.findById(sessionId);
     if (!session) throw new AppError("Session not found", 400);
 
     try {
-      console.log('Generating final feedback for session:', sessionId);
-      console.log('Chat history length:', session.chatHistory.length);
 
       const result = await this.aiService.generateFinalAssessment(
         session.chatHistory.map((msg) =>
@@ -243,14 +229,18 @@ export class InterviewService {
         )
       );
 
-      console.log('Final feedback generation completed:', result.success ? 'SUCCESS' : 'FAILED');
+
+      const overAllScore = await this.calculateOverallScore(result?.result.questions_analysis, result?.result.coaching_scores);
+      const level = await this.getLevel(overAllScore);
+
+      result.result.overall_score = overAllScore;
+      result.result.level = level;
+
       return result;
 
     } catch (err) {
       console.error("AI feedback generation error:", err.message);
-      console.error("Error stack:", err.stack);
 
-      // MODIFIED: Return a structured fallback instead of null
       return {
         success: false,
         result: {
@@ -265,7 +255,7 @@ export class InterviewService {
           },
           recommendations: ["Please retake the interview for proper assessment."],
           closure_message: "Thank you for your participation. Please try again later.",
-        }
+        },
       };
     }
   }
@@ -276,4 +266,28 @@ export class InterviewService {
 
     return session.status;
   }
+
+  async calculateOverallScore(questions, coaching) {
+    if (!Array.isArray(questions)) {
+      throw new Error("Invalid questions array");
+    }
+
+    const totalQuestionScore = questions.reduce((sum, q) => sum + q.score, 0);
+    const maxQuestionScore = questions.length * 10;
+
+    const coachingTotal = coaching.clarity_of_motivation + coaching.specificity_of_learning + coaching.career_goal_alignment;
+
+    const weightedQuestion = (totalQuestionScore / maxQuestionScore) * 80;
+    const weightedCoaching = (coachingTotal / 15) * 20;
+
+    const finalScore = Math.round(weightedQuestion + weightedCoaching);
+    return finalScore;
+  }
+
+  async getLevel(score) {
+    if (score < 50) return "Basic";
+    if (score < 80) return "Competent";
+    return "High-Caliber";
+  }
+
 }

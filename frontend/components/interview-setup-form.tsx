@@ -116,7 +116,7 @@ export function InterviewSetupForm({
                 </SelectTrigger>
                 <SelectContent className="w-full">
                   <SelectItem value="general">General</SelectItem>
-                  <SelectItem value="hr">HR</SelectItem>
+                  <SelectItem value="HR">HR</SelectItem>
                   <SelectItem value="domain-specific">
                     Domain-specific
                   </SelectItem>

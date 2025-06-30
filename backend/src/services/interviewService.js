@@ -1,6 +1,7 @@
 import { AIMessage, HumanMessage } from "@langchain/core/messages";
 import { InterviewSession } from "../../models/interviewSession.js";
 import { AIService } from "./aiService.js";
+import { AppError } from "../utils/AppError.js";
 
 export class InterviewService {
   constructor() {
@@ -37,6 +38,10 @@ export class InterviewService {
   async getNextQuestion(sessionId) {
     const session = await InterviewSession.findById(sessionId);
     if (!session) throw new Error("Session not found");
+
+    if (session.status === "completed") {
+      throw new AppError("Interview is already completed, can not get next question", 400);
+    }
 
     let conversationChain;
 
@@ -89,7 +94,7 @@ export class InterviewService {
     let data;
 
     if (session.inputType === "skills-based") {
-      // Skip vector store, pass skills directly
+      // Skills-based flow
       response = await this.aiService.askIntroQuestionSkillsBased(
         session.skills,
         session.interviewType,
@@ -123,6 +128,10 @@ export class InterviewService {
     const session = await InterviewSession.findById(sessionId);
     if (!session) throw new Error("Session not found");
 
+    if (session.status === "completed") {
+      throw new AppError("Interview is already completed, can not post answer", 400);
+    }
+
     session.chatHistory.push({ role: "human", content: answer });
 
     const feedbackResponse = await this.aiService.generateFeedback(
@@ -141,35 +150,17 @@ export class InterviewService {
     return { feedback: feedbackResponse.content };
   }
 
-  async getFeedback(sessionId) {
-    const session = await InterviewSession.findById(sessionId);
-    if (!session) throw new Error("Session not found");
-
-    const lastAnswer = session.chatHistory
-      .filter((m) => m.role === "human")
-      .slice(-1)[0]?.content;
-    if (!lastAnswer)
-      throw new Error("No answer found to provide feedback for.");
-
-    const feedback = await this.aiService.generateFeedback(
-      lastAnswer,
-      session.chatHistory.map((msg) =>
-        msg.role === "human"
-          ? new HumanMessage(msg.content)
-          : new AIMessage(msg.content)
-      )
-    );
-
-    return feedback;
-  }
-
   async reviseAnswer(sessionId) {
     const session = await InterviewSession.findById(sessionId);
     if (!session) throw new Error("Session not found");
 
+    if (session.status === "completed") {
+      throw new AppError("Interview is already completed, can not revise answer", 400);
+    }
+
     const lastMessage = session.chatHistory.pop();
     if (!lastMessage || lastMessage.role !== "human")
-      throw new Error("No recent human answer to revise.");
+      throw new AppError("No recent human answer to revise.", 400);
 
     session.currentStep = "revise";
     await session.save();
@@ -182,36 +173,91 @@ export class InterviewService {
 
   async submitInterview(sessionId) {
     const session = await InterviewSession.findById(sessionId);
-    if (!session) throw new Error("Session not found");
+    if (!session) throw new AppError("Session not found", 400);
 
-    const feedback = await this.getFinalFeedback(sessionId);
 
-    const retries = 3;
-    if (!feedback.success) {
-      if (retries <= 0) {
-        throw new Error("Max retries reached for submitInterview");
-      }
-      return await this.submitInterview(sessionId, retries - 1);
+    if (session.status === "completed" && session.overallFeedback) {
+      console.log('Interview already completed, returning cached feedback');
+      return {
+        feedback: session.overallFeedback,
+        status: session.status,
+      };
     }
 
-    session.overallFeedback = feedback.result;
-    session.status = "completed";
+    if (session.status === "submitting") {
+      throw new AppError("Interview submission is already in progress", 400);
+    }
+
+    session.status = "submitting";
     await session.save();
 
-    return { feedback: feedback.result, status: session.status };
+    try {
+      const feedback = await this.getFinalFeedback(sessionId);
+
+      if (!feedback || !feedback.success) {
+        console.warn('Final feedback generation failed, using fallback');
+      }
+
+      session.overallFeedback = feedback.result;
+      session.status = "completed";
+      await session.save();
+
+
+      return {
+        feedback: feedback.result,
+        status: session.status,
+      };
+
+    } catch (error) {
+      session.status = "active";
+      await session.save();
+      throw error;
+    }
   }
 
   async getFinalFeedback(sessionId) {
     const session = await InterviewSession.findById(sessionId);
-    if (!session) throw new Error("Session not found");
+    if (!session) throw new AppError("Session not found", 400);
 
-    return await this.aiService.generateFinalAssessment(
-      session.chatHistory.map((msg) =>
-        msg.role === "human"
-          ? new HumanMessage(msg.content)
-          : new AIMessage(msg.content)
-      )
-    );
+    try {
+
+      const result = await this.aiService.generateFinalAssessment(
+        session.chatHistory.map((msg) =>
+          msg.role === "human"
+            ? new HumanMessage(msg.content)
+            : new AIMessage(msg.content)
+        )
+      );
+
+
+      const overAllScore = await this.calculateOverallScore(result?.result.questions_analysis, result?.result.coaching_scores);
+      const level = await this.getLevel(overAllScore);
+
+      result.result.overall_score = overAllScore;
+      result.result.level = level;
+
+      return result;
+
+    } catch (err) {
+      console.error("AI feedback generation error:", err.message);
+
+      return {
+        success: false,
+        result: {
+          overall_score: 50,
+          level: "Basic",
+          summary: "Technical error occurred during assessment generation.",
+          questions_analysis: [],
+          coaching_scores: {
+            clarity_of_motivation: 3,
+            specificity_of_learning: 3,
+            career_goal_alignment: 3,
+          },
+          recommendations: ["Please retake the interview for proper assessment."],
+          closure_message: "Thank you for your participation. Please try again later.",
+        },
+      };
+    }
   }
 
   async getInterviewStatus(sessionId) {
@@ -220,4 +266,28 @@ export class InterviewService {
 
     return session.status;
   }
+
+  async calculateOverallScore(questions, coaching) {
+    if (!Array.isArray(questions)) {
+      throw new Error("Invalid questions array");
+    }
+
+    const totalQuestionScore = questions.reduce((sum, q) => sum + q.score, 0);
+    const maxQuestionScore = questions.length * 10;
+
+    const coachingTotal = coaching.clarity_of_motivation + coaching.specificity_of_learning + coaching.career_goal_alignment;
+
+    const weightedQuestion = (totalQuestionScore / maxQuestionScore) * 80;
+    const weightedCoaching = (coachingTotal / 15) * 20;
+
+    const finalScore = Math.round(weightedQuestion + weightedCoaching);
+    return finalScore;
+  }
+
+  async getLevel(score) {
+    if (score < 50) return "Basic";
+    if (score < 80) return "Competent";
+    return "High-Caliber";
+  }
+
 }

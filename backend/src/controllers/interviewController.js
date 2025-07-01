@@ -14,7 +14,7 @@ export const startInterview = async (req, res, next) => {
       domain,
     } = req.body;
 
-    if (interviewType === "domain_specific" && !domain) {
+    if (interviewType === "domain-specific" && !domain) {
       return res.status(400).json({
         success: false,
         message: "Domain is required for domain specific interviews",
@@ -34,7 +34,7 @@ export const startInterview = async (req, res, next) => {
       inputType === "job-description" ? jobDescription : "",
       inputType === "skills-based" ? skills : [],
       interviewType,
-      interviewType === "domain_specific" ? domain : null
+      interviewType === "domain-specific" ? domain : null,
     );
 
     const introQuestion = await interviewService.getIntroQuestion(
@@ -78,19 +78,6 @@ export const postAnswer = async (req, res, next) => {
   }
 };
 
-export const getFeedback = async (req, res, next) => {
-  try {
-    const sessionId = req.params.sessionId;
-    const result = await interviewService.getFeedback(sessionId);
-    res.json({
-      success: true,
-      feedback: result,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
 export const reviseAnswer = async (req, res, next) => {
   try {
     const sessionId = req.params.sessionId;
@@ -109,12 +96,14 @@ export const submitInterview = async (req, res, next) => {
   try {
     const sessionId = req.params.sessionId;
     const result = await interviewService.submitInterview(sessionId);
-    res.json({
-      success: true,
-      overallFeedback: result.feedback,
-      status: result.status,
-    });
+    res.status(200).json
+      ({
+        success: true,
+        overallFeedback: result.feedback,
+        status: result.status,
+      });
   } catch (error) {
+    console.error("Error in submitInterview:", error.message);
     next(error);
   }
 };

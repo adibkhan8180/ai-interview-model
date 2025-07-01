@@ -1,14 +1,16 @@
 import express from 'express';
-import { startInterview, getNextQuestion, postAnswer, getFeedback, reviseAnswer, submitInterview, getInterviewStatus } from '../controllers/interviewController.js';
+import { startInterview, getNextQuestion, postAnswer, reviseAnswer, submitInterview, getInterviewStatus } from '../controllers/interviewController.js';
+import { validateBody, validateParams } from '../middleware/validate.js';
+import { startInterviewSchema, postAnswerSchema, sessionIdParamSchema } from '../../validators/interviewValidator.js';
+
 
 const router = express.Router();
 
-router.post('/interviews', startInterview);
-router.get('/interviews/:sessionId/questions', getNextQuestion);
-router.post('/interviews/:sessionId/answers', postAnswer);
-router.get('/interviews/:sessionId/feedback', getFeedback);
-router.get('/interviews/:sessionId/revise', reviseAnswer);
-router.post('/interviews/:sessionId/submit', submitInterview);
-router.get('/interviews/:sessionId/status', getInterviewStatus);
+router.post('/interviews', validateBody(startInterviewSchema), startInterview);
+router.get('/interviews/:sessionId/questions', validateParams(sessionIdParamSchema), getNextQuestion);
+router.post('/interviews/:sessionId/answers', validateBody(postAnswerSchema), validateParams(sessionIdParamSchema), postAnswer);
+router.get('/interviews/:sessionId/revise', validateParams(sessionIdParamSchema), reviseAnswer);
+router.post('/interviews/:sessionId/submit', validateParams(sessionIdParamSchema), submitInterview);
+router.get('/interviews/:sessionId/status', validateParams(sessionIdParamSchema), getInterviewStatus);
 
 export default router;

@@ -38,9 +38,8 @@ export const createIntroPrompt = (
 ) => {
   const randomName = getRandomName();
   const introInstructions = `
-Your name is ${randomName}, you are an HR interviewer from ${companyName} company, for the JD : ({context}). The job description is provided in context. You're conducting a mock ${interviewType} interview${
-    domain ? ` focused on ${domain}` : ""
-  } and will ask questions strictly based on the role.
+Your name is ${randomName}, you are an HR interviewer from ${companyName} company, for the JD : ({context}). The job description is provided in context. You're conducting a mock ${interviewType} interview${domain ? ` focused on ${domain}` : ""
+    } and will ask questions strictly based on the role.
 
 Instructions:
 - Greet the student
@@ -68,11 +67,10 @@ export const createSkillsBasedIntroPrompt = (
 ) => {
   const randomName = getRandomName();
   const skillsBasedIntroInstructions = `
-Your name is ${randomName}, you are an HR interviewer from ${companyName} company, for the position of ${jobRole}. You're conducting a mock ${interviewType} interview${
-    domain ? ` focused on ${domain}` : ""
-  }. The candidate has mentioned the following skills: ${skills.join(
-    ", "
-  )}. You will ask questions strictly based on the role.
+Your name is ${randomName}, you are an HR interviewer from ${companyName} company, for the position of ${jobRole}. You're conducting a mock ${interviewType} interview${domain ? ` focused on ${domain}` : ""
+    }. The candidate has mentioned the following skills: ${skills.join(
+      ", "
+    )}. You will ask questions strictly based on the role.
 
 Instructions:
 - Greet the student
@@ -91,9 +89,8 @@ Instructions:
 };
 
 export const createMainPrompt = (interviewType, domain) => {
-  const baseInstructions = `You are an HR interviewer conducting a mock ${interviewType} interview${
-    domain ? ` in the domain of ${domain}` : ""
-  } based strictly on the job description in {context}.
+  const baseInstructions = `You are an HR interviewer conducting a mock ${interviewType} interview${domain ? ` in the domain of ${domain}` : ""
+    } based strictly on the job description in {context}.
 
 Instructions:
 - DO NOT repeat or ask for the candidate’s introduction.
@@ -120,8 +117,8 @@ Instructions:
     [
       "system",
       baseInstructions +
-        (typeSpecificInstructions[interviewType] ||
-          typeSpecificInstructions["general"]),
+      (typeSpecificInstructions[interviewType] ||
+        typeSpecificInstructions["general"]),
     ],
     new MessagesPlaceholder("chat_history"),
     ["user", "{input}"],
@@ -156,8 +153,8 @@ Instructions:
     [
       "system",
       baseInstructions +
-        (typeSpecificInstructions[interviewType] ||
-          typeSpecificInstructions["general"]),
+      (typeSpecificInstructions[interviewType] ||
+        typeSpecificInstructions["general"]),
     ],
     new MessagesPlaceholder("chat_history"),
     ["user", "{input}"],
@@ -196,51 +193,44 @@ Be friendly, specific, and helpful — not robotic or overly formal. Always stay
   ["user", "{input}"],
 ]);
 
+
 export const finalFeedbackPrompt = ChatPromptTemplate.fromMessages([
   [
     "system",
-    `
-    Create a comprehensive and realistic interview assessment in the following strict JSON format, always provide the JSON format in below structure.
+    `You are a JSON assessment generator. You MUST respond with ONLY a valid JSON object, nothing else.
 
-    {{
-      "overall_score": {{number between 0 and 100}} this score should be relavent to the score of all questions' answer and the coaching scores,
-      "level": One of ["Basic", "Competent", "High-Caliber"] based on the candidate's overall performance and overall score,
-      "summary": "Brief overall assessment of the candidate’s performance. based on all qusetions and coaching scores",
-      "questions_analysis": [
-      {{
-          "question": "The exact question asked",
-          "response": "User's original answer",
-          "feedback": "Detailed and constructive feedback, highlighting both strengths and areas of improvement.",
-          "strengths": ["strength1"] provide the strength found in answer relavent to question,
-          "improvements": ["improvement1"] provide the strength found in answer relavent to question,
-          "score": {{number between 0 and 10}} this score should be based on answer relavent to question derived by rubrik method,
-          "response_depth": One of ["Novice", "Intermediate", "Advanced"]
-  }}, repeate for all question and answer pair...
-  ],
-      "coaching_scores": {{
-        "clarity_of_motivation": {{1–5}},
-        "specificity_of_learning": {{1–5}},
-        "career_goal_alignment": {{1–5}}
-      }},
-      "recommendations": ["recommendation1"] look at the improvements provided in each question and make a summary here,
-      "closure_message": "Friendly, personalized final note reflecting on their performance and encouraging future attempts."
-    }}
+CRITICAL RULES:
+1. Your response must start with an opening brace and end with a closing brace
+2. NO conversational text before or after the JSON
+3. NO explanations, NO markdown, NO additional commentary
+4. ONLY return the JSON assessment object
 
-    Guidelines:
-    - ONLY use actual Q&A pairs from the chat history, important. Do NOT fabricate answers or feedback.
-    - questions_analysis should be the array of all questions that is in chat history, including the introduction question.
-    - If the number of meaningful answers is less than 3, reduce scores and explain this in the summary.
-    - Rate 'response_depth' as:
-      • Novice – Vague, lacks structure or relevance
-      • Intermediate – Reasonable effort, some clarity or partial relevance
-      • Advanced – Clear, thoughtful, well-structured, goal-linked
-    - Classify overall 'level' as:
-      • Basic – Answers lack clarity, depth, or relevance to the question
-      • Competent – Answers show moderate understanding and structure
-      • High-Caliber – Answers demonstrate depth, insight, and clarity
-    - Be strict but supportive. Use a constructive tone like a coach or mentor.
-    - Always return valid JSON without any explanation or markdown. No extra text or formatting.
-  `,
+Required JSON structure:
+- summary: string describing overall performance
+- questions_analysis: array of objects, each containing:
+  * question: the actual question asked
+  * response: the candidate's actual response
+  * feedback: assessment of the response
+  * strengths: array of positive aspects
+  * improvements: array of areas to improve
+  * score: number between 0-10
+  * response_depth: must be exactly "Novice", "Intermediate", or "Advanced"
+- coaching_scores: object with three properties (all numbers 1-5):
+  * clarity_of_motivation
+  * specificity_of_learning  
+  * career_goal_alignment
+- recommendations: array of improvement suggestions
+- closure_message: final message to candidate
+
+IMPORTANT: Analyze the actual conversation history to extract real questions and responses. Do not make up content.
+
+Response depth guidelines:
+- "Novice": Short, basic responses with minimal detail
+- "Intermediate": Moderate detail with some examples or structure
+- "Advanced": Comprehensive, well-structured responses with specific examples
+
+Remember: Return ONLY the JSON object. Start with opening brace, end with closing brace.`
   ],
   new MessagesPlaceholder("chat_history"),
+  ["user", "Generate assessment JSON"],
 ]);

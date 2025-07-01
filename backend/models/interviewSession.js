@@ -16,7 +16,7 @@ const interviewSessionSchema = new mongoose.Schema(
     },
     domain: { type: String, trim: true },
     chatHistory: [messageSchema],
-    status: { type: String, default: "active" },
+    status: { type: String, enum: ["active", "submitting", "completed"], default: "active" },
     currentStep: { type: String, default: "questioning" },
     lastFeedback: String,
     overallFeedback: Object,

@@ -1,16 +1,31 @@
+
 export const errorHandler = (err, req, res, next) => {
-    console.error(err.stack);
+  console.error('Error occurred:', {
+    message: err.message,
+    stack: err.stack,
+    url: req.url,
+    method: req.method,
+    timestamp: new Date().toISOString()
+  });
 
-    if (err.message === 'Session not found') {
-        return res.status(404).json({
-            success: false,
-            message: 'Interview session not found'
-        });
-    }
+  const statusCode = err.statusCode || 500;
 
-    res.status(500).json({
-        success: false,
-        message: 'Internal server error',
-        error: process.env.NODE_ENV === 'development' ? err.message : undefined
-    });
+  let message = "Internal server error";
+
+  if (err.isOperational && err.message) {
+    message = err.message;
+  } else if (err.name === 'ValidationError') {
+    message = "Validation error: " + err.message;
+  } else if (err.name === 'CastError') {
+    message = "Invalid ID format";
+  } else if (err.code === 11000) {
+    message = "Duplicate entry error";
+  }
+
+  const response = {
+    success: false,
+    message,
+  };
+
+  res.status(statusCode).json(response);
 };

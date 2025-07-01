@@ -6,8 +6,8 @@ dotenv.config();
 
 export const createModel = () => {
     return new ChatOpenAI({
-        modelName: "gpt-3.5-turbo",
-        temperature: 0.7,
+        modelName: "gpt-4",
+        temperature: 0.1,
         openAIApiKey: process.env.OPENAI_API_KEY,
     });
 };

@@ -10,11 +10,13 @@ const initialState = {
   maxQuestions: 3,
   interviewStartTime: null,
   isAISpeaking: false,
+  audioInstance: null,
+  browserUtterance: null,
 };
 
 export const useInterviewStore = create<InterviewStoreState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       ...initialState,
 
       addMessage: (message) =>
@@ -44,6 +46,26 @@ export const useInterviewStore = create<InterviewStoreState>()(
       setInterviewStartTime: (time) => set({ interviewStartTime: time }),
 
       setIsAISpeaking: (value: boolean) => set({ isAISpeaking: value }),
+
+      setAudioInstance: (audio) => set({ audioInstance: audio }),
+      setBrowserUtterance: (utterance) => set({ browserUtterance: utterance }),
+
+      stopSpeaking: () => {
+        const { audioInstance, browserUtterance } = get();
+
+        if (audioInstance) {
+          audioInstance.pause();
+          audioInstance.currentTime = 0;
+          set({ audioInstance: null });
+        }
+
+        if (browserUtterance) {
+          speechSynthesis.cancel();
+          set({ browserUtterance: null });
+        }
+
+        set({ isAISpeaking: false });
+      },
 
       resetStore: () => set({ ...initialState }),
     }),

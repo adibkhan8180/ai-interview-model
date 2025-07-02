@@ -2,8 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Mic, MicOff, Camera, CameraOff, Volume2 } from "lucide-react";
+import {
+  Mic,
+  MicOff,
+  Camera,
+  CameraOff,
+  Volume2,
+  VolumeOff,
+} from "lucide-react";
 import Image from "next/image";
+import { useInterviewStore } from "@/lib/store/interviewStore";
 
 interface VideoCallProps {
   isRecording: boolean;
@@ -18,6 +26,7 @@ export function VideoCall({
   onStartRecording,
   onStopRecording,
 }: VideoCallProps) {
+  const { stopSpeaking } = useInterviewStore();
   const userVideoRef = useRef<HTMLVideoElement>(null);
   const [cameraEnabled, setCameraEnabled] = useState(false);
   const [micEnabled, setMicEnabled] = useState(false);
@@ -149,9 +158,17 @@ export function VideoCall({
               height={96}
               className="rounded-full border-2 border-blue-400"
             />
-            {isAISpeaking && (
-              <div className="absolute -bottom-1 -right-1 bg-green-500 p-1 rounded-full">
+            {!isAISpeaking ? (
+              <button
+                onClick={stopSpeaking}
+                disabled={!isAISpeaking}
+                className="absolute -bottom-1 -right-1 bg-green-500 p-1 rounded-full cursor-pointer"
+              >
                 <Volume2 className="w-4 h-4 text-white" />
+              </button>
+            ) : (
+              <div className="absolute -bottom-1 -right-1 bg-green-500 p-1 rounded-full">
+                <VolumeOff className="w-4 h-4 text-white" />
               </div>
             )}
           </div>

@@ -37,6 +37,8 @@ export interface InterviewStoreState {
   maxQuestions: number;
   interviewStartTime: Date | null;
   isAISpeaking: boolean;
+  audioInstance: HTMLAudioElement | null;
+  browserUtterance: SpeechSynthesisUtterance | null;
 
   addMessage: (message: ConversationEntry) => void;
   resetConversation: () => void;
@@ -48,6 +50,9 @@ export interface InterviewStoreState {
   setInterviewStartTime: (time: Date | null) => void;
   resetStore: () => void;
   setIsAISpeaking: (value: boolean) => void;
+  setAudioInstance: (audio: HTMLAudioElement | null) => void;
+  setBrowserUtterance: (utterance: SpeechSynthesisUtterance | null) => void;
+  stopSpeaking: () => void;
 }
 
 export interface ResponseInputProps {

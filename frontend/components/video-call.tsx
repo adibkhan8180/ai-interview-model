@@ -158,7 +158,7 @@ export function VideoCall({
               height={96}
               className="rounded-full border-2 border-blue-400"
             />
-            {!isAISpeaking ? (
+            {isAISpeaking ? (
               <button
                 onClick={stopSpeaking}
                 disabled={!isAISpeaking}

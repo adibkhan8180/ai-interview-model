@@ -1,25 +1,8 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { OverallFeedback } from "@/types";
 import { CheckCircle, Lightbulb, Target, TrendingUp } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
-interface OverallFeedback {
-  overall_score: number;
-  summary: string;
-  questions_analysis: Array<any>;
-  skill_assessment: {
-    communication: number;
-    technical_knowledge: number;
-    problem_solving: number;
-    cultural_fit: number;
-  };
-  coaching_scores: {
-    clarity_of_motivation: number;
-    specificity_of_learning: number;
-    career_goal_alignment: number;
-  };
-  recommendations: string[];
-  closure_message: string;
-}
 interface FeedbackDisplayProps {
   feedback: string | OverallFeedback;
   type: "immediate" | "overall";

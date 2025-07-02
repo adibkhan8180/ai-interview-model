@@ -211,8 +211,6 @@ export default function AIInterviewSystem() {
                           false
                         : false
                     }
-                    setShowFinalAssessment={setShowFinalAssessment}
-                    finalAssessmentLoading={finalAssessmentLoading}
                   />
                 )}
               </div>

@@ -82,8 +82,23 @@ export default function AIInterviewSystem() {
   }, []);
 
   return (
-    <div className="h-screen w-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
-      <Card className="h-full max-w-7xl mx-auto ">
+    // TODO: height should be dynamic
+    <div className="w-full h-screen bg-[#F5F8FF] py-4 pt-24">
+      <div className="w-7xl mx-auto grid grid-cols-[2fr_5fr]">
+        {/* camera div */}
+        <div className="flex flex-col gap-4 w-full">
+          <VideoCall
+            isRecording={isRecording}
+            isAISpeaking={isAISpeaking}
+            onStartRecording={startRecording}
+            onStopRecording={stopRecording}
+          />
+        </div>
+
+        {/* TODO: chat div */}
+        <div className="w-full"></div>
+      </div>
+      {/* <Card className="h-full max-w-7xl mx-auto ">
         <CardHeader>
           <CardTitle className="text-xl text-center capitalize">
             {interviewSetup?.companyName} - {interviewSetup?.jobRole} Interview
@@ -153,7 +168,7 @@ export default function AIInterviewSystem() {
             </div>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
       <ConfirmDialog openDialogue={openDialog} setOpenDialog={setOpenDialog} />
     </div>
   );

@@ -65,7 +65,7 @@ export default function AIInterviewSetup() {
   };
 
   return (
-    <div className="relative min-h-screen bg-white p-4 flex items-center justify-center">
+    <div className="relative h-screen bg-white flex justify-center">
       <InterviewSetupForm onSubmit={handleSetupSubmit} loading={loading} />
       <img
         src="/assets/svg/wave.svg"

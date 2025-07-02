@@ -69,7 +69,7 @@ const initialState = {
   overallFeedback: initialFinalFeedback,
   interviewComplete: false,
   questionCount: 0,
-  maxQuestions: 3,
+  maxQuestions: 1,
   interviewStartTime: null,
   isAISpeaking: false,
   audioInstance: null,

@@ -84,8 +84,9 @@ export function InterviewSetupForm({
   if (steps !== 1 && steps !== 2 && steps !== 3) return null;
 
   return (
-    <div className="flex flex-col items-center gap-6">
-      <h1 className="text-4xl font-bold mb-6">
+    // TODO: height should not be scrollable
+    <div className="h-full flex flex-col items-center justify-center gap-6">
+      <h1 className="text-4xl font-bold">
         <span className="text-[#3B64F6]">AI-Video</span> Interview Setup
       </h1>
 
@@ -141,7 +142,10 @@ export function InterviewSetupForm({
         <CardHeader>
           <CardTitle className="text-base text-[#4F637E] text-center font-normal">
             {steps === 1 ? (
-              <p>Tell us where you’re aiming and what role you're targeting.</p>
+              <p>
+                Tell us where you&apos;re aiming and what role you&apos;re
+                targeting.
+              </p>
             ) : steps === 2 ? (
               <p>What kind of interview would you like to simulate?</p>
             ) : (

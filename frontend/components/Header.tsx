@@ -1,5 +1,4 @@
 import Image from "next/image";
-import Link from "next/link";
 
 export default function Header() {
   return (
@@ -7,7 +6,7 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Image
-            src=""
+            src="/AI-Interviewer.png"
             alt="AI Interviewer"
             width={56}
             height={56}
@@ -19,7 +18,7 @@ export default function Header() {
         </div>
         <Image
           src="/AI-Interviewer.png"
-          alt="AI Interviewer"
+          alt="User Avatar"
           width={56}
           height={56}
           className="rounded-full border-2 border-[#C5DAFF] bg-[#D9D9D9]"

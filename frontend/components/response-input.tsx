@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Mic, MicOff, Send } from "lucide-react";
 import { getNextQuestionAPI, reviseAnswerAPI } from "@/lib/api";
 import { useInterviewStore } from "@/lib/store/interviewStore";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { ResponseInputProps } from "@/types";
 
 export function ResponseInput({
@@ -17,9 +17,8 @@ export function ResponseInput({
   isAISpeaking,
   speakTextWithTTS,
   isLatestFeedback,
-  setShowFinalAssessment,
-  finalAssessmentLoading,
 }: ResponseInputProps) {
+  const router = useRouter();
   const [textResponse, setTextResponse] = useState("");
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -57,11 +56,6 @@ export function ResponseInput({
   };
 
   const getNextQuestion = async () => {
-    if (questionCount === maxQuestions) {
-      setShowFinalAssessment(true);
-      return;
-    }
-
     try {
       setLoading(true);
       const data = await getNextQuestionAPI(sessionId);
@@ -121,26 +115,18 @@ export function ResponseInput({
             </p>
             <Button
               onClick={handleReviseQuestion}
-              disabled={
-                isAISpeaking
-                  ? true
-                  : maxQuestions === questionCount
-                  ? finalAssessmentLoading
-                  : loading
-              }
+              disabled={isAISpeaking ? true : loading}
               className="bg-green-500 hover:bg-green-600 cursor-pointer"
             >
               yes
             </Button>
             <Button
-              onClick={getNextQuestion}
-              disabled={
-                isAISpeaking
-                  ? true
-                  : maxQuestions === questionCount
-                  ? finalAssessmentLoading
-                  : loading
-              }
+              onClick={() => {
+                maxQuestions === questionCount
+                  ? router.push(`/${sessionId}/assessment`)
+                  : getNextQuestion();
+              }}
+              disabled={isAISpeaking ? true : loading}
               className={`${
                 maxQuestions === questionCount
                   ? "bg-blue-400 hover:bg-blue-500"

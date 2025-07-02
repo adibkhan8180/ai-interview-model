@@ -30,9 +30,23 @@ export interface ConversationEntry {
   isFeedback?: boolean;
 }
 
+export interface OverallFeedback {
+  overall_score: number;
+  summary: string;
+  questions_analysis: Array<any>;
+  coaching_scores: {
+    clarity_of_motivation: number;
+    specificity_of_learning: number;
+    career_goal_alignment: number;
+  };
+  recommendations: string[];
+  closure_message: string;
+  level: string;
+}
+
 export interface InterviewStoreState {
   conversation: ConversationEntry[];
-  overallFeedback: any;
+  overallFeedback: OverallFeedback;
   interviewComplete: boolean;
   questionCount: number;
   maxQuestions: number;
@@ -44,7 +58,7 @@ export interface InterviewStoreState {
   addMessage: (message: ConversationEntry) => void;
   resetConversation: () => void;
 
-  setOverallFeedback: (feedback: any) => void;
+  setOverallFeedback: (feedback: OverallFeedback) => void;
   setInterviewComplete: (complete: boolean) => void;
   incrementQuestionCount: () => void;
   resetQuestionCount: () => void;
@@ -64,6 +78,4 @@ export interface ResponseInputProps {
   isAISpeaking: boolean;
   speakTextWithTTS: (text: string) => Promise<void>;
   isLatestFeedback?: boolean;
-  setShowFinalAssessment: React.Dispatch<React.SetStateAction<boolean>>;
-  finalAssessmentLoading: boolean;
 }

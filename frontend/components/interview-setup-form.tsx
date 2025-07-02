@@ -30,40 +30,54 @@ export function InterviewSetupForm({
   onSubmit,
   loading,
 }: InterviewSetupFormProps) {
+  const [formData, setFormData] = useState<InterviewSetupData>({
+    companyName: "",
+    jobRole: "",
+    interviewCategory: "HR",
+    domain: "",
+    jobDescription: "",
+    inputType: "skills-based",
+    skills: [],
+  });
+
   const [skill, setSkill] = useState("");
-  const { formData, setFormData } = useFormStore();
   const [steps, setSteps] = useState(1);
+  const { saveFormData } = useFormStore();
+  const isDomainSpecific = formData.interviewCategory === "domain-specific";
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData({ [name]: value });
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSelectChange = (name: string, value: string) => {
-    setFormData({ [name]: value });
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
-
-  const isDomainSpecific = formData.interviewCategory === "domain-specific";
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && skill.trim()) {
       e.preventDefault();
-      if (!formData?.skills?.includes(skill.trim())) {
-        setFormData({ skills: [...(formData.skills || []), skill.trim()] });
+      if (!formData.skills.includes(skill.trim())) {
+        setFormData((prev) => ({
+          ...prev,
+          skills: [...prev.skills, skill.trim()],
+        }));
       }
       setSkill("");
     }
   };
 
   const removeSkill = (removedSkill: string) => {
-    setFormData({
-      skills: (formData.skills || []).filter((s) => s !== removedSkill),
-    });
+    setFormData((prev) => ({
+      ...prev,
+      skills: prev.skills.filter((s) => s !== removedSkill),
+    }));
   };
 
   const handleStartInterview = () => {
+    saveFormData(formData);
     onSubmit(formData);
   };
 
@@ -325,10 +339,11 @@ export function InterviewSetupForm({
                   (formData.inputType === "skills-based" &&
                     formData.skills.length === 0) ||
                   (formData.inputType === "job-description" &&
-                    formData.jobDescription === "")
+                    formData.jobDescription === "") ||
+                  loading
                 }
               >
-                Start Interview
+                {loading ? "Starting Interview..." : "Start Interview"}
               </Button>
             </div>
           )}

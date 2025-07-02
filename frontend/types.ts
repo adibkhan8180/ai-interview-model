@@ -11,6 +11,7 @@ export interface InterviewSetupData {
 export interface FormState {
   formData: InterviewSetupData;
   setFormData: (data: Partial<InterviewSetupData>) => void;
+  saveFormData: (data: InterviewSetupData) => void;
   resetForm: () => void;
 }
 

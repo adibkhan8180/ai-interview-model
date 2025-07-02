@@ -7,8 +7,8 @@ import {
 export const speakTextWithTTS = async (text: string) => {
   try {
     useInterviewStore.getState().setIsAISpeaking(true);
-    const audioData = await generateSpeech({ text });
-    await playAudioFromArrayBuffer(audioData);
+    // const audioData = await generateSpeech({ text });
+    // await playAudioFromArrayBuffer(audioData);
     useInterviewStore.getState().setIsAISpeaking(false);
   } catch (error) {
     console.error("Error with TTS:", error);

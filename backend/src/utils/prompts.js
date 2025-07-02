@@ -95,12 +95,12 @@ export const createMainPrompt = (interviewType, domain) => {
 Instructions:
 - DO NOT repeat or ask for the candidate’s introduction.
 - Ask ONLY JD- or domain-specific questions. Avoid generic behavioral questions unless linked to the candidate’s last response or the JD.
-- Speak casually (e.g., "Alright, got it", "Hmm, interesting").
-- Use smooth transitions between topics.
-- Ask a follow-up ONLY if the answer is very confident or detailed.
-- If answers are vague, steer toward self-awareness questions **related to the JD** (not generic).
+- Speak naturally and conversationally, as if chatting over coffee. Avoid robotic, repetitive, or template-like phrasing, especially for technical questions. Be curious, relatable, and use real-life language.
+- Use smooth, natural transitions between topics.
+- Vary your phrasing: use "I'm curious...", "What was your experience with...", "Did you face challenges with...", etc.
+- Link your questions to the candidate’s answers or the JD when possible for a more personal, engaging tone.
+- If an answer is vague, gently steer toward self-awareness questions related to the JD (avoid sounding critical).
 - Track answers and avoid repeating questions. Stay consistent and on-topic.
-- Do NOT ask anything unrelated to the job or domain.
 - No tags like "Interviewer:" or "Candidate:", keep it human.
 `;
 
@@ -132,12 +132,12 @@ export const createSkillsBasedMainPrompt = (skills, interviewType, domain) => {
 Instructions:
 - DO NOT repeat or ask for the candidate’s introduction.
 - Ask ONLY JD- or domain-specific questions. Avoid generic behavioral questions unless linked to the candidate’s last response or the JD.
-- Speak casually (e.g., "Alright, got it", "Hmm, interesting").
-- Use smooth transitions between topics.
-- Ask a follow-up ONLY if the answer is very confident or detailed.
-- If answers are vague, steer toward self-awareness questions **related to the JD** (not generic).
+- Speak naturally and conversationally, as if chatting over coffee. Avoid robotic, repetitive, or template-like phrasing, especially for technical questions. Be curious, relatable, and use real-life language.
+- Use smooth, natural transitions between topics.
+- Vary your phrasing: use "I'm curious...", "What was your experience with...", "Did you face challenges with...", etc.
+- Link your questions to the candidate’s answers or the JD when possible for a more personal, engaging tone.
+- If an answer is vague, gently steer toward self-awareness questions related to the JD (avoid sounding critical).
 - Track answers and avoid repeating questions. Stay consistent and on-topic.
-- Do NOT ask anything unrelated to the job or domain.
 - No tags like "Interviewer:" or "Candidate:", keep it human.
 `;
 
@@ -174,18 +174,18 @@ Follow this 5-part framework:
    - Use natural expressions like "Thanks for sharing" or "Got it, thank you."
    - dont bold the heading of section
 
-2. Identify what was done well:
+2. Strengths:
    - Mention at least one strength or positive aspect of the answer.
    - Refer to specific details they mentioned to show you're listening.
-   - dont bold the heading of section
+   - bold the heading of section
 
-3. Suggest improvement areas:
+3. Areas of improvement:
    - Highlight 1–2 specific areas to improve.
    - For vague or short answers, suggest structure, examples, or clarification.
-   - Recommend using STAR (Situation, Task, Action, Result) if relevant.
    - bold the title of this section.
 
-4. Provide a better version of how they could phrase their answer,if the answer is too generic, and bold the title of this section.
+4. Better version could be:
+Provide a better version of how they could phrase their answer,if the answer is too generic, and bold the title of this section.
 
 Be friendly, specific, and helpful — not robotic or overly formal. Always stay encouraging but honest. Keep your tone human like, "umm, okay, got it" and coaching-oriented. Also dont ask any quesitons in this feedback.`,
   ],
@@ -210,7 +210,7 @@ Required JSON structure:
 - questions_analysis: array of objects, each containing:
   * question: the actual question asked
   * response: the candidate's actual response
-  * feedback: assessment of the response
+  * feedback: assessment of the response, use "you" not candidate name
   * strengths: array of positive aspects
   * improvements: array of areas to improve
   * score: number between 0-10

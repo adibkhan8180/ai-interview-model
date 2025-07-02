@@ -7,26 +7,21 @@ import { InterviewProgress } from "@/components/interview-progress";
 import { VideoCall } from "@/components/video-call";
 import { AudioRecorder } from "@/components/audio-recorder";
 import { ResponseInput } from "@/components/response-input";
-import { useParams, useRouter } from "next/navigation";
-import { submitAnswerAPI, submitFinalInterviewAPI } from "@/lib/api";
+import { useParams } from "next/navigation";
+import { submitAnswerAPI } from "@/lib/api";
 import { useFormStore } from "@/lib/store/formStore";
 import { useInterviewStore } from "@/lib/store/interviewStore";
 import { speakTextWithTTS } from "@/lib/audioApi";
 import { ConfirmDialog } from "./ConfirmDialog";
 
 export default function AIInterviewSystem() {
-  const router = useRouter();
-  const { formData: interviewSetup, resetForm: resetInterviewSetup } =
-    useFormStore();
+  const { formData: interviewSetup } = useFormStore();
   const {
     conversation,
     addMessage: setConversation,
     overallFeedback,
-    setOverallFeedback,
     interviewComplete,
-    setInterviewComplete,
     interviewStartTime,
-    resetStore: resetInterviewStore,
     isAISpeaking,
   } = useInterviewStore();
 
@@ -34,9 +29,7 @@ export default function AIInterviewSystem() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const params = useParams();
   const sessionId = params?.sessionId as string;
-  const [showFinalAssessment, setShowFinalAssessment] = useState(false);
   const [openDialog, setOpenDialog] = useState<boolean>(false);
-  const [finalAssessmentLoading, setFinalAssessmentLoading] = useState(false);
 
   const { startRecording, stopRecording } = AudioRecorder({
     onTranscription: (text) => {
@@ -46,12 +39,6 @@ export default function AIInterviewSystem() {
     onRecordingStart: () => setIsRecording(true),
     onRecordingStop: () => setIsRecording(false),
   });
-
-  const startNewInterview = async () => {
-    resetInterviewStore();
-    resetInterviewSetup();
-    router.replace("/");
-  };
 
   const handleUserResponse = async (userResponse: string) => {
     if (!interviewSetup) return;
@@ -74,37 +61,6 @@ export default function AIInterviewSystem() {
       console.error("Error getting AI response:", error);
     }
   };
-
-  useEffect(() => {
-    const getFinalAssessment = async () => {
-      if (!interviewSetup) return;
-
-      if (!sessionId) {
-        console.error("Session ID not found.");
-        return;
-      }
-
-      if (showFinalAssessment) {
-        setFinalAssessmentLoading(true);
-        const overallData = await submitFinalInterviewAPI(sessionId);
-        //@ts-expect-error
-        if (overallData.status && overallData.status === "error") {
-          console.error("Error fetching final assessment data:", overallData);
-          setFinalAssessmentLoading(false);
-          return;
-        }
-
-        console.log("final assessment data", overallData);
-        setInterviewComplete(true);
-        setOverallFeedback(overallData.overallFeedback);
-
-        // uncomment this line if  you want to use TTS for overall feedback
-        // speakTextWithTTS(`${JSON.stringify(overallData.overallFeedback)}`);
-      }
-    };
-
-    getFinalAssessment();
-  }, [showFinalAssessment]);
 
   useEffect(() => {
     scrollRef?.current?.scrollIntoView({ behavior: "smooth" });
@@ -149,11 +105,7 @@ export default function AIInterviewSystem() {
                 {conversation.map((message, index) => {
                   if (message?.isFeedback) {
                     return (
-                      <FeedbackDisplay
-                        key={index}
-                        feedback={message.content}
-                        type="immediate"
-                      />
+                      <FeedbackDisplay key={index} feedback={message.content} />
                     );
                   }
 
@@ -178,22 +130,6 @@ export default function AIInterviewSystem() {
                   );
                 })}
                 <div ref={scrollRef} />
-                {interviewComplete && overallFeedback && (
-                  <div ref={scrollRef}>
-                    <FeedbackDisplay
-                      feedback={overallFeedback}
-                      type="overall"
-                    />
-                    <div className="mt-4 text-center">
-                      <button
-                        onClick={startNewInterview}
-                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md cursor-pointer"
-                      >
-                        🎯 Start New Interview
-                      </button>
-                    </div>
-                  </div>
-                )}
               </div>
 
               <div>

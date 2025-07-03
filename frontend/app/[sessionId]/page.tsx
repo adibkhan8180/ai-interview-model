@@ -8,7 +8,7 @@ import { VideoCall } from "@/components/video-call";
 import { AudioRecorder } from "@/components/audio-recorder";
 import { ResponseInput } from "@/components/response-input";
 import { useParams } from "next/navigation";
-import { getNextQuestionAPI, submitAnswerAPI } from "@/lib/api";
+import { submitAnswerAPI } from "@/lib/api";
 import { useFormStore } from "@/lib/store/formStore";
 import { useInterviewStore } from "@/lib/store/interviewStore";
 import { speakTextWithTTS } from "@/lib/audioApi";
@@ -62,29 +62,8 @@ export default function AIInterviewSystem() {
 
       setConversation({ role: "ai", content: data.feedback, isFeedback: true });
       await speakTextWithTTS(data.feedback);
-
-      if (questionCount < maxQuestions) {
-        getNextQuestion();
-      }
     } catch (error) {
       console.error("Error getting AI response:", error);
-    }
-  };
-
-  const getNextQuestion = async () => {
-    try {
-      const data = await getNextQuestionAPI(sessionId);
-      incrementQuestionCount();
-
-      setConversation({
-        role: "ai",
-        content: data?.question,
-        isFeedback: false,
-      });
-      speakTextWithTTS(data?.question);
-    } catch (error) {
-      console.error("Error getting next question:", error);
-    } finally {
     }
   };
 

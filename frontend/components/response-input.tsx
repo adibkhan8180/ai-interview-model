@@ -103,15 +103,15 @@ export function ResponseInput({
 
   return (
     <div className="w-full flex flex-col">
-      {/* {!interviewComplete && isLatestFeedback && (
+      {!interviewComplete && isLatestFeedback ? (
         <div className="w-full flex items-center justify-center gap-5 m-4">
-          <p className="text-yellow-700 text-sm leading-relaxed">
+          <p className="text-black text-base leading-relaxed font-medium">
             Do you want to revise the answer?
           </p>
           <Button
             onClick={handleReviseQuestion}
             disabled={isAISpeaking ? true : loading}
-            className="bg-green-500 hover:bg-green-600 cursor-pointer"
+            className="bg-[#3B64F6] cursor-pointer"
           >
             yes
           </Button>
@@ -123,24 +123,10 @@ export function ResponseInput({
             }}
             disabled={isAISpeaking ? true : loading}
             className={`${
-              maxQuestions === questionCount
-                ? "bg-blue-400 hover:bg-blue-500"
-                : "bg-red-500 hover:bg-red-600 "
+              maxQuestions === questionCount ? "bg-green-500" : "bg-[#C51E1E]"
             } cursor-pointer`}
           >
             {maxQuestions === questionCount ? "Get Assessment!" : "No"}
-          </Button>
-        </div>
-      )} */}
-      {questionCount >= maxQuestions ? (
-        <div>
-          <Button
-            onClick={() => router.push(`/${sessionId}/assessment`)}
-            variant="default"
-            disabled={isAISpeaking}
-            className={` cursor-pointer w-fit py-1 px-4 `}
-          >
-            Get Final Assessment
           </Button>
         </div>
       ) : (

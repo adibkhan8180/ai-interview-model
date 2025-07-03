@@ -11,6 +11,7 @@ import { useInterviewStore } from "@/lib/store/interviewStore";
 import { useParams, useRouter } from "next/navigation";
 import { useFormStore } from "@/lib/store/formStore";
 import { submitFinalInterviewAPI } from "@/lib/api";
+import { downloadFeedbackPdf } from "@/lib/downloadAssessment";
 
 function page() {
   const router = useRouter();
@@ -59,6 +60,10 @@ function page() {
     resetInterviewStore();
     resetInterviewSetup();
     router.replace("/");
+  };
+
+  const handleDownload = () => {
+    downloadFeedbackPdf(overallFeedback);
   };
 
   if (!loading) {
@@ -208,21 +213,20 @@ function page() {
             </p>
           </div>
         </div>
-
-        <div className="py-3 flex justify-between space-x-6">
-          <button
-            onClick={startNewInterview}
-            className="py-2 w-full bg-white hover:text-[#3B57F6] text-[#3B64F6] rounded-md cursor-pointer border border-[#3B64F6]"
-          >
-            Download Report
-          </button>
-          <button
-            onClick={startNewInterview}
-            className="py-2 w-full bg-[#3B64F6] hover:bg-[#3B57F6] text-white rounded-md cursor-pointer"
-          >
-            Start New Interview
-          </button>
-        </div>
+      </div>
+      <div className="max-w-4xl mx-auto w-full py-3 my-2 flex justify-between space-x-6 ">
+        <button
+          onClick={handleDownload}
+          className="py-2 w-full bg-white hover:text-[#3B57F6] text-[#3B64F6] rounded-md cursor-pointer border border-[#3B64F6]"
+        >
+          Download Report
+        </button>
+        <button
+          onClick={startNewInterview}
+          className="py-2 w-full bg-[#3B64F6] hover:bg-[#3B57F6] text-white rounded-md cursor-pointer"
+        >
+          Start New Interview
+        </button>
       </div>
     </div>
   );

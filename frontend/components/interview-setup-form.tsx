@@ -101,6 +101,9 @@ export function InterviewSetupForm({
                 ? "bg-[#E7ECFF] text-[#3B64F6]"
                 : "bg-[#3B64F6] text-[#fff]"
             } `}
+            onClick={() => {
+              if (steps > 1) setSteps(1);
+            }}
           >
             1
           </div>
@@ -120,6 +123,9 @@ export function InterviewSetupForm({
                 ? "bg-[#3B64F6] text-[#fff] border-[#3B64F6]"
                 : "border-[#E2E8F0] text-gray-400 "
             } `}
+            onClick={() => {
+              if (steps > 2) setSteps(2);
+            }}
           >
             2
           </div>
@@ -139,6 +145,9 @@ export function InterviewSetupForm({
                 ? "bg-[#3B64F6] text-[#fff] border-[#3B64F6]"
                 : "border-[#E2E8F0] text-gray-400 "
             } `}
+            onClick={() => {
+              if (steps > 3) setSteps(3);
+            }}
           >
             3
           </div>

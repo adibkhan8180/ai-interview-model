@@ -130,7 +130,7 @@ export function ResponseInput({
           </Button>
         </div>
       ) : (
-        <div className="flex-1 flex items-center h-full gap-4  rounded-2xl overflow-hidden shadow-2xl">
+        <div className="flex-1 flex items-center h-full gap-4  rounded-2xl overflow-hidden shadow-md">
           <Input
             placeholder={
               isAISpeaking ? "AI is speaking..." : "Type your response here..."

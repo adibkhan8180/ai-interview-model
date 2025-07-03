@@ -158,6 +158,7 @@ export class AIService {
   async generateFinalAssessment(chatHistory) {
     const assessmentSchema = z.object({
       summary: z.string(),
+      response_depth: z.enum(["Novice", "Intermediate", "Advanced"]),
       questions_analysis: z.array(
         z.object({
           question: z.string(),

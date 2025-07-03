@@ -93,7 +93,7 @@ export function VideoCall({
 
   return (
     <div className="flex flex-col-reverse gap-4 ">
-      <Card className="overflow-hidden bg-black relative w-full aspect-[5/3] 2xl:aspect-[4/3]">
+      <Card className="overflow-hidden bg-black relative w-full aspect-[4/3]">
         <video
           ref={userVideoRef}
           autoPlay
@@ -150,28 +150,13 @@ export function VideoCall({
         </div>
       </Card>
 
-      <Card className="overflow-hidden bg-gradient-to-b from-blue-900 to-indigo-900 relative w-full aspect-[5/3] 2xl:aspect-[4/3]">
+      <Card className="overflow-hidden bg-gradient-to-b from-blue-900 to-indigo-900 relative w-full aspect-[4/3]">
         <img
           src="/assets/images/interviewerBg.png"
           className="w-full h-full inset-0 absolute object-cover"
           alt=""
         />
         <div className="absolute inset-0 flex flex-col gap-8 items-center justify-center">
-          {/* <div className="relative w-24 h-24 mb-3">
-            {isAISpeaking ? (
-              <button
-                onClick={stopSpeaking}
-                disabled={!isAISpeaking}
-                className="absolute -bottom-1 -right-1 bg-green-500 p-1 rounded-full cursor-pointer"
-              >
-                <Volume2 className="w-4 h-4 text-white" />
-              </button>
-            ) : (
-              <div className="absolute -bottom-1 -right-1 bg-green-500 p-1 rounded-full">
-                <VolumeOff className="w-4 h-4 text-white" />
-              </div>
-            )}
-          </div> */}
           <div className="relative w-full flex items-center justify-center">
             <div className="w-20 h-20 rounded-full bg-white z-10" />
             <Image
@@ -185,15 +170,7 @@ export function VideoCall({
           <div className="w-full items-center justify-center flex flex-col gap-2">
             <p className="text-white font-medium">AI Interviewer</p>
             <div className="">
-              {isAISpeaking ? (
-                <Image
-                  src="/AIVoiceEffectCrop.gif"
-                  alt="AI Interviewer"
-                  width={50}
-                  height={50}
-                  className="rounded-full border-2 border-blue-400"
-                />
-              ) : (
+              {!isAISpeaking && (
                 <div className="text-white text-sm">
                   Waiting for your response...
                 </div>

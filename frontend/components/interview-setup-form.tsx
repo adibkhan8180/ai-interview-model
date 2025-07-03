@@ -85,7 +85,7 @@ export function InterviewSetupForm({
 
   return (
     // TODO: height should not be scrollable
-    <div className="h-full flex flex-col items-center justify-center gap-6">
+    <div className="h-screen flex flex-col items-center justify-center gap-6">
       <h1 className="text-4xl font-bold">
         <span className="text-[#3B64F6]">AI-Video</span> Interview Setup
       </h1>
@@ -101,7 +101,11 @@ export function InterviewSetupForm({
           >
             1
           </div>
-          <div className="h-0.5 w-10 bg-[#3B64F6]"></div>
+          <div
+            className={`h-0.5 w-12  ${
+              steps > 1 ? "bg-[#3B64F6]" : "bg-[#E2E8F0]"
+            }`}
+          ></div>
         </div>
 
         <div className="flex items-center space-x-4">
@@ -118,7 +122,7 @@ export function InterviewSetupForm({
           </div>
           <div
             className={`h-0.5 w-12  ${
-              steps >= 2 ? "bg-[#3B64F6]" : "bg-[#E2E8F0]"
+              steps > 2 ? "bg-[#3B64F6]" : "bg-[#E2E8F0]"
             }`}
           ></div>
         </div>

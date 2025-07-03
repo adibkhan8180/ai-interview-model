@@ -8,11 +8,13 @@ import { VideoCall } from "@/components/video-call";
 import { AudioRecorder } from "@/components/audio-recorder";
 import { ResponseInput } from "@/components/response-input";
 import { useParams } from "next/navigation";
-import { submitAnswerAPI } from "@/lib/api";
+import { getNextQuestionAPI, submitAnswerAPI } from "@/lib/api";
 import { useFormStore } from "@/lib/store/formStore";
 import { useInterviewStore } from "@/lib/store/interviewStore";
 import { speakTextWithTTS } from "@/lib/audioApi";
 import { ConfirmDialog } from "./ConfirmDialog";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
 
 export default function AIInterviewSystem() {
   const { formData: interviewSetup } = useFormStore();
@@ -23,6 +25,10 @@ export default function AIInterviewSystem() {
     interviewComplete,
     interviewStartTime,
     isAISpeaking,
+    questionCount,
+    maxQuestions,
+    stopSpeaking,
+    incrementQuestionCount,
   } = useInterviewStore();
 
   const [isRecording, setIsRecording] = useState(false);
@@ -55,10 +61,28 @@ export default function AIInterviewSystem() {
       const data = await submitAnswerAPI(sessionId, userResponse);
 
       setConversation({ role: "ai", content: data.feedback, isFeedback: true });
+      await speakTextWithTTS(data.feedback);
 
-      speakTextWithTTS(data.feedback);
+      getNextQuestion();
     } catch (error) {
       console.error("Error getting AI response:", error);
+    }
+  };
+
+  const getNextQuestion = async () => {
+    try {
+      const data = await getNextQuestionAPI(sessionId);
+      incrementQuestionCount();
+
+      setConversation({
+        role: "ai",
+        content: data?.question,
+        isFeedback: false,
+      });
+      speakTextWithTTS(data?.question);
+    } catch (error) {
+      console.error("Error getting next question:", error);
+    } finally {
     }
   };
 
@@ -84,7 +108,7 @@ export default function AIInterviewSystem() {
   return (
     // TODO: height should be dynamic
     <div className="w-full h-screen bg-[#F5F8FF] py-4 pt-24">
-      <div className="w-7xl mx-auto grid grid-cols-[2fr_5fr]">
+      <div className="w-7xl h-full mx-auto grid grid-cols-[2fr_5fr] gap-4">
         {/* camera div */}
         <div className="flex flex-col gap-4 w-full">
           <VideoCall
@@ -96,79 +120,138 @@ export default function AIInterviewSystem() {
         </div>
 
         {/* TODO: chat div */}
-        <div className="w-full"></div>
-      </div>
-      {/* <Card className="h-full max-w-7xl mx-auto ">
-        <CardHeader>
-          <CardTitle className="text-xl text-center capitalize">
-            {interviewSetup?.companyName} - {interviewSetup?.jobRole} Interview
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="h-full w-full flex flex-col gap-4 ">
-          {interviewStartTime && <InterviewProgress />}
-          <div className="w-full h-full grid grid-cols-[1fr_2fr] gap-8 ">
-            <div className="w-full h-fit">
-              <VideoCall
-                isRecording={isRecording}
-                isAISpeaking={isAISpeaking}
-                onStartRecording={startRecording}
-                onStopRecording={stopRecording}
-              />
+        <div className="w-full h-full rounded-3xl bg-[#FFFFFF] border border-[#E2E8F0] flex flex-col">
+          {/* progress bar */}
+          <div className="py-4 px-5 m-2 rounded-tl-2xl rounded-tr-2xl bg-[#F7F9FC] flex flex-row items-center gap-2">
+            <Image
+              src="/assets/svg/question.svg"
+              alt="question_logo"
+              width={20}
+              height={20}
+            />
+            <p className="text-xl font-medium">Question</p>
+
+            {/* progress bar */}
+            <div className="flex-1 flex items-center justify-between gap-2 px-1.5">
+              {[...Array(maxQuestions)].map((_, index) => (
+                <div
+                  key={index}
+                  className={`w-full h-2  rounded-sm ${
+                    questionCount === maxQuestions
+                      ? "bg-[#47B881]"
+                      : "bg-[#CDD8E8]"
+                  }`}
+                />
+              ))}
             </div>
-            <div className="h-[65vh] 2xl:h-[72vh] w-full flex flex-col justify-between ">
-              <div className="flex flex-col overflow-y-auto space-y-4 p-4 ">
-                {conversation.map((message, index) => {
-                  if (message?.isFeedback) {
-                    return (
-                      <FeedbackDisplay key={index} feedback={message.content} />
-                    );
-                  }
+            <p className="text-xl font-medium">
+              {questionCount}/{maxQuestions}
+            </p>
+          </div>
 
+          <div className="w-full h-[1px] bg-[#E2E8F0] " />
+
+          {/* conversation container */}
+          <div className="flex-1 flex flex-col p-6">
+            <div className="flex-1 flex flex-col overflow-y-auto space-y-4">
+              {conversation.map((message, index) => {
+                const isLastMessage = index === conversation.length - 1;
+
+                if (message?.isFeedback) {
                   return (
-                    <div
+                    <FeedbackDisplay
                       key={index}
-                      className={`p-3 relative rounded-lg w-fit max-w-[90%] flex flex-col after:content-[''] after:absolute after:top-0  after:border-[12px] after:border-transparent  ${
-                        message.role === "ai"
-                          ? "bg-blue-100 text-blue-900 self-start after:left-3 after:border-t-blue-100 after:-translate-x-full"
-                          : "bg-green-100 text-green-900 self-end after:right-3 after:border-t-green-100 after:translate-x-full"
-                      }
-                      
-                      `}
-                    >
-                      <strong>
-                        {message.role === "ai"
-                          ? "🤖 AI Interviewer:"
-                          : "👤 You:"}
-                      </strong>
-                      <p className="mt-1">{message.content}</p>
-                    </div>
+                      feedback={message.content}
+                      isLastMessage={isLastMessage}
+                    />
                   );
-                })}
-                <div ref={scrollRef} />
-              </div>
+                }
 
-              <div>
-                {!interviewComplete && (
-                  <ResponseInput
-                    onSubmitText={handleUserResponse}
-                    onStartRecording={startRecording}
-                    onStopRecording={stopRecording}
-                    isRecording={isRecording}
-                    isAISpeaking={isAISpeaking}
-                    speakTextWithTTS={speakTextWithTTS}
-                    isLatestFeedback={
-                      conversation.length > 0
-                        ? conversation[conversation.length - 1]?.isFeedback ??
-                          false
-                        : false
-                    }
-                  />
-                )}
-              </div>
+                return (
+                  <div
+                    key={index}
+                    className={`p-2 w-fit max-w-[90%] flex flex-col ${
+                      message.role === "ai" ? "self-start" : "self-end"
+                    }`}
+                  >
+                    <div className="flex flex-col gap-1 ">
+                      {message.role === "ai" ? (
+                        <div className="flex items-center gap-2">
+                          <Image
+                            src="/assets/svg/interviewAi.svg"
+                            alt="AI"
+                            width={24}
+                            height={24}
+                          />
+                          <p className="text-base font-semibold">
+                            AI Interviewer
+                          </p>
+
+                          {isLastMessage && isAISpeaking && (
+                            <Button
+                              variant="ghost"
+                              className="px-4 py-2 cursor-pointer"
+                              onClick={stopSpeaking}
+                            >
+                              <Image
+                                src="/assets/svg/pause.svg"
+                                alt="AI"
+                                width={16}
+                                height={16}
+                              />
+                              Skip Audio
+                            </Button>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="flex flex-row-reverse items-center gap-2">
+                          <Image
+                            src="/assets/images/johnDoe.png"
+                            alt="AI"
+                            width={24}
+                            height={24}
+                          />
+                          <p className="text-base font-semibold">You</p>
+                        </div>
+                      )}
+
+                      <p
+                        className={`p-6  border  rounded-2xl text-sm font-medium ${
+                          message.role === "ai"
+                            ? "border-[#8692A633]"
+                            : "border-[#F4F3FF] bg-[#E2E8FF]"
+                        }`}
+                      >
+                        {message.content}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+              <div ref={scrollRef} />
             </div>
           </div>
-        </CardContent>
-      </Card> */}
+
+          <div className="p-5">
+            {!interviewComplete && (
+              <ResponseInput
+                onSubmitText={handleUserResponse}
+                onStartRecording={startRecording}
+                onStopRecording={stopRecording}
+                isRecording={isRecording}
+                isAISpeaking={isAISpeaking}
+                speakTextWithTTS={speakTextWithTTS}
+                isLatestFeedback={
+                  conversation.length > 0
+                    ? conversation[conversation.length - 1]?.isFeedback ?? false
+                    : false
+                }
+              />
+            )}
+          </div>
+        </div>
+      </div>
+
       <ConfirmDialog openDialogue={openDialog} setOpenDialog={setOpenDialog} />
     </div>
   );

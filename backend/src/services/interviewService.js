@@ -1,7 +1,8 @@
-import { AIMessage, HumanMessage } from "@langchain/core/messages";
+import { AIMessage, HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { InterviewSession } from "../../models/interviewSession.js";
 import { AIService } from "./aiService.js";
 import { AppError } from "../utils/AppError.js";
+
 
 export class InterviewService {
   constructor() {
@@ -220,15 +221,36 @@ export class InterviewService {
     if (!session) throw new AppError("Session not found", 400);
 
     try {
-
-      const result = await this.aiService.generateFinalAssessment(
+      /* const result = await this.aiService.generateFinalAssessment(
         session.chatHistory.map((msg) =>
           msg.role === "human"
             ? new HumanMessage(msg.content)
             : new AIMessage(msg.content)
         )
-      );
+      ); */
 
+      const chatHistory = session.chatHistory;
+      const qaPairs = [];
+
+      for (let i = 0; i < chatHistory.length - 1; i += 2) {
+        const aiMsg = chatHistory[i];
+        const humanMsg = chatHistory[i + 1];
+
+        if (aiMsg?.role === "ai" && humanMsg?.role === "human") {
+          qaPairs.push(`Q${qaPairs.length + 1}: ${aiMsg.content}\nA${qaPairs.length + 1}: ${humanMsg.content}`);
+        }
+      }
+
+      const qnaContext = qaPairs.join("\n\n");
+
+      const result = await this.aiService.generateFinalAssessment([
+        new SystemMessage(`You are a JSON generator for interview feedback. Below are 5 question-answer pairs. You must evaluate all of them.`),
+        new HumanMessage(qnaContext),
+      ]);
+
+      if (!result.result?.questions_analysis || result.result.questions_analysis.length < 5) {
+        console.warn("⚠️ Incomplete Q&A detected:", result.result.questions_analysis?.length);
+      }
 
       const overAllScore = await this.calculateOverallScore(result?.result.questions_analysis, result?.result.coaching_scores);
       const level = await this.getLevel(overAllScore);

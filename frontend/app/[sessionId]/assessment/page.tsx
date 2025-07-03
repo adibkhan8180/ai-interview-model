@@ -24,6 +24,8 @@ function page() {
     setOverallFeedback,
     setInterviewComplete,
     setInterviewStarted,
+    questionCount,
+    maxQuestions,
   } = useInterviewStore();
   const [loading, setLoading] = useState(true);
 
@@ -47,7 +49,7 @@ function page() {
       // uncomment this line if  you want to use TTS for overall feedback
       // speakTextWithTTS(`${JSON.stringify(overallData.overallFeedback)}`);
     } catch (error) {
-      console.error("Error getting next question:", error);
+      console.log("Error getting next question:", error);
     } finally {
       setLoading(false);
     }
@@ -69,7 +71,11 @@ function page() {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="text-center h-screen w-screen flex items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    );
   }
 
   return (
@@ -87,7 +93,9 @@ function page() {
           </div>
           <div className="flex items-center space-x-2">
             <CircleCheck className="w-6 h-6 text-white fill-[#47B881]" />
-            <h1 className="text-xl font-medium">Progress: Question 5 of 5</h1>
+            <h1 className="text-xl font-medium">
+              Progress: Question {questionCount} of {maxQuestions}
+            </h1>
           </div>
         </div>
 
@@ -110,17 +118,17 @@ function page() {
             </p>
           </div>
 
-          <div className="px-4">
+          <div className="px-4 space-y-4">
             <p className="text-[16px] font-medium leading-relaxed text-[#2E2E2E]">
-              Clarity of Motivation:
+              💡 Clarity of Motivation:
               {overallFeedback?.coaching_scores?.clarity_of_motivation}
             </p>
             <p className="text-[16px] font-medium leading-relaxed text-[#2E2E2E]">
-              Career Goal Alignment:
+              🎯 Career Goal Alignment:
               {overallFeedback?.coaching_scores?.career_goal_alignment}
             </p>
             <p className="text-[16px] font-medium leading-relaxed text-[#2E2E2E]">
-              Specificity of Learning:
+              📖 Specificity of Learning:
               {overallFeedback?.coaching_scores?.specificity_of_learning}
             </p>
           </div>
@@ -166,20 +174,41 @@ function page() {
                             {section.feedback}
                           </p>
                         </div>
-                        <div className="flex items-start space-x-3">
-                          <div className="w-4 h-4 mt-1 flex-shrink-0" />
+                        {section.strengths.length > 0 && (
+                          <div className="flex items-start space-x-3 mb-2">
+                            <p>✅ Strengths: </p>
+                            <div className="flex flex-wrap gap-2">
+                              {section.strengths?.map(
+                                (item: string, idx: number) => (
+                                  <span
+                                    key={`strength-${idx}`}
+                                    className="bg-green-100 text-green-800 px-3 py-1 text-xs rounded-full font-medium"
+                                  >
+                                    {item}
+                                  </span>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        )}
 
-                          <p className="text-sm leading-relaxed">
-                            Strengths: {section.strengths}
-                          </p>
-                        </div>
-                        <div className="flex items-start space-x-3">
-                          <div className="w-4 h-4 mt-1 flex-shrink-0" />
-
-                          <p className="text-sm leading-relaxed">
-                            Improvements: {section.improvements}
-                          </p>
-                        </div>
+                        {section.improvements.length > 0 && (
+                          <div className="flex items-start space-x-3 mb-2">
+                            <p>⚠️ Improvements: </p>
+                            <div className="flex flex-wrap gap-2">
+                              {section.improvements?.map(
+                                (item: string, idx: number) => (
+                                  <span
+                                    key={`improvement-${idx}`}
+                                    className="bg-red-100 text-red-800 px-3 py-1 text-xs rounded-full font-medium"
+                                  >
+                                    {item}
+                                  </span>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        )}
                         <div className="flex items-start space-x-3">
                           <div className="flex items-start space-x-3 bg-[#E0ECFD] px-3.5 py-1.5 rounded-full">
                             <p className="text-sm leading-relaxed text-[#3B64F6]">

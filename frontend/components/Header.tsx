@@ -31,7 +31,7 @@ export default function Header() {
           </div>
         )}
         <Image
-          src="/AI-Interviewer.png"
+          src="/assets/images/johnDoe.png"
           alt="User Avatar"
           width={56}
           height={56}

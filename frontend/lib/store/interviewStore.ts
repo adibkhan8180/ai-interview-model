@@ -82,7 +82,7 @@ const initialState = {
   interviewComplete: false,
   interviewStarted: false,
   questionCount: 0,
-  maxQuestions: 2,
+  maxQuestions: 5,
   interviewStartTime: null,
   isAISpeaking: false,
   audioInstance: null,

@@ -68,6 +68,7 @@ const initialState = {
   conversation: [],
   overallFeedback: initialFinalFeedback,
   interviewComplete: false,
+  interviewStarted: false,
   questionCount: 0,
   maxQuestions: 2,
   interviewStartTime: null,
@@ -104,6 +105,9 @@ export const useInterviewStore = create<InterviewStoreState>(
       set(() => ({
         questionCount: 0,
       })),
+
+    setInterviewStarted: (started: boolean) =>
+      set({ interviewStarted: started }),
 
     setInterviewStartTime: (time) => set({ interviewStartTime: time }),
 

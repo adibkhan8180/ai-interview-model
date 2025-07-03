@@ -1,14 +1,16 @@
 "use client";
 import { useFormStore } from "@/lib/store/formStore";
+import { useInterviewStore } from "@/lib/store/interviewStore";
 import Image from "next/image";
 
 export default function Header() {
   const { formData } = useFormStore();
+  const { interviewStarted } = useInterviewStore();
 
   return (
     <header className="fixed top-0 left-0 right-0 bg-white shadow-md z-50 border-[#E2E8F0] border-b">
       <div className="max-w-7xl mx-auto flex items-center justify-between py-3">
-        {formData.companyName ? (
+        {interviewStarted ? (
           <div>
             <h1 className="text-2xl font-medium capitalize">
               {formData.companyName} - {formData.jobRole} Interview

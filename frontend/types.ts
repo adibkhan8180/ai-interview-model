@@ -48,6 +48,7 @@ export interface InterviewStoreState {
   conversation: ConversationEntry[];
   overallFeedback: OverallFeedback;
   interviewComplete: boolean;
+  interviewStarted: boolean;
   questionCount: number;
   maxQuestions: number;
   interviewStartTime: Date | null;
@@ -60,6 +61,7 @@ export interface InterviewStoreState {
 
   setOverallFeedback: (feedback: OverallFeedback) => void;
   setInterviewComplete: (complete: boolean) => void;
+  setInterviewStarted: (started: boolean) => void;
   incrementQuestionCount: () => void;
   resetQuestionCount: () => void;
   setInterviewStartTime: (time: Date | null) => void;

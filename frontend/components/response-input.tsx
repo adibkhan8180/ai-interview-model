@@ -102,7 +102,7 @@ export function ResponseInput({
   }, [textResponse, handleSubmit]);
 
   return (
-    <div className="w-full flex flex-col ">
+    <div className="w-full flex flex-col">
       {/* {!interviewComplete && isLatestFeedback && (
         <div className="w-full flex items-center justify-center gap-5 m-4">
           <p className="text-yellow-700 text-sm leading-relaxed">
@@ -132,41 +132,59 @@ export function ResponseInput({
           </Button>
         </div>
       )} */}
-      <div className="flex-1 flex items-center h-full gap-4  rounded-2xl overflow-hidden shadow-2xl">
-        <Input
-          placeholder={
-            isAISpeaking ? "AI is speaking..." : "Type your response here..."
-          }
-          ref={inputRef}
-          value={textResponse}
-          onChange={(e) => setTextResponse(e.target.value)}
-          className="ml-2 text-base flex-1 font-medium border-none outline-none shadow-none placeholder:text-[#919ECD] px-2 py-3 "
-          disabled={isRecording || isAISpeaking}
-        />
-        <Button
-          onClick={isRecording ? onStopRecording : onStartRecording}
-          variant="outline"
-          disabled={isAISpeaking}
-          className={`rounded-full cursor-pointer h-fit py-1 px-2 ${
-            isRecording ? "" : ""
-          }`}
-        >
-          <Image
-            src="/assets/svg/audioPulse.svg"
-            alt="audio_pulse"
-            height={16}
-            width={16}
+      {questionCount >= maxQuestions ? (
+        <div>
+          <Button
+            onClick={() => router.push(`/${sessionId}/assessment`)}
+            variant="default"
+            disabled={isAISpeaking}
+            className={` cursor-pointer w-fit py-1 px-4 `}
+          >
+            Get Final Assessment
+          </Button>
+        </div>
+      ) : (
+        <div className="flex-1 flex items-center h-full gap-4  rounded-2xl overflow-hidden shadow-2xl">
+          <Input
+            placeholder={
+              isAISpeaking ? "AI is speaking..." : "Type your response here..."
+            }
+            ref={inputRef}
+            value={textResponse}
+            onChange={(e) => setTextResponse(e.target.value)}
+            className="ml-2 text-base flex-1 font-medium border-none outline-none shadow-none placeholder:text-[#919ECD] px-2 py-3 "
+            disabled={isRecording || isAISpeaking}
           />
-          <p className="text-sm font-medium text-[#3B64F6]">Voice</p>
-        </Button>
-        <Button
-          onClick={handleSubmit}
-          disabled={!textResponse.trim() || isAISpeaking}
-          className=" w-12 h-12 rounded-none cursor-pointer bg-[#3B64F6]"
-        >
-          <Image src="/assets/svg/send.svg" alt="send" height={20} width={20} />
-        </Button>
-      </div>
+          <Button
+            onClick={isRecording ? onStopRecording : onStartRecording}
+            variant="outline"
+            disabled={isAISpeaking}
+            className={`rounded-full cursor-pointer h-fit py-1 px-2 ${
+              isRecording ? "" : ""
+            }`}
+          >
+            <Image
+              src="/assets/svg/audioPulse.svg"
+              alt="audio_pulse"
+              height={16}
+              width={16}
+            />
+            <p className="text-sm font-medium text-[#3B64F6]">Voice</p>
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={!textResponse.trim() || isAISpeaking}
+            className=" w-12 h-12 rounded-none cursor-pointer bg-[#3B64F6]"
+          >
+            <Image
+              src="/assets/svg/send.svg"
+              alt="send"
+              height={20}
+              width={20}
+            />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

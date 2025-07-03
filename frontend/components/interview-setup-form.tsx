@@ -20,6 +20,7 @@ import { InterviewSetupData } from "@/types";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "./ui/badge";
 import { IoMdClose } from "react-icons/io";
+import { useInterviewStore } from "@/lib/store/interviewStore";
 
 interface InterviewSetupFormProps {
   onSubmit: (data: InterviewSetupData) => void;
@@ -43,6 +44,7 @@ export function InterviewSetupForm({
   const [skill, setSkill] = useState("");
   const [steps, setSteps] = useState(1);
   const { saveFormData } = useFormStore();
+  const { setInterviewStarted } = useInterviewStore();
   const isDomainSpecific = formData.interviewCategory === "domain-specific";
 
   const handleChange = (
@@ -79,6 +81,7 @@ export function InterviewSetupForm({
   const handleStartInterview = () => {
     saveFormData(formData);
     onSubmit(formData);
+    setInterviewStarted(true);
   };
 
   if (steps !== 1 && steps !== 2 && steps !== 3) return null;

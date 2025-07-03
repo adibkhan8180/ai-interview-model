@@ -41,11 +41,11 @@ export function FeedbackDisplay({
           </Button>
         )}
       </div>
-      <p
+      <div
         className={`p-6  border-l-4 border-[#FFC342] rounded-2xl text-sm  leading-relaxed bg-[#FFF5EA]`}
       >
         <ReactMarkdown>{feedback}</ReactMarkdown>
-      </p>
+      </div>
     </div>
   );
 }

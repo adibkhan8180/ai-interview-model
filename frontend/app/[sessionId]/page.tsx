@@ -63,7 +63,9 @@ export default function AIInterviewSystem() {
       setConversation({ role: "ai", content: data.feedback, isFeedback: true });
       await speakTextWithTTS(data.feedback);
 
-      getNextQuestion();
+      if (questionCount < maxQuestions) {
+        getNextQuestion();
+      }
     } catch (error) {
       console.error("Error getting AI response:", error);
     }
@@ -137,9 +139,7 @@ export default function AIInterviewSystem() {
                 <div
                   key={index}
                   className={`w-full h-2  rounded-sm ${
-                    questionCount === maxQuestions
-                      ? "bg-[#47B881]"
-                      : "bg-[#CDD8E8]"
+                    index < questionCount ? "bg-[#47B881]" : "bg-[#CDD8E8]"
                   }`}
                 />
               ))}

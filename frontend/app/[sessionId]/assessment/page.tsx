@@ -17,6 +17,7 @@ function page() {
     resetStore: resetInterviewStore,
     setOverallFeedback,
     setInterviewComplete,
+    setInterviewStarted,
   } = useInterviewStore();
   const [loading, setLoading] = useState(true);
 
@@ -53,6 +54,7 @@ function page() {
   const startNewInterview = async () => {
     resetInterviewStore();
     resetInterviewSetup();
+    setInterviewStarted(false);
     router.replace("/");
   };
 

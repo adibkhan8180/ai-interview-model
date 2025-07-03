@@ -53,7 +53,7 @@ function page() {
   };
 
   useEffect(() => {
-    // getFinalAssessment();
+    getFinalAssessment();
   }, [sessionId]);
 
   const startNewInterview = async () => {
@@ -66,7 +66,7 @@ function page() {
     downloadFeedbackPdf(overallFeedback);
   };
 
-  if (!loading) {
+  if (loading) {
     return <div>Loading...</div>;
   }
 

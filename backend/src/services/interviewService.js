@@ -221,7 +221,6 @@ export class InterviewService {
     if (!session) throw new AppError("Session not found", 400);
 
     try {
-      // console.log('Generating final feedback, Chat History:', session.chatHistory);
       /* const result = await this.aiService.generateFinalAssessment(
         session.chatHistory.map((msg) =>
           msg.role === "human"

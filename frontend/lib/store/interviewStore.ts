@@ -66,7 +66,19 @@ const initialFinalFeedback = {
 
 const initialState = {
   conversation: [],
-  overallFeedback: initialFinalFeedback,
+  overallFeedback: {
+    overall_score: 0,
+    summary: "",
+    questions_analysis: [],
+    coaching_scores: {
+      clarity_of_motivation: 0,
+      specificity_of_learning: 0,
+      career_goal_alignment: 0,
+    },
+    recommendations: [],
+    closure_message: "",
+    level: "",
+  },
   interviewComplete: false,
   interviewStarted: false,
   questionCount: 0,
@@ -77,66 +89,66 @@ const initialState = {
   browserUtterance: null,
 };
 
-export const useInterviewStore = create<InterviewStoreState>(
-  // persist(
-  (set, get) => ({
-    ...initialState,
+export const useInterviewStore = create<InterviewStoreState>()(
+  persist(
+    (set, get) => ({
+      ...initialState,
 
-    addMessage: (message) =>
-      set((state) => ({
-        conversation: [...state.conversation, message],
-      })),
+      addMessage: (message) =>
+        set((state) => ({
+          conversation: [...state.conversation, message],
+        })),
 
-    resetConversation: () =>
-      set(() => ({
-        conversation: [],
-      })),
+      resetConversation: () =>
+        set(() => ({
+          conversation: [],
+        })),
 
-    setOverallFeedback: (feedback) => set({ overallFeedback: feedback }),
+      setOverallFeedback: (feedback) => set({ overallFeedback: feedback }),
 
-    setInterviewComplete: (complete) => set({ interviewComplete: complete }),
+      setInterviewComplete: (complete) => set({ interviewComplete: complete }),
 
-    incrementQuestionCount: () =>
-      set((state) => ({
-        questionCount: state.questionCount + 1,
-      })),
+      incrementQuestionCount: () =>
+        set((state) => ({
+          questionCount: state.questionCount + 1,
+        })),
 
-    resetQuestionCount: () =>
-      set(() => ({
-        questionCount: 0,
-      })),
+      resetQuestionCount: () =>
+        set(() => ({
+          questionCount: 0,
+        })),
 
-    setInterviewStarted: (started: boolean) =>
-      set({ interviewStarted: started }),
+      setInterviewStarted: (started: boolean) =>
+        set({ interviewStarted: started }),
 
-    setInterviewStartTime: (time) => set({ interviewStartTime: time }),
+      setInterviewStartTime: (time) => set({ interviewStartTime: time }),
 
-    setIsAISpeaking: (value: boolean) => set({ isAISpeaking: value }),
+      setIsAISpeaking: (value: boolean) => set({ isAISpeaking: value }),
 
-    setAudioInstance: (audio) => set({ audioInstance: audio }),
-    setBrowserUtterance: (utterance) => set({ browserUtterance: utterance }),
+      setAudioInstance: (audio) => set({ audioInstance: audio }),
+      setBrowserUtterance: (utterance) => set({ browserUtterance: utterance }),
 
-    stopSpeaking: () => {
-      const { audioInstance, browserUtterance } = get();
+      stopSpeaking: () => {
+        const { audioInstance, browserUtterance } = get();
 
-      if (audioInstance) {
-        audioInstance.pause();
-        audioInstance.currentTime = 0;
-        set({ audioInstance: null });
-      }
+        if (audioInstance) {
+          audioInstance.pause();
+          audioInstance.currentTime = 0;
+          set({ audioInstance: null });
+        }
 
-      if (browserUtterance) {
-        speechSynthesis.cancel();
-        set({ browserUtterance: null });
-      }
+        if (browserUtterance) {
+          speechSynthesis.cancel();
+          set({ browserUtterance: null });
+        }
 
-      set({ isAISpeaking: false });
-    },
+        set({ isAISpeaking: false });
+      },
 
-    resetStore: () => set({ ...initialState }),
-  })
-  // {
-  //   name: "interview-storage",
-  // }
-  // )
+      resetStore: () => set({ ...initialState }),
+    }),
+    {
+      name: "interview-storage",
+    }
+  )
 );

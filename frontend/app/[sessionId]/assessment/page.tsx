@@ -100,13 +100,19 @@ function page() {
         </div>
 
         <div className="border-2 border-[#E2E8F0] bg-white py-9 px-4 rounded-3xl">
-          <div className="px-4">
+          <div className="px-4 flex justify-between">
             <p className="text-xl leading-relaxed">
               <span className="text-[#2E2E2E]">Overall Score: </span>
               <span className="text-[#3B64F6]">
                 {overallFeedback?.overall_score}/100%
               </span>
             </p>
+            {overallFeedback?.response_depth && (
+              <div className="text-[16px] text-center flex items-center juctify-center font-medium text-[#47B881] border border-[#47B881] rounded-full px-3.5 space-x-2">
+                <span className="text-3xl">•</span>
+                <p>{overallFeedback?.response_depth}</p>
+              </div>
+            )}
           </div>
 
           <div className="bg-[#F7F9FC] rounded-2xl p-4 mt-9 mb-6">

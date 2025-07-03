@@ -32,6 +32,7 @@ export interface ConversationEntry {
 
 export interface OverallFeedback {
   overall_score: number;
+  response_depth?: string;
   summary: string;
   questions_analysis: Array<any>;
   coaching_scores: {

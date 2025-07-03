@@ -1,25 +1,50 @@
 import { Lightbulb } from "lucide-react";
+import Image from "next/image";
 import ReactMarkdown from "react-markdown";
+import { Button } from "./ui/button";
+import { useInterviewStore } from "@/lib/store/interviewStore";
 
-interface FeedbackDisplayProps {
+export function FeedbackDisplay({
+  feedback,
+  isLastMessage,
+}: {
   feedback: string;
-}
-
-export function FeedbackDisplay({ feedback }: FeedbackDisplayProps) {
+  isLastMessage: boolean;
+}) {
+  const { stopSpeaking, isAISpeaking } = useInterviewStore();
   return (
-    <div>
-      <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-400 p-4 rounded-lg w-fit max-w-[90%]">
-        <div className="flex items-start space-x-3">
-          <Lightbulb className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
-          <div>
-            <h4 className="font-semibold text-yellow-800 mb-1">
-              💡 Immediate Feedback
-            </h4>
-            <div className="text-yellow-700 text-sm leading-relaxed">
-              <ReactMarkdown>{feedback}</ReactMarkdown>
-            </div>
-          </div>
+    <div className=" w-fit max-w-[90%]">
+      <div className="flex items-center gap-2 mb-1">
+        <div className="w-8 h-8 flex items-center justify-center bg-[#FEFBED] rounded-sm">
+          <Image
+            src="/assets/images/bulb.png"
+            alt="bulb"
+            width={24}
+            height={24}
+          />
         </div>
+        <p className="text-base font-semibold">Immediate Feedback</p>
+
+        {isLastMessage && isAISpeaking && (
+          <Button
+            variant="ghost"
+            className="px-4 py-2 cursor-pointer"
+            onClick={stopSpeaking}
+          >
+            <Image
+              src="/assets/svg/pause.svg"
+              alt="AI"
+              width={16}
+              height={16}
+            />
+            Skip Audio
+          </Button>
+        )}
+      </div>
+      <div
+        className={`p-6  border-l-4 border-[#FFC342] rounded-2xl text-sm  leading-relaxed bg-[#FFF5EA]`}
+      >
+        <ReactMarkdown>{feedback}</ReactMarkdown>
       </div>
     </div>
   );

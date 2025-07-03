@@ -20,6 +20,7 @@ import { InterviewSetupData } from "@/types";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "./ui/badge";
 import { IoMdClose } from "react-icons/io";
+import { useInterviewStore } from "@/lib/store/interviewStore";
 
 interface InterviewSetupFormProps {
   onSubmit: (data: InterviewSetupData) => void;
@@ -43,6 +44,7 @@ export function InterviewSetupForm({
   const [skill, setSkill] = useState("");
   const [steps, setSteps] = useState(1);
   const { saveFormData } = useFormStore();
+  const { setInterviewStarted } = useInterviewStore();
   const isDomainSpecific = formData.interviewCategory === "domain-specific";
 
   const handleChange = (
@@ -79,13 +81,15 @@ export function InterviewSetupForm({
   const handleStartInterview = () => {
     saveFormData(formData);
     onSubmit(formData);
+    setInterviewStarted(true);
   };
 
   if (steps !== 1 && steps !== 2 && steps !== 3) return null;
 
   return (
-    <div className="flex flex-col items-center gap-6">
-      <h1 className="text-4xl font-bold mb-6">
+    // TODO: height should not be scrollable
+    <div className="h-screen flex flex-col items-center justify-center gap-6">
+      <h1 className="text-4xl font-bold">
         <span className="text-[#3B64F6]">AI-Video</span> Interview Setup
       </h1>
 
@@ -100,7 +104,11 @@ export function InterviewSetupForm({
           >
             1
           </div>
-          <div className="h-0.5 w-10 bg-[#3B64F6]"></div>
+          <div
+            className={`h-0.5 w-12  ${
+              steps > 1 ? "bg-[#3B64F6]" : "bg-[#E2E8F0]"
+            }`}
+          ></div>
         </div>
 
         <div className="flex items-center space-x-4">
@@ -117,7 +125,7 @@ export function InterviewSetupForm({
           </div>
           <div
             className={`h-0.5 w-12  ${
-              steps >= 2 ? "bg-[#3B64F6]" : "bg-[#E2E8F0]"
+              steps > 2 ? "bg-[#3B64F6]" : "bg-[#E2E8F0]"
             }`}
           ></div>
         </div>
@@ -141,7 +149,10 @@ export function InterviewSetupForm({
         <CardHeader>
           <CardTitle className="text-base text-[#4F637E] text-center font-normal">
             {steps === 1 ? (
-              <p>Tell us where you’re aiming and what role you're targeting.</p>
+              <p>
+                Tell us where you&apos;re aiming and what role you&apos;re
+                targeting.
+              </p>
             ) : steps === 2 ? (
               <p>What kind of interview would you like to simulate?</p>
             ) : (

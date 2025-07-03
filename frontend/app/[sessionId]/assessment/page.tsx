@@ -73,7 +73,7 @@ function page() {
   }
 
   return (
-    <div className="bg-[#F5F8FF] flex flex-col items-center h-full w-screen pt-12">
+    <div className="bg-[#F5F8FF] flex flex-col items-center h-full w-screen pt-32">
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex justify-between">
           <div className="flex items-center space-x-2">

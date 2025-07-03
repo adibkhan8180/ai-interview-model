@@ -101,7 +101,7 @@ export default function AIInterviewSystem() {
         </div>
 
         {/* TODO: chat div */}
-        <div className="w-full h-full rounded-3xl bg-[#FFFFFF] border border-[#E2E8F0] flex flex-col">
+        <div className="w-full h-[85vh] rounded-3xl bg-[#FFFFFF] border border-[#E2E8F0] flex flex-col">
           {/* progress bar */}
           <div className="py-4 px-5 m-2 rounded-tl-2xl rounded-tr-2xl bg-[#F7F9FC] flex flex-row items-center gap-2">
             <Image
@@ -131,7 +131,7 @@ export default function AIInterviewSystem() {
           <div className="w-full h-[1px] bg-[#E2E8F0] " />
 
           {/* conversation container */}
-          <div className="flex-1 flex flex-col p-6">
+          <div className="flex-1 flex flex-col px-6 overflow-y-auto">
             <div className="flex-1 flex flex-col overflow-y-auto space-y-4">
               {conversation.map((message, index) => {
                 const isLastMessage = index === conversation.length - 1;
@@ -211,7 +211,7 @@ export default function AIInterviewSystem() {
             </div>
           </div>
 
-          <div className="p-5">
+          <div className="px-5 pb-5">
             {!interviewComplete && (
               <ResponseInput
                 onSubmitText={handleUserResponse}

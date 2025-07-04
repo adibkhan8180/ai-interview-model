@@ -111,9 +111,11 @@ export function ResponseInput({
           </Button>
           <Button
             onClick={() => {
-              maxQuestions === questionCount
-                ? router.push(`/${sessionId}/assessment`)
-                : getNextQuestion();
+              if (maxQuestions === questionCount) {
+                router.push(`/${sessionId}/assessment`);
+              } else {
+                getNextQuestion();
+              }
             }}
             disabled={isAISpeaking || loading}
             className={`${

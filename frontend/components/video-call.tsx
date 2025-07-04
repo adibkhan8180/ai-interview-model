@@ -92,7 +92,7 @@ export function VideoCall({
   };
 
   return (
-    <div className="flex flex-col-reverse gap-4 ">
+    <div className="flex flex-col sm:flex-row md:flex-col-reverse gap-4 ">
       <Card className="overflow-hidden bg-black relative w-full aspect-[4/3]">
         <video
           ref={userVideoRef}

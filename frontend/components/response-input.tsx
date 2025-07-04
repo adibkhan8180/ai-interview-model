@@ -102,32 +102,34 @@ export function ResponseInput({
   }, [textResponse, handleSubmit]);
 
   return (
-    <div className="w-full flex flex-col">
+    <div className="w-full flex flex-col p-2 pb-5 sm:pb-0">
       {!interviewComplete && isLatestFeedback ? (
-        <div className="w-full flex items-center justify-center gap-5 m-4">
-          <p className="text-black text-base leading-relaxed font-medium">
+        <div className="w-full flex sm:flex-row flex-col items-center justify-center gap-2 sm:p-5 md:p-0 sm:gap-5">
+          <p className="text-black text-sm sm:text-base leading-relaxed font-medium wrap-break-word">
             Do you want to revise the answer?
           </p>
-          <Button
-            onClick={handleReviseQuestion}
-            disabled={isAISpeaking ? true : loading}
-            className="bg-[#3B64F6] cursor-pointer"
-          >
-            yes
-          </Button>
-          <Button
-            onClick={() => {
-              maxQuestions === questionCount
-                ? router.push(`/${sessionId}/assessment`)
-                : getNextQuestion();
-            }}
-            disabled={isAISpeaking ? true : loading}
-            className={`${
-              maxQuestions === questionCount ? "bg-green-500" : "bg-[#C51E1E]"
-            } cursor-pointer`}
-          >
-            {maxQuestions === questionCount ? "Get Assessment!" : "No"}
-          </Button>
+          <div className="flex flex-row gap-2 sm:gap-5">
+            <Button
+              onClick={handleReviseQuestion}
+              disabled={isAISpeaking ? true : loading}
+              className="bg-[#3B64F6] cursor-pointer h-fit py-1 px-2 text-sm sm:text-base"
+            >
+              Yes
+            </Button>
+            <Button
+              onClick={() => {
+                maxQuestions === questionCount
+                  ? router.push(`/${sessionId}/assessment`)
+                  : getNextQuestion();
+              }}
+              disabled={isAISpeaking ? true : loading}
+              className={`${
+                maxQuestions === questionCount ? "bg-green-500" : "bg-[#C51E1E]"
+              } cursor-pointer h-fit py-1 px-2 text-sm sm:text-base`}
+            >
+              {maxQuestions === questionCount ? "Get Assessment!" : "No"}
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="flex-1 flex items-center h-full gap-4  rounded-2xl overflow-hidden shadow-md">

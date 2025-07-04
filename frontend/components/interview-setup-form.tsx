@@ -88,15 +88,15 @@ export function InterviewSetupForm({
 
   return (
     // TODO: height should not be scrollable
-    <div className="h-screen flex flex-col items-center justify-center gap-6">
-      <h1 className="text-4xl font-bold">
+    <div className="h-screen w-full flex flex-col items-center justify-center gap-4 sm:gap-6 px-3 sm:px-0">
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">
         <span className="text-[#3B64F6]">AI-Video</span> Interview Setup
       </h1>
 
-      <div className="flex items-center space-x-4">
-        <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-2 sm:space-x-4">
+        <div className="flex items-center space-x-2 sm:space-x-4">
           <div
-            className={`w-8 h-8 rounded-full flex items-center justify-center border-2 border-[#3B64F6] ${
+            className={`w-6 h-6 sm:w-8 sm:h-8 text-sm sm:text-base rounded-full flex items-center justify-center border-2 border-[#3B64F6] ${
               steps === 1
                 ? "bg-[#E7ECFF] text-[#3B64F6]"
                 : "bg-[#3B64F6] text-[#fff]"
@@ -108,15 +108,15 @@ export function InterviewSetupForm({
             1
           </div>
           <div
-            className={`h-0.5 w-12  ${
+            className={`h-0.5 w-8 sm:w-12  ${
               steps > 1 ? "bg-[#3B64F6]" : "bg-[#E2E8F0]"
             }`}
           ></div>
         </div>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 sm:space-x-4">
           <div
-            className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
+            className={`w-6 h-6 sm:w-8 sm:h-8 text-sm sm:text-base rounded-full flex items-center justify-center border-2 ${
               steps === 2
                 ? "bg-[#E7ECFF] text-[#3B64F6] border-[#3B64F6]"
                 : steps > 2
@@ -130,15 +130,15 @@ export function InterviewSetupForm({
             2
           </div>
           <div
-            className={`h-0.5 w-12  ${
+            className={`h-0.5 w-8 sm:w-12  ${
               steps > 2 ? "bg-[#3B64F6]" : "bg-[#E2E8F0]"
             }`}
           ></div>
         </div>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 sm:space-x-4">
           <div
-            className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
+            className={`w-6 h-6 sm:w-8 sm:h-8 text-sm sm:text-base rounded-full flex items-center justify-center border-2 ${
               steps === 3
                 ? "bg-[#E7ECFF] text-[#3B64F6] border-[#3B64F6]"
                 : steps > 3
@@ -154,9 +154,9 @@ export function InterviewSetupForm({
         </div>
       </div>
 
-      <Card className="w-md z-10">
+      <Card className="w-full sm:w-md z-10">
         <CardHeader>
-          <CardTitle className="text-base text-[#4F637E] text-center font-normal">
+          <CardTitle className="text-sm sm:text-base text-[#4F637E] text-center font-normal">
             {steps === 1 ? (
               <p>
                 Tell us where you&apos;re aiming and what role you&apos;re
@@ -175,7 +175,7 @@ export function InterviewSetupForm({
               <div>
                 <Label
                   htmlFor="companyName"
-                  className="text-base text-black capitalize"
+                  className="text-sm mb-1 sm:mb-0 sm:text-base text-black capitalize"
                 >
                   Company Name
                 </Label>
@@ -186,13 +186,13 @@ export function InterviewSetupForm({
                   value={formData.companyName}
                   onChange={handleChange}
                   required
-                  className="px-3 py-2"
+                  className="px-3 py-2 text-sm sm:text-base"
                 />
               </div>
               <div>
                 <Label
                   htmlFor="jobRole"
-                  className="text-base text-black capitalize"
+                  className="text-sm mb-1 sm:mb-0 sm:text-base text-black capitalize"
                 >
                   Job Role
                 </Label>
@@ -203,7 +203,7 @@ export function InterviewSetupForm({
                   value={formData.jobRole}
                   onChange={handleChange}
                   required
-                  className="px-3 py-2"
+                  className="px-3 py-2 text-sm sm:text-base"
                 />
               </div>
 
@@ -222,7 +222,7 @@ export function InterviewSetupForm({
               <div className="w-full ">
                 <Label
                   htmlFor="interviewCategory"
-                  className="text-base text-black capitalize"
+                  className="text-sm mb-1 sm:mb-0 sm:text-base text-black capitalize"
                 >
                   Interview Category
                 </Label>
@@ -232,7 +232,7 @@ export function InterviewSetupForm({
                     handleSelectChange("interviewCategory", value)
                   }
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger className="w-full text-sm sm:text-base">
                     <SelectValue placeholder="eg. HR" />
                   </SelectTrigger>
                   <SelectContent className="w-full">
@@ -247,7 +247,7 @@ export function InterviewSetupForm({
                 <div className=" w-full">
                   <Label
                     htmlFor="domain"
-                    className="text-base text-black capitalize"
+                    className="text-sm mb-1 sm:mb-0 sm:text-base text-black capitalize"
                   >
                     Select Domain
                   </Label>
@@ -258,6 +258,7 @@ export function InterviewSetupForm({
                     value={formData.domain}
                     onChange={handleChange}
                     required={isDomainSpecific}
+                    className="px-3 py-2 text-sm sm:text-base"
                   />
                 </div>
               )}
@@ -282,13 +283,17 @@ export function InterviewSetupForm({
                 onValueChange={(value) =>
                   handleSelectChange("inputType", value)
                 }
-                className="flex gap-6"
+                className="flex flex-col sm:flex-row gap-1 sm:gap-6"
               >
                 <div className="flex items-center gap-2 cursor-pointer w-fit">
-                  <RadioGroupItem value="skills-based" id="skills-based" />
+                  <RadioGroupItem
+                    value="skills-based"
+                    id="skills-based"
+                    className="mb-2"
+                  />
                   <Label
                     htmlFor="skills-based"
-                    className="cursor-pointer text-base text-black capitalize"
+                    className="cursor-pointer text-sm mb-1 sm:mb-0 sm:text-base text-black capitalize"
                   >
                     Skills - Based
                   </Label>
@@ -297,10 +302,11 @@ export function InterviewSetupForm({
                   <RadioGroupItem
                     value="job-description"
                     id="job-description"
+                    className="mb-2"
                   />
                   <Label
                     htmlFor="job-description"
-                    className="cursor-pointer text-base text-black capitalize"
+                    className="cursor-pointer text-sm mb-1 sm:mb-0 sm:text-base text-black capitalize"
                   >
                     Job Description Based
                   </Label>
@@ -314,6 +320,7 @@ export function InterviewSetupForm({
                     value={skill}
                     onChange={(e) => setSkill(e.target.value)}
                     onKeyDown={handleKeyDown}
+                    className="px-3 py-2 text-sm sm:text-base"
                   />
 
                   <div className="flex flex-wrap gap-2">
@@ -335,21 +342,19 @@ export function InterviewSetupForm({
                   </div>
                 </div>
               ) : (
-                <div className="space-y-2">
-                  <Textarea
-                    id="jobDescription"
-                    name="jobDescription"
-                    placeholder={
-                      isDomainSpecific
-                        ? "Paste the detailed job description including responsibilities and required skills..."
-                        : "Paste the job description here..."
-                    }
-                    value={formData.jobDescription}
-                    onChange={handleChange}
-                    className="min-h-[150px]"
-                    required
-                  />
-                </div>
+                <Textarea
+                  id="jobDescription"
+                  name="jobDescription"
+                  placeholder={
+                    isDomainSpecific
+                      ? "Paste the detailed job description including responsibilities and required skills..."
+                      : "Paste the job description here..."
+                  }
+                  value={formData.jobDescription}
+                  onChange={handleChange}
+                  className="min-h-[150px] max-h-[200px] text-sm sm:text-base"
+                  required
+                />
               )}
 
               <Button

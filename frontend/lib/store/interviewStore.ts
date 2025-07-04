@@ -68,6 +68,7 @@ const initialState = {
   conversation: [],
   overallFeedback: {
     overall_score: 0,
+    response_depth: "",
     summary: "",
     questions_analysis: [],
     coaching_scores: {

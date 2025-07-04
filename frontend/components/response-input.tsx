@@ -36,6 +36,31 @@ export function ResponseInput({
     return;
   }
 
+  const handleSubmit = useCallback(() => {
+    if (textResponse.trim()) {
+      onSubmitText(textResponse);
+      setTextResponse("");
+    }
+  }, [textResponse, onSubmitText]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Enter") {
+        if (textResponse.trim()) {
+          handleSubmit();
+        } else {
+          event.preventDefault();
+          inputRef.current?.focus();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [textResponse, handleSubmit]);
+
   const handleReviseQuestion = async () => {
     setLoading(true);
     try {
@@ -73,31 +98,6 @@ export function ResponseInput({
       setLoading(false);
     }
   };
-
-  const handleSubmit = useCallback(() => {
-    if (textResponse.trim()) {
-      onSubmitText(textResponse);
-      setTextResponse("");
-    }
-  }, [textResponse, onSubmitText]);
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (textResponse !== "" && event.key === "Enter") {
-        handleSubmit();
-      }
-
-      if (textResponse === "" && event.key === "Enter") {
-        event.preventDefault();
-        inputRef.current?.focus();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [textResponse, handleSubmit]);
 
   return (
     <div className="w-full flex flex-col">

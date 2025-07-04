@@ -9,6 +9,7 @@ import { useInterviewStore } from "@/lib/store/interviewStore";
 export function VideoCall() {
   const { isAISpeaking } = useInterviewStore();
   const userVideoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const [cameraEnabled, setCameraEnabled] = useState(false);
   const [micEnabled, setMicEnabled] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -25,6 +26,7 @@ export function VideoCall() {
           userVideoRef.current.srcObject = mediaStream;
         }
 
+        streamRef.current = mediaStream;
         setStream(mediaStream);
         setCameraEnabled(true);
         setMicEnabled(true);
@@ -36,8 +38,8 @@ export function VideoCall() {
     initCamera();
 
     return () => {
-      if (stream) {
-        stream.getTracks().forEach((track) => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => {
           track.stop();
         });
       }

@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { CheckCircle, CircleCheck } from "lucide-react";
 import {
   Accordion,
@@ -31,14 +31,13 @@ function FinalAssessment() {
   } = useInterviewStore();
   const [loading, setLoading] = useState(true);
 
-  const getFinalAssessment = async () => {
+  const getFinalAssessment = useCallback(async () => {
     if (!sessionId) {
       console.error("Session ID not found.");
       return;
     }
     try {
       const overallData = await submitFinalInterviewAPI(sessionId);
-      //@ts-expect-error
       if (overallData.status && overallData.status === "error") {
         console.error("Error fetching final assessment data:", overallData);
         return;
@@ -55,11 +54,11 @@ function FinalAssessment() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [sessionId]);
 
   useEffect(() => {
     getFinalAssessment();
-  }, []);
+  }, [getFinalAssessment]);
 
   const startNewInterview = async () => {
     resetInterviewStore();

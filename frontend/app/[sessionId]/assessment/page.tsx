@@ -54,7 +54,7 @@ function FinalAssessment() {
     } finally {
       setLoading(false);
     }
-  }, [sessionId]);
+  }, [sessionId, setInterviewComplete, setOverallFeedback, setLoading]);
 
   useEffect(() => {
     getFinalAssessment();

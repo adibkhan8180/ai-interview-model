@@ -32,9 +32,6 @@ export function ResponseInput({
 
   const params = useParams();
   const sessionId = params?.sessionId as string;
-  if (!sessionId) {
-    return;
-  }
 
   const handleSubmit = useCallback(() => {
     if (textResponse.trim()) {
@@ -42,6 +39,41 @@ export function ResponseInput({
       setTextResponse("");
     }
   }, [textResponse, onSubmitText]);
+
+  const handleReviseQuestion = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await reviseAnswerAPI(sessionId);
+      setConversation({
+        role: "ai",
+        content: data.question,
+        isFeedback: false,
+      });
+      speakTextWithTTS(data.question);
+    } catch (error) {
+      console.error("Error revising answer:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [sessionId, setConversation, speakTextWithTTS]);
+
+  const getNextQuestion = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await getNextQuestionAPI(sessionId);
+      incrementQuestionCount();
+      setConversation({
+        role: "ai",
+        content: data?.question,
+        isFeedback: false,
+      });
+      speakTextWithTTS(data?.question);
+    } catch (error) {
+      console.error("Error getting next question:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [sessionId, incrementQuestionCount, setConversation, speakTextWithTTS]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -61,43 +93,7 @@ export function ResponseInput({
     };
   }, [textResponse, handleSubmit]);
 
-  const handleReviseQuestion = async () => {
-    setLoading(true);
-    try {
-      const data = await reviseAnswerAPI(sessionId);
-
-      setConversation({
-        role: "ai",
-        content: data.question,
-        isFeedback: false,
-      });
-
-      speakTextWithTTS(data.question);
-    } catch (error) {
-      console.error("Error reviseing answer:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getNextQuestion = async () => {
-    try {
-      setLoading(true);
-      const data = await getNextQuestionAPI(sessionId);
-      incrementQuestionCount();
-
-      setConversation({
-        role: "ai",
-        content: data?.question,
-        isFeedback: false,
-      });
-      speakTextWithTTS(data?.question);
-    } catch (error) {
-      console.error("Error getting next question:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (!sessionId) return null;
 
   return (
     <div className="w-full flex flex-col">
@@ -108,7 +104,7 @@ export function ResponseInput({
           </p>
           <Button
             onClick={handleReviseQuestion}
-            disabled={isAISpeaking ? true : loading}
+            disabled={isAISpeaking || loading}
             className="bg-[#3B64F6] cursor-pointer"
           >
             Yes
@@ -119,7 +115,7 @@ export function ResponseInput({
                 ? router.push(`/${sessionId}/assessment`)
                 : getNextQuestion();
             }}
-            disabled={isAISpeaking ? true : loading}
+            disabled={isAISpeaking || loading}
             className={`${
               maxQuestions === questionCount ? "bg-green-500" : "bg-[#C51E1E]"
             } cursor-pointer`}
@@ -128,7 +124,7 @@ export function ResponseInput({
           </Button>
         </div>
       ) : (
-        <div className="flex-1 flex items-center h-full gap-4  rounded-2xl overflow-hidden shadow-md">
+        <div className="flex-1 flex items-center h-full gap-4 rounded-2xl overflow-hidden shadow-md">
           <Input
             placeholder={
               isAISpeaking ? "AI is speaking..." : "Type your response here..."
@@ -136,16 +132,14 @@ export function ResponseInput({
             ref={inputRef}
             value={textResponse}
             onChange={(e) => setTextResponse(e.target.value)}
-            className="ml-2 text-base flex-1 font-medium border-none outline-none shadow-none placeholder:text-[#919ECD] px-2 py-3 "
+            className="ml-2 text-base flex-1 font-medium border-none outline-none shadow-none placeholder:text-[#919ECD] px-2 py-3"
             disabled={isRecording || isAISpeaking}
           />
           <Button
             onClick={isRecording ? onStopRecording : onStartRecording}
             variant="outline"
             disabled={isAISpeaking}
-            className={`rounded-full cursor-pointer h-fit py-1 px-2 ${
-              isRecording ? "" : ""
-            }`}
+            className="rounded-full cursor-pointer h-fit py-1 px-2"
           >
             <Image
               src="/assets/svg/audioPulse.svg"
@@ -158,7 +152,7 @@ export function ResponseInput({
           <Button
             onClick={handleSubmit}
             disabled={!textResponse.trim() || isAISpeaking}
-            className=" w-12 h-12 rounded-none cursor-pointer bg-[#3B64F6]"
+            className="w-12 h-12 rounded-none cursor-pointer bg-[#3B64F6]"
           >
             <Image
               src="/assets/svg/send.svg"

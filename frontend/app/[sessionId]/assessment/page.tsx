@@ -12,6 +12,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useFormStore } from "@/lib/store/formStore";
 import { submitFinalInterviewAPI } from "@/lib/api";
 import { downloadFeedbackPdf } from "@/lib/downloadAssessment";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function page() {
   const router = useRouter();
@@ -57,7 +58,7 @@ function page() {
 
   useEffect(() => {
     getFinalAssessment();
-  }, [sessionId]);
+  }, []);
 
   const startNewInterview = async () => {
     resetInterviewStore();
@@ -72,8 +73,10 @@ function page() {
 
   if (loading) {
     return (
-      <div className="text-center h-screen w-screen flex items-center justify-center">
-        <p>Loading...</p>
+      <div className="max-w-4xl mx-auto space-y-6 text-center h-screen w-screen flex flex-col items-center justify-center pt-32">
+        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-1/2 w-full" />
+        <Skeleton className="h-1/2 w-full" />
       </div>
     );
   }

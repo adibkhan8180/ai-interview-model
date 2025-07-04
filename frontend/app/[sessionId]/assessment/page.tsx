@@ -84,7 +84,7 @@ function FinalAssessment() {
   }
 
   return (
-    <div className="bg-[#F5F8FF] flex flex-col items-center h-full w-screen pt-4 sm:pt-32 p-2">
+    <div className="bg-[#F5F8FF] flex flex-col items-center w-screen pt-4 sm:pt-32 p-2">
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex flex-col sm:flex-row gap-4 items-center sm:justify-between">
           <div className="flex  items-center space-x-2">

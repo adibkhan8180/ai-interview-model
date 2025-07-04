@@ -73,10 +73,12 @@ function FinalAssessment() {
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto space-y-6 text-center h-screen w-screen flex flex-col items-center justify-center pt-32">
-        <Skeleton className="h-8 w-full" />
-        <Skeleton className="h-1/2 w-full" />
-        <Skeleton className="h-1/2 w-full" />
+      <div className="bg-[#F5F8FF] flex flex-col items-center h-full w-screen pt-32">
+        <div className="max-w-4xl mx-auto space-y-6 text-center h-screen w-screen flex flex-col items-center justify-center">
+          <Skeleton className="h-8 w-full bg-gray-200" />
+          <Skeleton className="h-1/2 w-full bg-gray-200" />
+          <Skeleton className="h-1/2 w-full bg-gray-200" />
+        </div>
       </div>
     );
   }

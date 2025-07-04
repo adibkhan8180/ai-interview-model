@@ -2,34 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
-import {
-  Mic,
-  MicOff,
-  Camera,
-  CameraOff,
-  Volume2,
-  VolumeOff,
-} from "lucide-react";
+import { Mic, MicOff, Camera, CameraOff } from "lucide-react";
 import Image from "next/image";
 import { useInterviewStore } from "@/lib/store/interviewStore";
 
-import interviewerBg from "@/public/assets/images/interviewerBg.png";
-
-interface VideoCallProps {
-  isRecording: boolean;
-  isAISpeaking: boolean;
-  onStartRecording: () => void;
-  onStopRecording: () => void;
-}
-
-export function VideoCall({
-  isRecording,
-  isAISpeaking,
-  onStartRecording,
-  onStopRecording,
-}: VideoCallProps) {
-  const { stopSpeaking } = useInterviewStore();
+export function VideoCall() {
+  const { isAISpeaking } = useInterviewStore();
   const userVideoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const [cameraEnabled, setCameraEnabled] = useState(false);
   const [micEnabled, setMicEnabled] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -46,6 +26,7 @@ export function VideoCall({
           userVideoRef.current.srcObject = mediaStream;
         }
 
+        streamRef.current = mediaStream;
         setStream(mediaStream);
         setCameraEnabled(true);
         setMicEnabled(true);
@@ -57,8 +38,8 @@ export function VideoCall({
     initCamera();
 
     return () => {
-      if (stream) {
-        stream.getTracks().forEach((track) => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => {
           track.stop();
         });
       }
@@ -151,10 +132,12 @@ export function VideoCall({
       </Card>
 
       <Card className="overflow-hidden bg-gradient-to-b from-blue-900 to-indigo-900 relative w-full aspect-[4/3]">
-        <img
+        <Image
           src="/assets/images/interviewerBg.png"
           className="w-full h-full inset-0 absolute object-cover"
-          alt=""
+          alt="Interviewer Background"
+          width={200}
+          height={200}
         />
         <div className="absolute inset-0 flex flex-col gap-8 items-center justify-center">
           <div className="relative w-full flex items-center justify-center">

@@ -1,4 +1,3 @@
-import { Lightbulb } from "lucide-react";
 import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 import { Button } from "./ui/button";

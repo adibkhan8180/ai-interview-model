@@ -1,4 +1,8 @@
-import { InterviewSetupData, InterviewStartResponse } from "@/types";
+import {
+  InterviewSetupData,
+  InterviewStartResponse,
+  OverallFeedback,
+} from "@/types";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
 
@@ -86,9 +90,10 @@ export async function reviseAnswerAPI(
   return response.json();
 }
 
-export async function submitFinalInterviewAPI(
-  sessionId: string
-): Promise<{ overallFeedback: any }> {
+export async function submitFinalInterviewAPI(sessionId: string): Promise<{
+  status: string;
+  overallFeedback: OverallFeedback;
+}> {
   const response = await fetch(
     `${BASE_URL}/api/interviews/${sessionId}/submit`,
     {

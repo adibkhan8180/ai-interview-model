@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { CheckCircle, CircleCheck } from "lucide-react";
 import {
   Accordion,
@@ -12,8 +12,10 @@ import { useParams, useRouter } from "next/navigation";
 import { useFormStore } from "@/lib/store/formStore";
 import { submitFinalInterviewAPI } from "@/lib/api";
 import { downloadFeedbackPdf } from "@/lib/downloadAssessment";
+import { Skeleton } from "@/components/ui/skeleton";
+import Image from "next/image";
 
-function page() {
+function FinalAssessment() {
   const router = useRouter();
   const params = useParams();
   const sessionId = params?.sessionId as string;
@@ -29,14 +31,13 @@ function page() {
   } = useInterviewStore();
   const [loading, setLoading] = useState(true);
 
-  const getFinalAssessment = async () => {
+  const getFinalAssessment = useCallback(async () => {
     if (!sessionId) {
       console.error("Session ID not found.");
       return;
     }
     try {
       const overallData = await submitFinalInterviewAPI(sessionId);
-      //@ts-expect-error
       if (overallData.status && overallData.status === "error") {
         console.error("Error fetching final assessment data:", overallData);
         return;
@@ -53,11 +54,11 @@ function page() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [sessionId, setInterviewComplete, setOverallFeedback, setLoading]);
 
   useEffect(() => {
     getFinalAssessment();
-  }, [sessionId]);
+  }, [getFinalAssessment]);
 
   const startNewInterview = async () => {
     resetInterviewStore();
@@ -72,8 +73,10 @@ function page() {
 
   if (loading) {
     return (
-      <div className="text-center h-screen w-screen flex items-center justify-center">
-        <p>Loading...</p>
+      <div className="max-w-4xl mx-auto space-y-6 text-center h-screen w-screen flex flex-col items-center justify-center pt-32">
+        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-1/2 w-full" />
+        <Skeleton className="h-1/2 w-full" />
       </div>
     );
   }
@@ -83,7 +86,7 @@ function page() {
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex flex-col sm:flex-row gap-4 items-center sm:justify-between">
           <div className="flex  items-center space-x-2">
-            <img
+            <Image
               src="/assets/svg/Checklist.svg"
               alt="Wave SVG"
               width={32}
@@ -271,4 +274,4 @@ function page() {
   );
 }
 
-export default page;
+export default FinalAssessment;

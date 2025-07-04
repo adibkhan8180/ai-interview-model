@@ -1,7 +1,8 @@
+import { OverallFeedback } from "@/types";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-export const downloadFeedbackPdf = (feedback) => {
+export const downloadFeedbackPdf = (feedback: OverallFeedback) => {
   const pdf = new jsPDF("p", "pt", "a4");
   const margin = 40;
   let yPos = margin;
@@ -47,7 +48,9 @@ export const downloadFeedbackPdf = (feedback) => {
     },
     margin: { left: margin, right: margin },
     didDrawPage: (data) => {
-      yPos = data.cursor.y + 15;
+      if (data.cursor) {
+        yPos = data.cursor.y + 15;
+      }
     },
   });
 

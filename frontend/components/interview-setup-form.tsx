@@ -19,7 +19,6 @@ import { useFormStore } from "@/lib/store/formStore";
 import { InterviewSetupData } from "@/types";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "./ui/badge";
-import { IoMdClose } from "react-icons/io";
 import { useInterviewStore } from "@/lib/store/interviewStore";
 
 interface InterviewSetupFormProps {

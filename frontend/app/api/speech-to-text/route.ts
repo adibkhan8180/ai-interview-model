@@ -5,9 +5,12 @@ import { tmpdir } from "os"
 import path from "path"
 import { createReadStream } from "fs"
 
-// Polyfill File if not present
-import { File } from "node:buffer"
-if (!globalThis.File) globalThis.File = File
+// Polyfill globalThis.File for OpenAI SDK in Node.js < 20
+import { File as NodeFile } from "node:buffer";
+if (typeof globalThis.File === "undefined") {
+  // @ts-expect-error: NodeFile is being polyfilled for environments below Node 20
+  globalThis.File = NodeFile;
+}
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,

@@ -28,6 +28,7 @@ export default function AIInterviewSystem() {
     questionCount,
     maxQuestions,
     stopSpeaking,
+    audioInstance,
     incrementQuestionCount,
   } = useInterviewStore();
 
@@ -166,21 +167,27 @@ export default function AIInterviewSystem() {
                             AI Interviewer
                           </p>
 
-                          {isLastMessage && isAISpeaking && (
-                            <Button
-                              variant="ghost"
-                              className="px-4 py-2 cursor-pointer"
-                              onClick={stopSpeaking}
-                            >
-                              <Image
-                                src="/assets/svg/pause.svg"
-                                alt="AI"
-                                width={16}
-                                height={16}
-                              />
-                              Skip Audio
-                            </Button>
-                          )}
+                          {isLastMessage &&
+                            isAISpeaking &&
+                            (audioInstance ? (
+                              <Button
+                                variant="ghost"
+                                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition"
+                                onClick={stopSpeaking}
+                              >
+                                <Image
+                                  src="/assets/svg/pause.svg"
+                                  alt="Pause AI Audio"
+                                  width={16}
+                                  height={16}
+                                />
+                                <span>Skip Audio</span>
+                              </Button>
+                            ) : (
+                              <p className="text-sm text-muted-foreground italic">
+                                Generating audio...
+                              </p>
+                            ))}
                         </div>
                       ) : (
                         <div className="flex flex-row-reverse items-center gap-2">

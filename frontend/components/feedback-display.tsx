@@ -11,7 +11,7 @@ export function FeedbackDisplay({
   feedback: string;
   isLastMessage: boolean;
 }) {
-  const { stopSpeaking, isAISpeaking } = useInterviewStore();
+  const { stopSpeaking, isAISpeaking, audioInstance } = useInterviewStore();
   return (
     <div className=" w-fit max-w-[90%]">
       <div className="flex items-center gap-2 mb-1">
@@ -25,21 +25,27 @@ export function FeedbackDisplay({
         </div>
         <p className="text-base font-semibold">Immediate Feedback</p>
 
-        {isLastMessage && isAISpeaking && (
-          <Button
-            variant="ghost"
-            className="px-4 py-2 cursor-pointer"
-            onClick={stopSpeaking}
-          >
-            <Image
-              src="/assets/svg/pause.svg"
-              alt="AI"
-              width={16}
-              height={16}
-            />
-            Skip Audio
-          </Button>
-        )}
+        {isLastMessage &&
+          isAISpeaking &&
+          (audioInstance ? (
+            <Button
+              variant="ghost"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition"
+              onClick={stopSpeaking}
+            >
+              <Image
+                src="/assets/svg/pause.svg"
+                alt="Pause AI Audio"
+                width={16}
+                height={16}
+              />
+              <span>Skip Audio</span>
+            </Button>
+          ) : (
+            <p className="text-sm text-muted-foreground italic">
+              Generating audio...
+            </p>
+          ))}
       </div>
       <div
         className={`p-6  border-l-4 border-[#FFC342] rounded-2xl text-sm  leading-relaxed bg-[#FFF5EA]`}

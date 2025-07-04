@@ -72,6 +72,7 @@ export default function AIInterviewSetup() {
         src="/assets/svg/wave.svg"
         alt="Wave SVG"
         width={100}
+        height={100}
         className="absolute left-0 right-0 bottom-0 w-full z-0"
       />
     </div>

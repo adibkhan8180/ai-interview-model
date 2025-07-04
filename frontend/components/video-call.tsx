@@ -135,7 +135,9 @@ export function VideoCall() {
         <Image
           src="/assets/images/interviewerBg.png"
           className="w-full h-full inset-0 absolute object-cover"
-          alt=""
+          alt="Interviewer Background"
+          width={200}
+          height={200}
         />
         <div className="absolute inset-0 flex flex-col gap-8 items-center justify-center">
           <div className="relative w-full flex items-center justify-center">

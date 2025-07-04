@@ -33,8 +33,8 @@ Provide immediate constructive feedback on this response in 2-3 sentences.`,
     if (shouldEnd) {
       // Generate overall interview feedback
       const conversationSummary = conversation
-        .filter((msg: any) => msg.role === "user")
-        .map((msg: any, index: number) => `Q${index + 1}: ${msg.content}`)
+        .filter((msg: { role: string, content: string }) => msg.role === "user")
+        .map((msg: { role: string, content: string }, index: number) => `Q${index + 1}: ${msg.content}`)
         .join("\n")
 
       const { text: overallFeedback } = await generateText({
@@ -69,7 +69,7 @@ Give detailed overall interview feedback and assessment.`,
 
     // Generate next question
     const conversationContext = conversation
-      .map((msg: any) => `${msg.role === "ai" ? "Interviewer" : "Candidate"}: ${msg.content}`)
+      .map((msg: { role: string, content: string }) => `${msg.role === "ai" ? "Interviewer" : "Candidate"}: ${msg.content}`)
       .join("\n")
 
     const { text: nextQuestion } = await generateText({

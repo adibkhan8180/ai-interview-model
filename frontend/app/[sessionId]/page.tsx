@@ -1,42 +1,38 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FeedbackDisplay } from "@/components/feedback-display";
-import { InterviewProgress } from "@/components/interview-progress";
 import { VideoCall } from "@/components/video-call";
 import { AudioRecorder } from "@/components/audio-recorder";
 import { ResponseInput } from "@/components/response-input";
-import { useParams, useRouter } from "next/navigation";
-import { submitAnswerAPI, submitFinalInterviewAPI } from "@/lib/api";
+import { useParams } from "next/navigation";
+import { submitAnswerAPI } from "@/lib/api";
 import { useFormStore } from "@/lib/store/formStore";
 import { useInterviewStore } from "@/lib/store/interviewStore";
 import { speakTextWithTTS } from "@/lib/audioApi";
 import { ConfirmDialog } from "./ConfirmDialog";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
 
 export default function AIInterviewSystem() {
-  const router = useRouter();
-  const { formData: interviewSetup, resetForm: resetInterviewSetup } =
-    useFormStore();
+  const { formData: interviewSetup } = useFormStore();
   const {
     conversation,
     addMessage: setConversation,
     overallFeedback,
-    setOverallFeedback,
     interviewComplete,
-    setInterviewComplete,
-    interviewStartTime,
-    resetStore: resetInterviewStore,
     isAISpeaking,
+    questionCount,
+    maxQuestions,
+    stopSpeaking,
+    audioInstance,
   } = useInterviewStore();
 
   const [isRecording, setIsRecording] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const params = useParams();
   const sessionId = params?.sessionId as string;
-  const [showFinalAssessment, setShowFinalAssessment] = useState(false);
   const [openDialog, setOpenDialog] = useState<boolean>(false);
-  const [finalAssessmentLoading, setFinalAssessmentLoading] = useState(false);
 
   const { startRecording, stopRecording } = AudioRecorder({
     onTranscription: (text) => {
@@ -46,12 +42,6 @@ export default function AIInterviewSystem() {
     onRecordingStart: () => setIsRecording(true),
     onRecordingStop: () => setIsRecording(false),
   });
-
-  const startNewInterview = async () => {
-    resetInterviewStore();
-    resetInterviewSetup();
-    router.replace("/");
-  };
 
   const handleUserResponse = async (userResponse: string) => {
     if (!interviewSetup) return;
@@ -68,43 +58,11 @@ export default function AIInterviewSystem() {
       const data = await submitAnswerAPI(sessionId, userResponse);
 
       setConversation({ role: "ai", content: data.feedback, isFeedback: true });
-
-      speakTextWithTTS(data.feedback);
+      await speakTextWithTTS(data.feedback);
     } catch (error) {
       console.error("Error getting AI response:", error);
     }
   };
-
-  useEffect(() => {
-    const getFinalAssessment = async () => {
-      if (!interviewSetup) return;
-
-      if (!sessionId) {
-        console.error("Session ID not found.");
-        return;
-      }
-
-      if (showFinalAssessment) {
-        setFinalAssessmentLoading(true);
-        const overallData = await submitFinalInterviewAPI(sessionId);
-        //@ts-expect-error
-        if (overallData.status && overallData.status === "error") {
-          console.error("Error fetching final assessment data:", overallData);
-          setFinalAssessmentLoading(false);
-          return;
-        }
-
-        console.log("final assessment data", overallData);
-        setInterviewComplete(true);
-        setOverallFeedback(overallData.overallFeedback);
-
-        // uncomment this line if  you want to use TTS for overall feedback
-        // speakTextWithTTS(`${JSON.stringify(overallData.overallFeedback)}`);
-      }
-    };
-
-    getFinalAssessment();
-  }, [showFinalAssessment]);
 
   useEffect(() => {
     scrollRef?.current?.scrollIntoView({ behavior: "smooth" });
@@ -126,100 +84,151 @@ export default function AIInterviewSystem() {
   }, []);
 
   return (
-    <div className="h-screen w-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
-      <Card className="h-full max-w-7xl mx-auto ">
-        <CardHeader>
-          <CardTitle className="text-xl text-center capitalize">
-            {interviewSetup?.companyName} - {interviewSetup?.jobRole} Interview
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="h-full w-full flex flex-col gap-4 ">
-          {interviewStartTime && <InterviewProgress />}
-          <div className="w-full h-full grid grid-cols-[1fr_2fr] gap-8 ">
-            <div className="w-full h-fit">
-              <VideoCall
-                isRecording={isRecording}
-                isAISpeaking={isAISpeaking}
-                onStartRecording={startRecording}
-                onStopRecording={stopRecording}
-              />
-            </div>
-            <div className="h-[65vh] 2xl:h-[72vh] w-full flex flex-col justify-between ">
-              <div className="flex flex-col overflow-y-auto space-y-4 p-4 ">
-                {conversation.map((message, index) => {
-                  if (message?.isFeedback) {
-                    return (
-                      <FeedbackDisplay
-                        key={index}
-                        feedback={message.content}
-                        type="immediate"
-                      />
-                    );
-                  }
+    // TODO: height should be dynamic
+    <div className="w-full h-screen bg-[#F5F8FF] py-4 pt-24">
+      <div className="w-7xl h-full mx-auto grid grid-cols-[2fr_5fr] gap-4">
+        {/* camera div */}
+        <div className="flex flex-col gap-4 w-full">
+          <VideoCall />
+        </div>
 
+        {/* TODO: chat div */}
+        <div className="w-full h-[85vh] rounded-3xl bg-[#FFFFFF] border border-[#E2E8F0] flex flex-col">
+          {/* progress bar */}
+          <div className="py-4 px-5 m-2 rounded-tl-2xl rounded-tr-2xl bg-[#F7F9FC] flex flex-row items-center gap-2">
+            <Image
+              src="/assets/svg/question.svg"
+              alt="question_logo"
+              width={20}
+              height={20}
+            />
+            <p className="text-xl font-medium">Question</p>
+
+            {/* progress bar */}
+            <div className="flex-1 flex items-center justify-between gap-2 px-1.5">
+              {[...Array(maxQuestions)].map((_, index) => (
+                <div
+                  key={index}
+                  className={`w-full h-2  rounded-sm ${
+                    index < questionCount ? "bg-[#47B881]" : "bg-[#CDD8E8]"
+                  }`}
+                />
+              ))}
+            </div>
+            <p className="text-xl font-medium">
+              {questionCount}/{maxQuestions}
+            </p>
+          </div>
+
+          <div className="w-full h-[1px] bg-[#E2E8F0] " />
+
+          {/* conversation container */}
+          <div className="flex-1 flex flex-col px-6 overflow-y-auto">
+            <div className="flex-1 flex flex-col overflow-y-auto space-y-4">
+              {conversation.map((message, index) => {
+                const isLastMessage = index === conversation.length - 1;
+
+                if (message?.isFeedback) {
                   return (
-                    <div
-                      key={index}
-                      className={`p-3 relative rounded-lg w-fit max-w-[90%] flex flex-col after:content-[''] after:absolute after:top-0  after:border-[12px] after:border-transparent  ${
-                        message.role === "ai"
-                          ? "bg-blue-100 text-blue-900 self-start after:left-3 after:border-t-blue-100 after:-translate-x-full"
-                          : "bg-green-100 text-green-900 self-end after:right-3 after:border-t-green-100 after:translate-x-full"
-                      }
-                      
-                      `}
-                    >
-                      <strong>
-                        {message.role === "ai"
-                          ? "🤖 AI Interviewer:"
-                          : "👤 You:"}
-                      </strong>
-                      <p className="mt-1">{message.content}</p>
-                    </div>
-                  );
-                })}
-                <div ref={scrollRef} />
-                {interviewComplete && overallFeedback && (
-                  <div ref={scrollRef}>
                     <FeedbackDisplay
-                      feedback={overallFeedback}
-                      type="overall"
+                      key={index}
+                      feedback={message.content}
+                      isLastMessage={isLastMessage}
                     />
-                    <div className="mt-4 text-center">
-                      <button
-                        onClick={startNewInterview}
-                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md cursor-pointer"
+                  );
+                }
+
+                return (
+                  <div
+                    key={index}
+                    className={`p-2 w-fit max-w-[90%] flex flex-col ${
+                      message.role === "ai" ? "self-start" : "self-end"
+                    }`}
+                  >
+                    <div className="flex flex-col gap-1 ">
+                      {message.role === "ai" ? (
+                        <div className="flex items-center gap-2">
+                          <Image
+                            src="/assets/svg/interviewAi.svg"
+                            alt="AI"
+                            width={24}
+                            height={24}
+                          />
+                          <p className="text-base font-semibold">
+                            AI Interviewer
+                          </p>
+
+                          {isLastMessage &&
+                            isAISpeaking &&
+                            (audioInstance ? (
+                              <Button
+                                variant="ghost"
+                                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition"
+                                onClick={stopSpeaking}
+                              >
+                                <Image
+                                  src="/assets/svg/pause.svg"
+                                  alt="Pause AI Audio"
+                                  width={16}
+                                  height={16}
+                                />
+                                <span>Skip Audio</span>
+                              </Button>
+                            ) : (
+                              <p className="text-sm text-muted-foreground italic">
+                                Generating audio...
+                              </p>
+                            ))}
+                        </div>
+                      ) : (
+                        <div className="flex flex-row-reverse items-center gap-2">
+                          <Image
+                            src="/assets/images/johnDoe.png"
+                            alt="AI"
+                            width={24}
+                            height={24}
+                          />
+                          <p className="text-base font-semibold">You</p>
+                        </div>
+                      )}
+
+                      <p
+                        className={`p-6  border  rounded-2xl text-sm font-medium ${
+                          message.role === "ai"
+                            ? "border-[#8692A633]"
+                            : "border-[#F4F3FF] bg-[#E2E8FF]"
+                        }`}
                       >
-                        🎯 Start New Interview
-                      </button>
+                        {message.content}
+                      </p>
                     </div>
                   </div>
-                )}
-              </div>
-
-              <div>
-                {!interviewComplete && (
-                  <ResponseInput
-                    onSubmitText={handleUserResponse}
-                    onStartRecording={startRecording}
-                    onStopRecording={stopRecording}
-                    isRecording={isRecording}
-                    isAISpeaking={isAISpeaking}
-                    speakTextWithTTS={speakTextWithTTS}
-                    isLatestFeedback={
-                      conversation.length > 0
-                        ? conversation[conversation.length - 1]?.isFeedback ??
-                          false
-                        : false
-                    }
-                    setShowFinalAssessment={setShowFinalAssessment}
-                    finalAssessmentLoading={finalAssessmentLoading}
-                  />
-                )}
-              </div>
+                );
+              })}
+              <div ref={scrollRef} />
             </div>
           </div>
-        </CardContent>
-      </Card>
+
+          <div className="px-5 pb-5">
+            {!interviewComplete && (
+              <ResponseInput
+                onSubmitText={handleUserResponse}
+                onStartRecording={startRecording}
+                onStopRecording={stopRecording}
+                isRecording={isRecording}
+                isAISpeaking={isAISpeaking}
+                speakTextWithTTS={speakTextWithTTS}
+                isLatestFeedback={
+                  conversation.length > 0
+                    ? conversation[conversation.length - 1]?.isFeedback ?? false
+                    : false
+                }
+              />
+            )}
+          </div>
+        </div>
+      </div>
+
       <ConfirmDialog openDialogue={openDialog} setOpenDialog={setOpenDialog} />
     </div>
   );

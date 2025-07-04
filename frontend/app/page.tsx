@@ -9,6 +9,7 @@ import { useInterviewStore } from "@/lib/store/interviewStore";
 import { startInterviewAPI } from "@/lib/api";
 import { speakTextWithTTS } from "@/lib/audioApi";
 import { InterviewSetupData } from "@/types";
+import Image from "next/image";
 
 export default function AIInterviewSetup() {
   const router = useRouter();
@@ -65,10 +66,15 @@ export default function AIInterviewSetup() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="max-w-2xl mx-auto pt-10">
-        <InterviewSetupForm onSubmit={handleSetupSubmit} loading={loading} />
-      </div>
+    <div className="relative h-screen bg-white flex justify-center">
+      <InterviewSetupForm onSubmit={handleSetupSubmit} loading={loading} />
+      <Image
+        src="/assets/svg/wave.svg"
+        alt="Wave SVG"
+        width={100}
+        height={100}
+        className="absolute left-0 right-0 bottom-0 w-full z-0"
+      />
     </div>
   );
 }

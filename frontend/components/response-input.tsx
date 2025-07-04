@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Mic, MicOff, Send } from "lucide-react";
 import { getNextQuestionAPI, reviseAnswerAPI } from "@/lib/api";
 import { useInterviewStore } from "@/lib/store/interviewStore";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { ResponseInputProps } from "@/types";
+import { Input } from "./ui/input";
+import Image from "next/image";
 
 export function ResponseInput({
   onSubmitText,
@@ -17,12 +17,11 @@ export function ResponseInput({
   isAISpeaking,
   speakTextWithTTS,
   isLatestFeedback,
-  setShowFinalAssessment,
-  finalAssessmentLoading,
 }: ResponseInputProps) {
+  const router = useRouter();
   const [textResponse, setTextResponse] = useState("");
   const [loading, setLoading] = useState(false);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const {
     addMessage: setConversation,
     interviewComplete,
@@ -33,40 +32,36 @@ export function ResponseInput({
 
   const params = useParams();
   const sessionId = params?.sessionId as string;
-  if (!sessionId) {
-    return;
-  }
 
-  const handleReviseQuestion = async () => {
+  const handleSubmit = useCallback(() => {
+    if (textResponse.trim()) {
+      onSubmitText(textResponse);
+      setTextResponse("");
+    }
+  }, [textResponse, onSubmitText]);
+
+  const handleReviseQuestion = useCallback(async () => {
     setLoading(true);
     try {
       const data = await reviseAnswerAPI(sessionId);
-
       setConversation({
         role: "ai",
         content: data.question,
         isFeedback: false,
       });
-
       speakTextWithTTS(data.question);
     } catch (error) {
-      console.error("Error reviseing answer:", error);
+      console.error("Error revising answer:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [sessionId, setConversation, speakTextWithTTS]);
 
-  const getNextQuestion = async () => {
-    if (questionCount === maxQuestions) {
-      setShowFinalAssessment(true);
-      return;
-    }
-
+  const getNextQuestion = useCallback(async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const data = await getNextQuestionAPI(sessionId);
       incrementQuestionCount();
-
       setConversation({
         role: "ai",
         content: data?.question,
@@ -78,24 +73,17 @@ export function ResponseInput({
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleSubmit = () => {
-    if (textResponse.trim()) {
-      onSubmitText(textResponse);
-      setTextResponse("");
-    }
-  };
+  }, [sessionId, incrementQuestionCount, setConversation, speakTextWithTTS]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (textResponse !== "" && event.key === "Enter") {
-        handleSubmit();
-      }
-
-      if (textResponse === "" && event.key === "Enter") {
-        event.preventDefault();
-        inputRef.current?.focus();
+      if (event.key === "Enter") {
+        if (textResponse.trim()) {
+          handleSubmit();
+        } else {
+          event.preventDefault();
+          inputRef.current?.focus();
+        }
       }
     };
 
@@ -105,99 +93,78 @@ export function ResponseInput({
     };
   }, [textResponse, handleSubmit]);
 
-  return (
-    <div className="space-y-3 ">
-      <div className="flex items-center justify-center space-x-2 mb-2">
-        <div className="h-px bg-gray-200 flex-grow"></div>
-        <span className="text-sm text-gray-500 px-2">Respond via</span>
-        <div className="h-px bg-gray-200 flex-grow"></div>
-      </div>
+  if (!sessionId) return null;
 
-      <div className="w-full flex flex-col md:flex-row gap-3">
-        {!interviewComplete && isLatestFeedback ? (
-          <div className="w-full flex items-center justify-center gap-5 m-4">
-            <p className="text-yellow-700 text-sm leading-relaxed">
-              Do you want to revise the answer?
-            </p>
-            <Button
-              onClick={handleReviseQuestion}
-              disabled={
-                isAISpeaking
-                  ? true
-                  : maxQuestions === questionCount
-                  ? finalAssessmentLoading
-                  : loading
+  return (
+    <div className="w-full flex flex-col">
+      {!interviewComplete && isLatestFeedback ? (
+        <div className="w-full flex items-center justify-center gap-5 m-4">
+          <p className="text-black text-base leading-relaxed font-medium">
+            Do you want to revise the answer?
+          </p>
+          <Button
+            onClick={handleReviseQuestion}
+            disabled={isAISpeaking || loading}
+            className="bg-[#3B64F6] cursor-pointer"
+          >
+            Yes
+          </Button>
+          <Button
+            onClick={() => {
+              if (maxQuestions === questionCount) {
+                router.push(`/${sessionId}/assessment`);
+              } else {
+                getNextQuestion();
               }
-              className="bg-green-500 hover:bg-green-600 cursor-pointer"
-            >
-              yes
-            </Button>
-            <Button
-              onClick={getNextQuestion}
-              disabled={
-                isAISpeaking
-                  ? true
-                  : maxQuestions === questionCount
-                  ? finalAssessmentLoading
-                  : loading
-              }
-              className={`${
-                maxQuestions === questionCount
-                  ? "bg-blue-400 hover:bg-blue-500"
-                  : "bg-red-500 hover:bg-red-600 "
-              } cursor-pointer`}
-            >
-              {maxQuestions === questionCount ? "Get Assessment!" : "No"}
-            </Button>
-          </div>
-        ) : (
-          <div className="flex-1 flex gap-4 items-end">
-            <Textarea
-              placeholder={
-                isAISpeaking
-                  ? "AI is speaking..."
-                  : "Type your response here..."
-              }
-              ref={inputRef}
-              value={textResponse}
-              onChange={(e) => setTextResponse(e.target.value)}
-              className="rounded-xl resize-none p-2 px-4 shadow-md"
-              disabled={isRecording || isAISpeaking}
+            }}
+            disabled={isAISpeaking || loading}
+            className={`${
+              maxQuestions === questionCount ? "bg-green-500" : "bg-[#C51E1E]"
+            } cursor-pointer`}
+          >
+            {maxQuestions === questionCount ? "Get Assessment!" : "No"}
+          </Button>
+        </div>
+      ) : (
+        <div className="flex-1 flex items-center h-full gap-4 rounded-2xl overflow-hidden shadow-md">
+          <Input
+            placeholder={
+              isAISpeaking ? "AI is speaking..." : "Type your response here..."
+            }
+            ref={inputRef}
+            value={textResponse}
+            onChange={(e) => setTextResponse(e.target.value)}
+            className="ml-2 text-base flex-1 font-medium border-none outline-none shadow-none placeholder:text-[#919ECD] px-2 py-3"
+            disabled={isRecording || isAISpeaking}
+          />
+          <Button
+            onClick={isRecording ? onStopRecording : onStartRecording}
+            variant="outline"
+            disabled={isAISpeaking}
+            className="rounded-full cursor-pointer h-fit py-1 px-2"
+          >
+            <Image
+              src="/assets/svg/audioPulse.svg"
+              alt="audio_pulse"
+              height={16}
+              width={16}
             />
-            {textResponse.trim() ? (
-              <div className="">
-                <Button
-                  onClick={handleSubmit}
-                  disabled={!textResponse.trim() || isAISpeaking}
-                  className=" w-10 h-10 rounded-full cursor-pointer bg-blue-600 hover:bg-blue-700"
-                >
-                  <Send />
-                </Button>
-              </div>
-            ) : (
-              <Button
-                onClick={isRecording ? onStopRecording : onStartRecording}
-                disabled={isAISpeaking}
-                className={`w-10 h-10 rounded-full cursor-pointer ${
-                  isRecording
-                    ? "bg-red-500 hover:bg-red-600"
-                    : "bg-green-500 hover:bg-green-600 "
-                }`}
-              >
-                {isRecording ? (
-                  <>
-                    <MicOff />
-                  </>
-                ) : (
-                  <>
-                    <Mic />
-                  </>
-                )}
-              </Button>
-            )}
-          </div>
-        )}
-      </div>
+            <p className="text-sm font-medium text-[#3B64F6]">Voice</p>
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={!textResponse.trim() || isAISpeaking}
+            className="w-12 h-12 rounded-none cursor-pointer bg-[#3B64F6]"
+          >
+            <Image
+              src="/assets/svg/send.svg"
+              alt="send"
+              height={20}
+              width={20}
+            />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

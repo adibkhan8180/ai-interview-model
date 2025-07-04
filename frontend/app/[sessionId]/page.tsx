@@ -1,9 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FeedbackDisplay } from "@/components/feedback-display";
-import { InterviewProgress } from "@/components/interview-progress";
 import { VideoCall } from "@/components/video-call";
 import { AudioRecorder } from "@/components/audio-recorder";
 import { ResponseInput } from "@/components/response-input";
@@ -23,13 +21,11 @@ export default function AIInterviewSystem() {
     addMessage: setConversation,
     overallFeedback,
     interviewComplete,
-    interviewStartTime,
     isAISpeaking,
     questionCount,
     maxQuestions,
     stopSpeaking,
     audioInstance,
-    incrementQuestionCount,
   } = useInterviewStore();
 
   const [isRecording, setIsRecording] = useState(false);
@@ -93,12 +89,7 @@ export default function AIInterviewSystem() {
       <div className="w-7xl h-full mx-auto grid grid-cols-[2fr_5fr] gap-4">
         {/* camera div */}
         <div className="flex flex-col gap-4 w-full">
-          <VideoCall
-            isRecording={isRecording}
-            isAISpeaking={isAISpeaking}
-            onStartRecording={startRecording}
-            onStopRecording={stopRecording}
-          />
+          <VideoCall />
         </div>
 
         {/* TODO: chat div */}

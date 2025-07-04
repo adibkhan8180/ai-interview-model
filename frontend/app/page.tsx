@@ -9,6 +9,7 @@ import { useInterviewStore } from "@/lib/store/interviewStore";
 import { startInterviewAPI } from "@/lib/api";
 import { speakTextWithTTS } from "@/lib/audioApi";
 import { InterviewSetupData } from "@/types";
+import Image from "next/image";
 
 export default function AIInterviewSetup() {
   const router = useRouter();
@@ -67,7 +68,7 @@ export default function AIInterviewSetup() {
   return (
     <div className="relative h-screen bg-white flex justify-center">
       <InterviewSetupForm onSubmit={handleSetupSubmit} loading={loading} />
-      <img
+      <Image
         src="/assets/svg/wave.svg"
         alt="Wave SVG"
         width={100}

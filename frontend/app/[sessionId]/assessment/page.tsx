@@ -13,8 +13,9 @@ import { useFormStore } from "@/lib/store/formStore";
 import { submitFinalInterviewAPI } from "@/lib/api";
 import { downloadFeedbackPdf } from "@/lib/downloadAssessment";
 import { Skeleton } from "@/components/ui/skeleton";
+import Image from "next/image";
 
-function page() {
+function FinalAssessment() {
   const router = useRouter();
   const params = useParams();
   const sessionId = params?.sessionId as string;
@@ -86,7 +87,7 @@ function page() {
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex justify-between">
           <div className="flex items-center space-x-2">
-            <img
+            <Image
               src="/assets/svg/Checklist.svg"
               alt="Wave SVG"
               width={32}
@@ -272,4 +273,4 @@ function page() {
   );
 }
 
-export default page;
+export default FinalAssessment;

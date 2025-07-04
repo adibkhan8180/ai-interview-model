@@ -1,8 +1,5 @@
 import { useInterviewStore } from "./store/interviewStore";
-import {
-  generateSpeech,
-  playAudioFromArrayBuffer,
-} from "@/services/text-to-speech";
+import { generateSpeech } from "@/services/text-to-speech";
 
 export const speakTextWithTTS = async (text: string) => {
   try {

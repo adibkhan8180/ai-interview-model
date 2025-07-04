@@ -1,9 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Mic, MicOff, Send } from "lucide-react";
 import { getNextQuestionAPI, reviseAnswerAPI } from "@/lib/api";
 import { useInterviewStore } from "@/lib/store/interviewStore";
 import { useParams, useRouter } from "next/navigation";
@@ -76,12 +74,12 @@ export function ResponseInput({
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = useCallback(() => {
     if (textResponse.trim()) {
       onSubmitText(textResponse);
       setTextResponse("");
     }
-  };
+  }, [textResponse, onSubmitText]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -113,7 +111,7 @@ export function ResponseInput({
             disabled={isAISpeaking ? true : loading}
             className="bg-[#3B64F6] cursor-pointer"
           >
-            yes
+            Yes
           </Button>
           <Button
             onClick={() => {

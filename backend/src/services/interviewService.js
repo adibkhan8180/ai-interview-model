@@ -137,6 +137,7 @@ export class InterviewService {
 
     const feedbackResponse = await this.aiService.generateFeedback(
       answer,
+      session.interviewType,
       session.chatHistory.map((msg) =>
         msg.role === "human"
           ? new HumanMessage(msg.content)

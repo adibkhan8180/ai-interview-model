@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -45,6 +45,7 @@ export function InterviewSetupForm({
   const { saveFormData } = useFormStore();
   const { setInterviewStarted } = useInterviewStore();
   const isDomainSpecific = formData.interviewCategory === "domain-specific";
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -83,10 +84,60 @@ export function InterviewSetupForm({
     setInterviewStarted(true);
   };
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        if (steps === 1) {
+          if (formData.companyName && formData.jobRole) {
+            setSteps(2);
+          } else {
+            inputRef.current?.focus();
+          }
+        } else if (steps === 2) {
+          if (
+            formData.interviewCategory &&
+            (formData.interviewCategory !== "domain-specific" ||
+              formData.domain)
+          ) {
+            setSteps(3);
+          } else {
+            inputRef.current?.focus();
+          }
+        } else if (steps === 3) {
+          if (
+            (formData.inputType === "skills-based" &&
+              formData.skills.length > 0) ||
+            (formData.inputType === "job-description" &&
+              formData.jobDescription.trim() !== "")
+          ) {
+            // handleStartInterview();
+          } else {
+            inputRef.current?.focus();
+          }
+        }
+      }
+
+      if (event.key === "Escape") {
+        if (steps === 3) {
+          setSteps(2);
+        } else if (steps === 2) {
+          setSteps(1);
+        } else {
+          return null;
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [formData, steps, handleStartInterview]);
+
   if (steps !== 1 && steps !== 2 && steps !== 3) return null;
 
   return (
-    // TODO: height should not be scrollable
     <div className="h-screen flex flex-col items-center justify-center gap-6">
       <h1 className="text-4xl font-bold">
         <span className="text-[#3B64F6]">AI-Video</span> Interview Setup
@@ -181,6 +232,7 @@ export function InterviewSetupForm({
                 <Input
                   id="companyName"
                   name="companyName"
+                  ref={inputRef}
                   placeholder="eg. TruScholar"
                   value={formData.companyName}
                   onChange={handleChange}
@@ -310,6 +362,7 @@ export function InterviewSetupForm({
                 <div className="space-y-2">
                   <Input
                     placeholder="Type a skill and press Enter"
+                    ref={inputRef}
                     value={skill}
                     onChange={(e) => setSkill(e.target.value)}
                     onKeyDown={handleKeyDown}

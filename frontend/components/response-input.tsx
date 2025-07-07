@@ -8,6 +8,7 @@ import { useParams, useRouter } from "next/navigation";
 import { ResponseInputProps } from "@/types";
 import { Input } from "./ui/input";
 import Image from "next/image";
+import { Textarea } from "./ui/textarea";
 
 export function ResponseInput({
   onSubmitText,
@@ -21,7 +22,7 @@ export function ResponseInput({
   const router = useRouter();
   const [textResponse, setTextResponse] = useState("");
   const [loading, setLoading] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const {
     addMessage: setConversation,
     interviewComplete,
@@ -77,7 +78,8 @@ export function ResponseInput({
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Enter") {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
         if (textResponse.trim()) {
           handleSubmit();
         } else {
@@ -127,33 +129,42 @@ export function ResponseInput({
         </div>
       ) : (
         <div className="flex-1 flex items-center h-full gap-4 rounded-2xl overflow-hidden shadow-md">
-          <Input
+          <Textarea
             placeholder={
               isAISpeaking ? "AI is speaking..." : "Type your response here..."
             }
             ref={inputRef}
             value={textResponse}
             onChange={(e) => setTextResponse(e.target.value)}
-            className="ml-2 text-base flex-1 font-medium border-none outline-none shadow-none placeholder:text-[#919ECD] px-2 py-3"
+            className="ml-2 text-base flex-1 font-medium border-none outline-none shadow-none placeholder:text-[#919ECD] px-2 py-3 resize-none h-[40px]"
             disabled={isRecording || isAISpeaking}
           />
           <Button
-            onClick={isRecording ? onStopRecording : onStartRecording}
+            onClick={onStartRecording}
             variant="outline"
-            disabled={isAISpeaking}
+            disabled={isAISpeaking || isRecording}
             className="rounded-full cursor-pointer h-fit py-1 px-2"
           >
             <Image
-              src="/assets/svg/audioPulse.svg"
+              src={
+                isRecording
+                  ? "/assets/gif/audioWave.gif"
+                  : "/assets/svg/audioPulse.svg"
+              }
               alt="audio_pulse"
               height={16}
               width={16}
             />
-            <p className="text-sm font-medium text-[#3B64F6]">Voice</p>
+            <p className="text-sm font-medium text-[#3B64F6]">
+              {isRecording ? "Listening..." : "Voice"}
+            </p>
           </Button>
           <Button
-            onClick={handleSubmit}
-            disabled={!textResponse.trim() || isAISpeaking}
+            onClick={isRecording ? onStopRecording : handleSubmit}
+            disabled={
+              (isRecording && isAISpeaking) ||
+              (!isRecording && (!textResponse.trim() || isAISpeaking))
+            }
             className="w-12 h-12 rounded-none cursor-pointer bg-[#3B64F6]"
           >
             <Image

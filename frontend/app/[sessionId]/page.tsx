@@ -33,10 +33,11 @@ export default function AIInterviewSystem() {
   const params = useParams();
   const sessionId = params?.sessionId as string;
   const [openDialog, setOpenDialog] = useState<boolean>(false);
+  const [textResponse, setTextResponse] = useState("");
 
   const { startRecording, stopRecording } = AudioRecorder({
     onTranscription: (text) => {
-      handleUserResponse(text);
+      setTextResponse(text);
     },
     isRecording,
     onRecordingStart: () => setIsRecording(true),
@@ -217,6 +218,8 @@ export default function AIInterviewSystem() {
                     ? conversation[conversation.length - 1]?.isFeedback ?? false
                     : false
                 }
+                textResponse={textResponse}
+                setTextResponse={setTextResponse}
               />
             )}
           </div>

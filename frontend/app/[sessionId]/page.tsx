@@ -84,17 +84,13 @@ export default function AIInterviewSystem() {
   }, []);
 
   return (
-    // TODO: height should be dynamic
     <div className="w-full h-screen bg-[#F5F8FF] py-4 pt-24">
       <div className="w-7xl h-full mx-auto grid grid-cols-[2fr_5fr] gap-4">
-        {/* camera div */}
         <div className="flex flex-col gap-4 w-full">
           <VideoCall />
         </div>
 
-        {/* TODO: chat div */}
         <div className="w-full h-[85vh] rounded-3xl bg-[#FFFFFF] border border-[#E2E8F0] flex flex-col">
-          {/* progress bar */}
           <div className="py-4 px-5 m-2 rounded-tl-2xl rounded-tr-2xl bg-[#F7F9FC] flex flex-row items-center gap-2">
             <Image
               src="/assets/svg/question.svg"
@@ -104,7 +100,6 @@ export default function AIInterviewSystem() {
             />
             <p className="text-xl font-medium">Question</p>
 
-            {/* progress bar */}
             <div className="flex-1 flex items-center justify-between gap-2 px-1.5">
               {[...Array(maxQuestions)].map((_, index) => (
                 <div
@@ -122,7 +117,6 @@ export default function AIInterviewSystem() {
 
           <div className="w-full h-[1px] bg-[#E2E8F0] " />
 
-          {/* conversation container */}
           <div className="flex-1 flex flex-col px-6 overflow-y-auto">
             <div className="flex-1 flex flex-col overflow-y-auto space-y-4">
               {conversation.map((message, index) => {

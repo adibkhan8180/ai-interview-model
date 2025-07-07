@@ -20,11 +20,20 @@ import { InterviewSetupData } from "@/types";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "./ui/badge";
 import { useInterviewStore } from "@/lib/store/interviewStore";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface InterviewSetupFormProps {
   onSubmit: (data: InterviewSetupData) => void;
   loading: boolean;
 }
+
+const maxCompanyNameLength = 30;
+const maxJDLength = 999;
+const maxSkillLength = 20;
 
 export function InterviewSetupForm({
   onSubmit,
@@ -46,6 +55,7 @@ export function InterviewSetupForm({
   const { setInterviewStarted } = useInterviewStore();
   const isDomainSpecific = formData.interviewCategory === "domain-specific";
   const inputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -61,6 +71,9 @@ export function InterviewSetupForm({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && skill.trim()) {
       e.preventDefault();
+
+      if (skill.length < 2) return;
+
       if (!formData.skills.includes(skill.trim())) {
         setFormData((prev) => ({
           ...prev,
@@ -87,9 +100,8 @@ export function InterviewSetupForm({
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Enter") {
-        event.preventDefault();
         if (steps === 1) {
-          if (formData.companyName && formData.jobRole) {
+          if (formData.companyName.length >= 3 && formData.jobRole) {
             setSteps(2);
           } else {
             inputRef.current?.focus();
@@ -105,15 +117,20 @@ export function InterviewSetupForm({
             inputRef.current?.focus();
           }
         } else if (steps === 3) {
-          if (
-            (formData.inputType === "skills-based" &&
-              formData.skills.length > 0) ||
-            (formData.inputType === "job-description" &&
-              formData.jobDescription.trim() !== "")
-          ) {
-            // handleStartInterview();
-          } else {
-            inputRef.current?.focus();
+          if (event.key === "Enter" && !event.shiftKey) {
+            if (
+              formData.inputType === "skills-based" &&
+              formData.skills.length > 0
+            ) {
+            } else if (
+              formData.inputType === "job-description" &&
+              formData.jobDescription.trim() !== ""
+            ) {
+              handleStartInterview();
+            } else {
+              inputRef.current?.focus();
+              textareaRef.current?.focus();
+            }
           }
         }
       }
@@ -225,9 +242,22 @@ export function InterviewSetupForm({
               <div>
                 <Label
                   htmlFor="companyName"
-                  className="text-base text-black capitalize"
+                  className="text-base text-black capitalize flex items-center justify-between"
                 >
                   Company Name
+                  {formData.companyName.trim() && (
+                    <span className="text-xs sm:text-sm font-normal flex gap-1 items-center">
+                      {maxCompanyNameLength - formData.companyName.length}
+                      <Tooltip>
+                        <TooltipTrigger className="h-3 w-3 text-xs bg-[#3B64F6] text-white rounded-full font-bold cursor-pointer ">
+                          i
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Company name should be 3-30 char long.
+                        </TooltipContent>
+                      </Tooltip>
+                    </span>
+                  )}
                 </Label>
                 <Input
                   id="companyName"
@@ -237,6 +267,8 @@ export function InterviewSetupForm({
                   value={formData.companyName}
                   onChange={handleChange}
                   required
+                  minLength={3}
+                  maxLength={maxCompanyNameLength}
                   className="px-3 py-2"
                 />
               </div>
@@ -262,7 +294,7 @@ export function InterviewSetupForm({
                 onClick={() => setSteps(2)}
                 className="text-base font-bold cursor-pointer"
                 disabled={
-                  formData.companyName === "" || formData.jobRole === ""
+                  formData.companyName.length < 3 || formData.jobRole === ""
                 }
               >
                 Next
@@ -359,12 +391,27 @@ export function InterviewSetupForm({
               </RadioGroup>
 
               {formData.inputType === "skills-based" ? (
-                <div className="space-y-2">
+                <div className="space-y-2 relative">
+                  {skill && (
+                    <span className="absolute right-0 -top-6 text-xs sm:text-sm font-normal flex gap-1 items-center self-end">
+                      {maxSkillLength - skill.length}
+                      <Tooltip>
+                        <TooltipTrigger className="h-3 w-3 text-xs bg-[#3B64F6] text-white rounded-full font-bold cursor-pointer ">
+                          i
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Skills length Should be 2 - 20 letters.
+                        </TooltipContent>
+                      </Tooltip>
+                    </span>
+                  )}
                   <Input
                     placeholder="Type a skill and press Enter"
                     ref={inputRef}
                     value={skill}
                     onChange={(e) => setSkill(e.target.value)}
+                    minLength={2}
+                    maxLength={maxSkillLength}
                     onKeyDown={handleKeyDown}
                   />
 
@@ -387,8 +434,22 @@ export function InterviewSetupForm({
                   </div>
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className="relative">
+                  {formData.jobDescription.trim() && (
+                    <span className="absolute right-0 -top-6 text-xs sm:text-sm font-normal flex gap-1 items-center self-end">
+                      {maxJDLength - formData.jobDescription.length}
+                      <Tooltip>
+                        <TooltipTrigger className="h-3 w-3 text-xs bg-[#3B64F6] text-white rounded-full font-bold cursor-pointer ">
+                          i
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          JD Should be under 999 letters.
+                        </TooltipContent>
+                      </Tooltip>
+                    </span>
+                  )}
                   <Textarea
+                    ref={textareaRef}
                     id="jobDescription"
                     name="jobDescription"
                     placeholder={
@@ -398,7 +459,8 @@ export function InterviewSetupForm({
                     }
                     value={formData.jobDescription}
                     onChange={handleChange}
-                    className="min-h-[150px]"
+                    maxLength={maxJDLength}
+                    className="min-h-[150px] px-3 py-2"
                     required
                   />
                 </div>

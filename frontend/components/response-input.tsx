@@ -143,7 +143,7 @@ export function ResponseInput({
           <Button
             onClick={() => {
               if (maxQuestions === questionCount) {
-                router.push(`/${sessionId}/assessment`);
+                router.replace(`/${sessionId}/assessment`);
               } else {
                 getNextQuestion();
               }

@@ -38,9 +38,14 @@ export function ConfirmDialog({ openDialogue, setOpenDialog }: Props) {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={startNewInterview}>
-            Continue
+          <AlertDialogCancel className="cursor-pointer">
+            Stay on page
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={startNewInterview}
+            className="cursor-pointer"
+          >
+            Leave page
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

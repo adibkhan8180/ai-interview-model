@@ -143,7 +143,7 @@ export function ResponseInput({
           <Button
             onClick={() => {
               if (maxQuestions === questionCount) {
-                router.push(`/${sessionId}/assessment`);
+                router.replace(`/${sessionId}/assessment`);
               } else {
                 getNextQuestion();
               }
@@ -165,6 +165,7 @@ export function ResponseInput({
             ref={inputRef}
             value={textResponse}
             onChange={(e) => setTextResponse(e.target.value)}
+            onPaste={(e) => e.preventDefault()}
             className="ml-2 text-base flex-1 font-medium border-none outline-none shadow-none placeholder:text-[#919ECD] px-2 py-3 resize-none h-[40px]"
             disabled={isRecording || isAISpeaking}
           />

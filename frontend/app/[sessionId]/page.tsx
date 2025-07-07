@@ -69,6 +69,7 @@ export default function AIInterviewSystem() {
     scrollRef?.current?.scrollIntoView({ behavior: "smooth" });
   }, [conversation, overallFeedback]);
 
+  // TODO: default browser popup on refresh
   useEffect(() => {
     history.pushState(null, "", window.location.href);
 
@@ -77,10 +78,18 @@ export default function AIInterviewSystem() {
       history.pushState(null, "", window.location.href);
     };
 
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+
+      setOpenDialog(true);
+    };
+
     window.addEventListener("popstate", handlePopState);
+    window.addEventListener("beforeunload", handleBeforeUnload);
 
     return () => {
       window.removeEventListener("popstate", handlePopState);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, []);
 

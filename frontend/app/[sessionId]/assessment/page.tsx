@@ -14,6 +14,7 @@ import { submitFinalInterviewAPI } from "@/lib/api";
 import { downloadFeedbackPdf } from "@/lib/downloadAssessment";
 import { Skeleton } from "@/components/ui/skeleton";
 import Image from "next/image";
+import { ConfirmDialog } from "../ConfirmDialog";
 
 function FinalAssessment() {
   const router = useRouter();
@@ -30,6 +31,7 @@ function FinalAssessment() {
     maxQuestions,
   } = useInterviewStore();
   const [loading, setLoading] = useState(true);
+  const [openDialog, setOpenDialog] = useState<boolean>(false);
 
   const getFinalAssessment = useCallback(async () => {
     if (!sessionId) {
@@ -70,6 +72,21 @@ function FinalAssessment() {
   const handleDownload = () => {
     downloadFeedbackPdf(overallFeedback);
   };
+
+  useEffect(() => {
+    history.pushState(null, "", window.location.href);
+
+    const handlePopState = () => {
+      setOpenDialog(true);
+      history.pushState(null, "", window.location.href);
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -270,6 +287,7 @@ function FinalAssessment() {
           Start New Interview
         </button>
       </div>
+      <ConfirmDialog openDialogue={openDialog} setOpenDialog={setOpenDialog} />
     </div>
   );
 }

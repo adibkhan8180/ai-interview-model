@@ -6,9 +6,9 @@ import { getNextQuestionAPI, reviseAnswerAPI } from "@/lib/api";
 import { useInterviewStore } from "@/lib/store/interviewStore";
 import { useParams, useRouter } from "next/navigation";
 import { ResponseInputProps } from "@/types";
-import { Input } from "./ui/input";
 import Image from "next/image";
 import { Textarea } from "./ui/textarea";
+import { Pause } from "lucide-react";
 
 export function ResponseInput({
   onSubmitText,
@@ -18,9 +18,10 @@ export function ResponseInput({
   isAISpeaking,
   speakTextWithTTS,
   isLatestFeedback,
+  textResponse,
+  setTextResponse,
 }: ResponseInputProps) {
   const router = useRouter();
-  const [textResponse, setTextResponse] = useState("");
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const {
@@ -196,18 +197,19 @@ export function ResponseInput({
           </Button>
           <Button
             onClick={isRecording ? handleStopRecording : handleSubmit}
-            disabled={
-              (isRecording && isAISpeaking) ||
-              (!isRecording && (!textResponse.trim() || isAISpeaking))
-            }
+            disabled={isAISpeaking || (!isRecording && !textResponse.trim())}
             className="w-12 h-12 rounded-none cursor-pointer bg-[#3B64F6]"
           >
-            <Image
-              src="/assets/svg/send.svg"
-              alt="send"
-              height={20}
-              width={20}
-            />
+            {isRecording ? (
+              <Pause className="w-4 h-4 mr-2" />
+            ) : (
+              <Image
+                src="/assets/svg/send.svg"
+                alt="send"
+                height={20}
+                width={20}
+              />
+            )}
           </Button>
         </div>
       )}

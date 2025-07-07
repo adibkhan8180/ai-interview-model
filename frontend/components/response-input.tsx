@@ -31,6 +31,9 @@ export function ResponseInput({
     maxQuestions,
   } = useInterviewStore();
 
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
   const params = useParams();
   const sessionId = params?.sessionId as string;
 
@@ -75,6 +78,31 @@ export function ResponseInput({
       setLoading(false);
     }
   }, [sessionId, incrementQuestionCount, setConversation, speakTextWithTTS]);
+
+  const handleStartRecording = () => {
+    if (isRecording) {
+      return;
+    }
+    setCountdown(120);
+    onStartRecording();
+
+    timerRef.current = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev && prev > 1) {
+          return prev - 1;
+        } else {
+          handleStopRecording();
+          return 0;
+        }
+      });
+    }, 1000);
+  };
+
+  const handleStopRecording = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    setCountdown(null);
+    onStopRecording();
+  };
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -140,9 +168,9 @@ export function ResponseInput({
             disabled={isRecording || isAISpeaking}
           />
           <Button
-            onClick={onStartRecording}
+            onClick={handleStartRecording}
             variant="outline"
-            disabled={isAISpeaking || isRecording}
+            disabled={isAISpeaking}
             className="rounded-full cursor-pointer h-fit py-1 px-2"
           >
             <Image
@@ -156,11 +184,17 @@ export function ResponseInput({
               width={16}
             />
             <p className="text-sm font-medium text-[#3B64F6]">
-              {isRecording ? "Listening..." : "Voice"}
+              {isRecording
+                ? `${Math.floor((countdown || 0) / 60)
+                    .toString()
+                    .padStart(2, "0")}:${((countdown || 0) % 60)
+                    .toString()
+                    .padStart(2, "0")}`
+                : "Voice"}
             </p>
           </Button>
           <Button
-            onClick={isRecording ? onStopRecording : handleSubmit}
+            onClick={isRecording ? handleStopRecording : handleSubmit}
             disabled={
               (isRecording && isAISpeaking) ||
               (!isRecording && (!textResponse.trim() || isAISpeaking))

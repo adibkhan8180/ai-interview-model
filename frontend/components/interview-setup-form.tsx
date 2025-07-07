@@ -25,6 +25,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import ReactMarkdown from "react-markdown";
 
 interface InterviewSetupFormProps {
   onSubmit: (data: InterviewSetupData) => void;
@@ -32,8 +33,10 @@ interface InterviewSetupFormProps {
 }
 
 const maxCompanyNameLength = 30;
-const maxJDLength = 999;
+const maxJDLength = 1999;
+const minJDLength = 100;
 const maxSkillLength = 20;
+const maxNoOfSkills = 5;
 
 export function InterviewSetupForm({
   onSubmit,
@@ -53,9 +56,12 @@ export function InterviewSetupForm({
   const [steps, setSteps] = useState(1);
   const { saveFormData } = useFormStore();
   const { setInterviewStarted } = useInterviewStore();
-  const isDomainSpecific = formData.interviewCategory === "domain-specific";
+
   const inputRef = useRef<HTMLInputElement>(null);
+  const jobRoleRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const isDomainSpecific = formData.interviewCategory === "domain-specific";
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -73,6 +79,7 @@ export function InterviewSetupForm({
       e.preventDefault();
 
       if (skill.length < 2) return;
+      if (formData.skills.length >= maxNoOfSkills) return;
 
       if (!formData.skills.includes(skill.trim())) {
         setFormData((prev) => ({
@@ -99,57 +106,53 @@ export function InterviewSetupForm({
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Enter") {
+      const { key, shiftKey } = event;
+
+      if (key === "Enter" && !shiftKey) {
+        event.preventDefault();
+
         if (steps === 1) {
-          if (formData.companyName.length >= 3 && formData.jobRole) {
-            setSteps(2);
+          if (inputRef.current && !formData.companyName.trim()) {
+            inputRef.current.focus();
+          } else if (jobRoleRef.current && !formData.jobRole.trim()) {
+            jobRoleRef.current.focus();
           } else {
-            inputRef.current?.focus();
+            setSteps(2);
           }
         } else if (steps === 2) {
-          if (
+          const isValidCategory =
             formData.interviewCategory &&
             (formData.interviewCategory !== "domain-specific" ||
-              formData.domain)
-          ) {
+              formData.domain);
+
+          if (isValidCategory) {
             setSteps(3);
-          } else {
-            inputRef.current?.focus();
           }
         } else if (steps === 3) {
-          if (event.key === "Enter" && !event.shiftKey) {
-            if (
-              formData.inputType === "skills-based" &&
-              formData.skills.length > 0
-            ) {
-            } else if (
-              formData.inputType === "job-description" &&
-              formData.jobDescription.trim() !== ""
-            ) {
-              handleStartInterview();
-            } else {
-              inputRef.current?.focus();
-              textareaRef.current?.focus();
-            }
+          const isSkillsValid =
+            formData.inputType === "skills-based" && formData.skills.length > 0;
+
+          const isJobDescriptionValid =
+            formData.inputType === "job-description" &&
+            formData.jobDescription.trim() !== "";
+
+          if (isSkillsValid || isJobDescriptionValid) {
+            // handleStartInterview();  //Todoauto start if trying to enter skills
+          } else {
+            inputRef.current?.focus();
+            textareaRef.current?.focus();
           }
         }
       }
 
-      if (event.key === "Escape") {
-        if (steps === 3) {
-          setSteps(2);
-        } else if (steps === 2) {
-          setSteps(1);
-        } else {
-          return null;
-        }
+      if (key === "Escape") {
+        if (steps === 3) setSteps(2);
+        else if (steps === 2) setSteps(1);
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [formData, steps, handleStartInterview]);
 
   if (steps !== 1 && steps !== 2 && steps !== 3) return null;
@@ -161,102 +164,56 @@ export function InterviewSetupForm({
       </h1>
 
       <div className="flex items-center space-x-4">
-        <div className="flex items-center space-x-4">
-          <div
-            className={`w-8 h-8 rounded-full flex items-center justify-center border-2 border-[#3B64F6] ${
-              steps === 1
-                ? "bg-[#E7ECFF] text-[#3B64F6]"
-                : "bg-[#3B64F6] text-[#fff]"
-            } `}
-            onClick={() => {
-              if (steps > 1) setSteps(1);
-            }}
-          >
-            1
+        {[1, 2, 3].map((step) => (
+          <div key={step} className="flex items-center space-x-4">
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
+                steps === step
+                  ? "bg-[#E7ECFF] text-[#3B64F6] border-[#3B64F6]"
+                  : steps > step
+                  ? "bg-[#3B64F6] text-white border-[#3B64F6]"
+                  : "border-[#E2E8F0] text-gray-400"
+              }`}
+              onClick={() => setSteps(step)}
+            >
+              {step}
+            </div>
+            {step < 3 && (
+              <div
+                className={`h-0.5 w-12 ${
+                  steps > step ? "bg-[#3B64F6]" : "bg-[#E2E8F0]"
+                }`}
+              />
+            )}
           </div>
-          <div
-            className={`h-0.5 w-12  ${
-              steps > 1 ? "bg-[#3B64F6]" : "bg-[#E2E8F0]"
-            }`}
-          ></div>
-        </div>
-
-        <div className="flex items-center space-x-4">
-          <div
-            className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
-              steps === 2
-                ? "bg-[#E7ECFF] text-[#3B64F6] border-[#3B64F6]"
-                : steps > 2
-                ? "bg-[#3B64F6] text-[#fff] border-[#3B64F6]"
-                : "border-[#E2E8F0] text-gray-400 "
-            } `}
-            onClick={() => {
-              if (steps > 2) setSteps(2);
-            }}
-          >
-            2
-          </div>
-          <div
-            className={`h-0.5 w-12  ${
-              steps > 2 ? "bg-[#3B64F6]" : "bg-[#E2E8F0]"
-            }`}
-          ></div>
-        </div>
-
-        <div className="flex items-center space-x-4">
-          <div
-            className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
-              steps === 3
-                ? "bg-[#E7ECFF] text-[#3B64F6] border-[#3B64F6]"
-                : steps > 3
-                ? "bg-[#3B64F6] text-[#fff] border-[#3B64F6]"
-                : "border-[#E2E8F0] text-gray-400 "
-            } `}
-            onClick={() => {
-              if (steps > 3) setSteps(3);
-            }}
-          >
-            3
-          </div>
-        </div>
+        ))}
       </div>
 
       <Card className="w-md z-10">
         <CardHeader>
           <CardTitle className="text-base text-[#4F637E] text-center font-normal">
-            {steps === 1 ? (
-              <p>
-                Tell us where you&apos;re aiming and what role you&apos;re
-                targeting.
-              </p>
-            ) : steps === 2 ? (
-              <p>What kind of interview would you like to simulate?</p>
-            ) : (
-              <p>How should we generate your interview questions?</p>
-            )}
+            {steps === 1 &&
+              "Tell us where you're aiming and what role you're targeting."}
+            {steps === 2 &&
+              "What kind of interview would you like to simulate?"}
+            {steps === 3 && "How should we generate your interview questions?"}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {steps === 1 ? (
+          {steps === 1 && (
             <div className="flex flex-col gap-4">
               <div>
                 <Label
                   htmlFor="companyName"
-                  className="text-base text-black capitalize flex items-center justify-between"
+                  className="text-base text-black capitalize flex justify-between"
                 >
                   Company Name
                   {formData.companyName.trim() && (
-                    <span className="text-xs sm:text-sm font-normal flex gap-1 items-center">
-                      {maxCompanyNameLength - formData.companyName.length}
-                      <Tooltip>
-                        <TooltipTrigger className="h-3 w-3 text-xs bg-[#3B64F6] text-white rounded-full font-bold cursor-pointer ">
-                          i
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          Company name should be 3-30 char long.
-                        </TooltipContent>
-                      </Tooltip>
-                    </span>
+                    <RemainingLength
+                      currentLength={formData.companyName.length}
+                      maxLength={maxCompanyNameLength}
+                      message="Company name should be 3-30 char long."
+                    />
                   )}
                 </Label>
                 <Input
@@ -266,12 +223,13 @@ export function InterviewSetupForm({
                   placeholder="eg. TruScholar"
                   value={formData.companyName}
                   onChange={handleChange}
-                  required
                   minLength={3}
                   maxLength={maxCompanyNameLength}
+                  required
                   className="px-3 py-2"
                 />
               </div>
+
               <div>
                 <Label
                   htmlFor="jobRole"
@@ -282,6 +240,7 @@ export function InterviewSetupForm({
                 <Input
                   id="jobRole"
                   name="jobRole"
+                  ref={jobRoleRef}
                   placeholder="eg. Frontend Developer"
                   value={formData.jobRole}
                   onChange={handleChange}
@@ -293,16 +252,16 @@ export function InterviewSetupForm({
               <Button
                 onClick={() => setSteps(2)}
                 className="text-base font-bold cursor-pointer"
-                disabled={
-                  formData.companyName.length < 3 || formData.jobRole === ""
-                }
+                disabled={formData.companyName.length < 3 || !formData.jobRole}
               >
                 Next
               </Button>
             </div>
-          ) : steps === 2 ? (
+          )}
+
+          {steps === 2 && (
             <div className="flex flex-col gap-4">
-              <div className="w-full ">
+              <div>
                 <Label
                   htmlFor="interviewCategory"
                   className="text-base text-black capitalize"
@@ -326,8 +285,9 @@ export function InterviewSetupForm({
                   </SelectContent>
                 </Select>
               </div>
+
               {isDomainSpecific && (
-                <div className=" w-full">
+                <div>
                   <Label
                     htmlFor="domain"
                     className="text-base text-black capitalize"
@@ -337,10 +297,11 @@ export function InterviewSetupForm({
                   <Input
                     id="domain"
                     name="domain"
+                    ref={inputRef}
                     placeholder="e.g., Frontend Development, Machine Learning"
                     value={formData.domain}
                     onChange={handleChange}
-                    required={isDomainSpecific}
+                    required
                   />
                 </div>
               )}
@@ -349,34 +310,35 @@ export function InterviewSetupForm({
                 onClick={() => setSteps(3)}
                 className="text-base font-bold cursor-pointer"
                 disabled={
-                  formData.interviewCategory === "" ||
-                  (formData.interviewCategory === "domain-specific" &&
-                    formData.domain === "")
+                  !formData.interviewCategory ||
+                  (isDomainSpecific && !formData.domain)
                 }
               >
                 Next
               </Button>
             </div>
-          ) : (
-            <div className="flex flex-col gap-4">
+          )}
+
+          {steps === 3 && (
+            <div className="flex flex-col gap-2">
               <RadioGroup
-                defaultValue="skills-based"
                 value={formData.inputType}
                 onValueChange={(value) =>
                   handleSelectChange("inputType", value)
                 }
                 className="flex gap-6"
               >
-                <div className="flex items-center gap-2 cursor-pointer w-fit">
+                <div className="flex items-center gap-2 cursor-pointer">
                   <RadioGroupItem value="skills-based" id="skills-based" />
                   <Label
                     htmlFor="skills-based"
                     className="cursor-pointer text-base text-black capitalize"
                   >
-                    Skills - Based
+                    Skills-Based
                   </Label>
                 </div>
-                <div className="flex items-center gap-2 cursor-pointer w-fit">
+
+                <div className="flex items-center gap-2 cursor-pointer">
                   <RadioGroupItem
                     value="job-description"
                     id="job-description"
@@ -385,26 +347,23 @@ export function InterviewSetupForm({
                     htmlFor="job-description"
                     className="cursor-pointer text-base text-black capitalize"
                   >
-                    Job Description Based
+                    Job Description-Based
                   </Label>
                 </div>
               </RadioGroup>
 
               {formData.inputType === "skills-based" ? (
-                <div className="space-y-2 relative">
-                  {skill && (
-                    <span className="absolute right-0 -top-6 text-xs sm:text-sm font-normal flex gap-1 items-center self-end">
-                      {maxSkillLength - skill.length}
-                      <Tooltip>
-                        <TooltipTrigger className="h-3 w-3 text-xs bg-[#3B64F6] text-white rounded-full font-bold cursor-pointer ">
-                          i
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          Skills length Should be 2 - 20 letters.
-                        </TooltipContent>
-                      </Tooltip>
-                    </span>
-                  )}
+                <div className="space-y-0 relative">
+                  <p className="text-xs flex justify-between h-4">
+                    (Enter maximum 5 skills.)
+                    {skill && (
+                      <RemainingLength
+                        currentLength={skill.length}
+                        maxLength={maxSkillLength}
+                        message="Skills length should be 2 - 20 letters."
+                      />
+                    )}
+                  </p>
                   <Input
                     placeholder="Type a skill and press Enter"
                     ref={inputRef}
@@ -413,10 +372,10 @@ export function InterviewSetupForm({
                     minLength={2}
                     maxLength={maxSkillLength}
                     onKeyDown={handleKeyDown}
+                    disabled={formData.skills.length >= maxNoOfSkills}
                   />
-
-                  <div className="flex flex-wrap gap-2">
-                    {formData?.skills?.map((skill) => (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {formData.skills.map((skill) => (
                       <Badge
                         key={skill}
                         variant="outline"
@@ -436,29 +395,20 @@ export function InterviewSetupForm({
               ) : (
                 <div className="relative">
                   {formData.jobDescription.trim() && (
-                    <span className="absolute right-0 -top-6 text-xs sm:text-sm font-normal flex gap-1 items-center self-end">
-                      {maxJDLength - formData.jobDescription.length}
-                      <Tooltip>
-                        <TooltipTrigger className="h-3 w-3 text-xs bg-[#3B64F6] text-white rounded-full font-bold cursor-pointer ">
-                          i
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          JD Should be under 999 letters.
-                        </TooltipContent>
-                      </Tooltip>
-                    </span>
+                    <RemainingLength
+                      currentLength={formData.jobDescription.length}
+                      maxLength={maxJDLength}
+                      message="JD Should be under 99 - 999 letters."
+                      position="absolute right-0 -top-6"
+                    />
                   )}
                   <Textarea
                     ref={textareaRef}
-                    id="jobDescription"
                     name="jobDescription"
-                    placeholder={
-                      isDomainSpecific
-                        ? "Paste the detailed job description including responsibilities and required skills..."
-                        : "Paste the job description here..."
-                    }
+                    placeholder="Paste the job description here..."
                     value={formData.jobDescription}
                     onChange={handleChange}
+                    minLength={minJDLength}
                     maxLength={maxJDLength}
                     className="min-h-[150px] px-3 py-2"
                     required
@@ -473,7 +423,7 @@ export function InterviewSetupForm({
                   (formData.inputType === "skills-based" &&
                     formData.skills.length === 0) ||
                   (formData.inputType === "job-description" &&
-                    formData.jobDescription === "") ||
+                    formData.jobDescription.length < minJDLength) ||
                   loading
                 }
               >
@@ -486,3 +436,27 @@ export function InterviewSetupForm({
     </div>
   );
 }
+
+const RemainingLength = ({
+  currentLength,
+  maxLength,
+  message,
+  position = "text-xs sm:text-sm font-normal flex gap-1 items-center",
+}: {
+  currentLength: number;
+  maxLength: number;
+  message: string;
+  position?: string;
+}) => (
+  <span className={position}>
+    {maxLength - currentLength}
+    <Tooltip>
+      <TooltipTrigger className="h-3 w-3 text-xs bg-[#3B64F6] text-white rounded-full font-bold cursor-pointer">
+        i
+      </TooltipTrigger>
+      <TooltipContent>
+        <ReactMarkdown>{message}</ReactMarkdown>
+      </TooltipContent>
+    </Tooltip>
+  </span>
+);

@@ -10,6 +10,9 @@ import Image from "next/image";
 import { Textarea } from "./ui/textarea";
 import { Pause } from "lucide-react";
 
+const maxAnswerLength = 1499;
+const minAnswerLength = 140;
+
 export function ResponseInput({
   onSubmitText,
   onStartRecording,
@@ -157,7 +160,7 @@ export function ResponseInput({
           </Button>
         </div>
       ) : (
-        <div className="flex-1 flex items-center h-full gap-4 rounded-2xl overflow-hidden shadow-md">
+        <div className="flex-1 flex items-center h-full gap-2 rounded-2xl overflow-hidden shadow-md">
           <Textarea
             placeholder={
               isAISpeaking ? "AI is speaking..." : "Type your response here..."
@@ -166,9 +169,14 @@ export function ResponseInput({
             value={textResponse}
             onChange={(e) => setTextResponse(e.target.value)}
             onPaste={(e) => e.preventDefault()}
+            minLength={minAnswerLength}
+            maxLength={maxAnswerLength}
             className="ml-2 text-base flex-1 font-medium border-none outline-none shadow-none placeholder:text-[#919ECD] px-2 py-3 resize-none h-[40px]"
             disabled={isRecording || isAISpeaking}
           />
+          {textResponse.trim() && (
+            <p className="text-xs">({maxAnswerLength - textResponse.length})</p>
+          )}
           <Button
             onClick={handleStartRecording}
             variant="outline"
@@ -197,7 +205,11 @@ export function ResponseInput({
           </Button>
           <Button
             onClick={isRecording ? handleStopRecording : handleSubmit}
-            disabled={isAISpeaking || (!isRecording && !textResponse.trim())}
+            disabled={
+              isAISpeaking ||
+              (!isRecording && !textResponse.trim()) ||
+              textResponse.length < minAnswerLength
+            }
             className="w-12 h-12 rounded-none cursor-pointer bg-[#3B64F6]"
           >
             {isRecording ? (
@@ -213,6 +225,12 @@ export function ResponseInput({
           </Button>
         </div>
       )}
+      {isAISpeaking ||
+        (textResponse.length < minAnswerLength && (
+          <p className="text-xs w-full text-center">
+            Answer/Response should be atleast 140 character long
+          </p>
+        ))}
     </div>
   );
 }

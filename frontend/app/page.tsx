@@ -60,8 +60,6 @@ export default function AIInterviewSetup() {
       speakTextWithTTS(data.question);
     } catch (error) {
       console.error("Error starting interview:", error);
-    } finally {
-      setLoading(false);
     }
   };
 

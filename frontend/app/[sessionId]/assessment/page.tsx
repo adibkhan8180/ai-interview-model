@@ -29,6 +29,7 @@ function FinalAssessment() {
     setInterviewStarted,
     questionCount,
     maxQuestions,
+    stopSpeaking,
   } = useInterviewStore();
   const [loading, setLoading] = useState(true);
   const [openDialog, setOpenDialog] = useState<boolean>(false);
@@ -36,7 +37,7 @@ function FinalAssessment() {
   const getFinalAssessment = useCallback(async () => {
     if (!sessionId) {
       console.error("Session ID not found.");
-      setLoading(false); // Handle edge case where sessionId is missing
+      setLoading(false);
       return;
     }
 
@@ -67,6 +68,7 @@ function FinalAssessment() {
     resetInterviewStore();
     resetInterviewSetup();
     setInterviewStarted(false);
+    stopSpeaking();
     router.replace("/");
   };
 

@@ -108,7 +108,7 @@ export function InterviewSetupForm({
     const handleKeyDown = (event: KeyboardEvent) => {
       const { key, shiftKey } = event;
 
-      if (key === "Enter" && !shiftKey) {
+      if (key === "Enter") {
         event.preventDefault();
 
         if (steps === 1) {
@@ -137,6 +137,9 @@ export function InterviewSetupForm({
             formData.jobDescription.trim() !== "";
 
           if (isSkillsValid || isJobDescriptionValid) {
+            if (shiftKey && key === "Enter") {
+              handleStartInterview();
+            }
             // handleStartInterview();  //Todoauto start if trying to enter skills
           } else {
             inputRef.current?.focus();
@@ -174,7 +177,9 @@ export function InterviewSetupForm({
                   ? "bg-[#3B64F6] text-white border-[#3B64F6]"
                   : "border-[#E2E8F0] text-gray-400"
               }`}
-              onClick={() => setSteps(step)}
+              onClick={() => {
+                if (steps > step) setSteps(step);
+              }}
             >
               {step}
             </div>
@@ -354,8 +359,8 @@ export function InterviewSetupForm({
 
               {formData.inputType === "skills-based" ? (
                 <div className="space-y-0 relative">
-                  <p className="text-xs flex justify-between h-4">
-                    (Enter maximum 5 skills.)
+                  <p className="text-xs flex justify-between h-4 ml-1">
+                    (Type and Enter a skill. Enter maximum 5 skills.)
                     {skill && (
                       <RemainingLength
                         currentLength={skill.length}
@@ -427,7 +432,14 @@ export function InterviewSetupForm({
                   loading
                 }
               >
-                {loading ? "Starting Interview..." : "Start Interview"}
+                {loading ? (
+                  "Starting Interview..."
+                ) : (
+                  <p>
+                    Start Interview{" "}
+                    <span className="text-xs font-normal">(Shift + Enter)</span>
+                  </p>
+                )}
               </Button>
             </div>
           )}

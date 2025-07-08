@@ -170,12 +170,16 @@ export default function AIInterviewSystem() {
                                 className="flex items-center gap-2 px-2 py-1 h-fit text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition cursor-pointer"
                                 onClick={stopSpeaking}
                               >
-                                <Image
-                                  src="/assets/svg/pause.svg"
-                                  alt="Pause AI Audio"
-                                  width={16}
-                                  height={16}
-                                />
+                                <div className="relative w-4 h-4 flex items-center justify-center">
+                                  <Image
+                                    src="/assets/svg/pause.svg"
+                                    alt="Pause AI Audio"
+                                    width={16}
+                                    height={16}
+                                    className="z-10"
+                                  />
+                                  <div className="absolute w-6 h-6 bg-[#3B64F6] opacity-50 rounded-full animate-ping" />
+                                </div>
                                 <span>Skip Audio</span>
                               </Button>
                             ) : (

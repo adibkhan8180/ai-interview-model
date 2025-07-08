@@ -6,9 +6,12 @@ import { getNextQuestionAPI, reviseAnswerAPI } from "@/lib/api";
 import { useInterviewStore } from "@/lib/store/interviewStore";
 import { useParams, useRouter } from "next/navigation";
 import { ResponseInputProps } from "@/types";
-import { Input } from "./ui/input";
 import Image from "next/image";
 import { Textarea } from "./ui/textarea";
+import { Pause } from "lucide-react";
+
+const maxAnswerLength = 1499;
+const minAnswerLength = 140;
 
 export function ResponseInput({
   onSubmitText,
@@ -18,9 +21,10 @@ export function ResponseInput({
   isAISpeaking,
   speakTextWithTTS,
   isLatestFeedback,
+  textResponse,
+  setTextResponse,
 }: ResponseInputProps) {
   const router = useRouter();
-  const [textResponse, setTextResponse] = useState("");
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const {
@@ -30,6 +34,9 @@ export function ResponseInput({
     incrementQuestionCount,
     maxQuestions,
   } = useInterviewStore();
+
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const params = useParams();
   const sessionId = params?.sessionId as string;
@@ -76,11 +83,36 @@ export function ResponseInput({
     }
   }, [sessionId, incrementQuestionCount, setConversation, speakTextWithTTS]);
 
+  const handleStartRecording = () => {
+    if (isRecording) {
+      return;
+    }
+    setCountdown(120);
+    onStartRecording();
+
+    timerRef.current = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev && prev > 1) {
+          return prev - 1;
+        } else {
+          handleStopRecording();
+          return 0;
+        }
+      });
+    }, 1000);
+  };
+
+  const handleStopRecording = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    setCountdown(null);
+    onStopRecording();
+  };
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Enter" && !event.shiftKey) {
         event.preventDefault();
-        if (textResponse.trim()) {
+        if (textResponse.trim() && textResponse.length > minAnswerLength) {
           handleSubmit();
         } else {
           event.preventDefault();
@@ -114,7 +146,7 @@ export function ResponseInput({
           <Button
             onClick={() => {
               if (maxQuestions === questionCount) {
-                router.push(`/${sessionId}/assessment`);
+                router.replace(`/${sessionId}/assessment`);
               } else {
                 getNextQuestion();
               }
@@ -128,53 +160,87 @@ export function ResponseInput({
           </Button>
         </div>
       ) : (
-        <div className="flex-1 flex items-center h-full gap-4 rounded-2xl overflow-hidden shadow-md">
-          <Textarea
-            placeholder={
-              isAISpeaking ? "AI is speaking..." : "Type your response here..."
-            }
-            ref={inputRef}
-            value={textResponse}
-            onChange={(e) => setTextResponse(e.target.value)}
-            className="ml-2 text-base flex-1 font-medium border-none outline-none shadow-none placeholder:text-[#919ECD] px-2 py-3 resize-none h-[40px]"
-            disabled={isRecording || isAISpeaking}
-          />
-          <Button
-            onClick={onStartRecording}
-            variant="outline"
-            disabled={isAISpeaking || isRecording}
-            className="rounded-full cursor-pointer h-fit py-1 px-2"
-          >
-            <Image
-              src={
-                isRecording
-                  ? "/assets/gif/audioWave.gif"
-                  : "/assets/svg/audioPulse.svg"
+        <>
+          <div className="flex-1 flex items-center h-full gap-2 rounded-2xl overflow-hidden shadow-md">
+            <Textarea
+              placeholder={
+                isAISpeaking
+                  ? "AI is speaking..."
+                  : "Type your response here..."
               }
-              alt="audio_pulse"
-              height={16}
-              width={16}
+              ref={inputRef}
+              value={textResponse}
+              onChange={(e) => setTextResponse(e.target.value)}
+              onPaste={(e) => e.preventDefault()}
+              minLength={minAnswerLength}
+              maxLength={maxAnswerLength}
+              className="ml-2 text-base flex-1 font-medium border-none outline-none shadow-none placeholder:text-[#919ECD] px-2 py-3 resize-none h-[40px]"
+              disabled={isRecording || isAISpeaking}
             />
-            <p className="text-sm font-medium text-[#3B64F6]">
-              {isRecording ? "Listening..." : "Voice"}
-            </p>
-          </Button>
-          <Button
-            onClick={isRecording ? onStopRecording : handleSubmit}
-            disabled={
-              (isRecording && isAISpeaking) ||
-              (!isRecording && (!textResponse.trim() || isAISpeaking))
-            }
-            className="w-12 h-12 rounded-none cursor-pointer bg-[#3B64F6]"
-          >
-            <Image
-              src="/assets/svg/send.svg"
-              alt="send"
-              height={20}
-              width={20}
-            />
-          </Button>
-        </div>
+            {textResponse.trim() && (
+              <p className="text-xs">
+                ({maxAnswerLength - textResponse.length})
+              </p>
+            )}
+            <Button
+              onClick={handleStartRecording}
+              variant="outline"
+              disabled={isAISpeaking}
+              className="rounded-full cursor-pointer h-fit py-1 px-2"
+            >
+              <Image
+                src={
+                  isRecording
+                    ? "/assets/gif/audioWave.gif"
+                    : "/assets/svg/audioPulse.svg"
+                }
+                alt="audio_pulse"
+                height={16}
+                width={16}
+              />
+              <p className="text-sm font-medium text-[#3B64F6]">
+                {isRecording
+                  ? `${Math.floor((countdown || 0) / 60)
+                      .toString()
+                      .padStart(2, "0")}:${((countdown || 0) % 60)
+                      .toString()
+                      .padStart(2, "0")}`
+                  : "Voice"}
+              </p>
+            </Button>
+            <Button
+              onClick={isRecording ? handleStopRecording : handleSubmit}
+              disabled={
+                isAISpeaking ||
+                (!isRecording && !textResponse.trim()) ||
+                textResponse.length < minAnswerLength
+              }
+              className="w-12 h-12 rounded-none cursor-pointer bg-[#3B64F6]"
+            >
+              {isRecording ? (
+                <Pause className="w-4 h-4 mr-2" />
+              ) : (
+                <Image
+                  src="/assets/svg/send.svg"
+                  alt="send"
+                  height={20}
+                  width={20}
+                />
+              )}
+            </Button>
+          </div>
+          {isAISpeaking ||
+            (textResponse.length < minAnswerLength && (
+              <p className="text-xs text-muted-foreground w-full text-center mt-1">
+                Answer/Response should be atleast 140 character long
+              </p>
+            ))}
+        </>
+      )}
+      {isAISpeaking && (
+        <p className="text-xs text-muted-foreground w-full text-center mt-1">
+          You can skip the audio to proceed!
+        </p>
       )}
     </div>
   );

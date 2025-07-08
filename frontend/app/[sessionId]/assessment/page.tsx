@@ -14,6 +14,7 @@ import { submitFinalInterviewAPI } from "@/lib/api";
 import { downloadFeedbackPdf } from "@/lib/downloadAssessment";
 import { Skeleton } from "@/components/ui/skeleton";
 import Image from "next/image";
+import { ConfirmDialog } from "../ConfirmDialog";
 
 function FinalAssessment() {
   const router = useRouter();
@@ -28,30 +29,35 @@ function FinalAssessment() {
     setInterviewStarted,
     questionCount,
     maxQuestions,
+    stopSpeaking,
   } = useInterviewStore();
   const [loading, setLoading] = useState(true);
+  const [openDialog, setOpenDialog] = useState<boolean>(false);
 
   const getFinalAssessment = useCallback(async () => {
     if (!sessionId) {
       console.error("Session ID not found.");
+      setLoading(false);
       return;
     }
+
     try {
       const overallData = await submitFinalInterviewAPI(sessionId);
-      if (overallData.status && overallData.status === "error") {
+
+      if (
+        !overallData?.overallFeedback ||
+        (overallData.status && overallData.status === "error")
+      ) {
         console.error("Error fetching final assessment data:", overallData);
         return;
       }
 
       console.log("final assessment data", overallData);
       setInterviewComplete(true);
-      setOverallFeedback(overallData.overallFeedback);
-
-      // uncomment this line if  you want to use TTS for overall feedback
-      // speakTextWithTTS(`${JSON.stringify(overallData.overallFeedback)}`);
+      setOverallFeedback(overallData?.overallFeedback);
+      setLoading(false);
     } catch (error) {
       console.log("Error getting next question:", error);
-    } finally {
       setLoading(false);
     }
   }, [sessionId, setInterviewComplete, setOverallFeedback, setLoading]);
@@ -64,12 +70,28 @@ function FinalAssessment() {
     resetInterviewStore();
     resetInterviewSetup();
     setInterviewStarted(false);
+    stopSpeaking();
     router.replace("/");
   };
 
   const handleDownload = () => {
     downloadFeedbackPdf(overallFeedback);
   };
+
+  useEffect(() => {
+    history.pushState(null, "", window.location.href);
+
+    const handlePopState = () => {
+      setOpenDialog(true);
+      history.pushState(null, "", window.location.href);
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -270,6 +292,7 @@ function FinalAssessment() {
           Start New Interview
         </button>
       </div>
+      <ConfirmDialog openDialogue={openDialog} setOpenDialog={setOpenDialog} />
     </div>
   );
 }

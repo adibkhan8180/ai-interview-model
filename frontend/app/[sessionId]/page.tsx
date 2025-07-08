@@ -33,10 +33,11 @@ export default function AIInterviewSystem() {
   const params = useParams();
   const sessionId = params?.sessionId as string;
   const [openDialog, setOpenDialog] = useState<boolean>(false);
+  const [textResponse, setTextResponse] = useState("");
 
   const { startRecording, stopRecording } = AudioRecorder({
     onTranscription: (text) => {
-      handleUserResponse(text);
+      setTextResponse(text);
     },
     isRecording,
     onRecordingStart: () => setIsRecording(true),
@@ -68,6 +69,7 @@ export default function AIInterviewSystem() {
     scrollRef?.current?.scrollIntoView({ behavior: "smooth" });
   }, [conversation, overallFeedback]);
 
+  // TODO: default browser popup on refresh
   useEffect(() => {
     history.pushState(null, "", window.location.href);
 
@@ -76,10 +78,18 @@ export default function AIInterviewSystem() {
       history.pushState(null, "", window.location.href);
     };
 
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+
+      setOpenDialog(true);
+    };
+
     window.addEventListener("popstate", handlePopState);
+    window.addEventListener("beforeunload", handleBeforeUnload);
 
     return () => {
       window.removeEventListener("popstate", handlePopState);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, []);
 
@@ -157,15 +167,19 @@ export default function AIInterviewSystem() {
                             (audioInstance ? (
                               <Button
                                 variant="ghost"
-                                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition"
+                                className="flex items-center gap-2 px-2 py-1 h-fit text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition cursor-pointer"
                                 onClick={stopSpeaking}
                               >
-                                <Image
-                                  src="/assets/svg/pause.svg"
-                                  alt="Pause AI Audio"
-                                  width={16}
-                                  height={16}
-                                />
+                                <div className="relative w-4 h-4 flex items-center justify-center">
+                                  <Image
+                                    src="/assets/svg/pause.svg"
+                                    alt="Pause AI Audio"
+                                    width={16}
+                                    height={16}
+                                    className="z-10"
+                                  />
+                                  <div className="absolute w-6 h-6 bg-[#3B64F6] opacity-50 rounded-full animate-ping" />
+                                </div>
                                 <span>Skip Audio</span>
                               </Button>
                             ) : (
@@ -203,7 +217,7 @@ export default function AIInterviewSystem() {
             </div>
           </div>
 
-          <div className="px-5 pb-5">
+          <div className="px-5 pb-2">
             {!interviewComplete && (
               <ResponseInput
                 onSubmitText={handleUserResponse}
@@ -217,6 +231,8 @@ export default function AIInterviewSystem() {
                     ? conversation[conversation.length - 1]?.isFeedback ?? false
                     : false
                 }
+                textResponse={textResponse}
+                setTextResponse={setTextResponse}
               />
             )}
           </div>

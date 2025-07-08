@@ -106,70 +106,72 @@ function FinalAssessment() {
   }
 
   return (
-    <div className="bg-[#F5F8FF] flex flex-col items-center h-full w-screen pt-32">
+    <div className="bg-[#F5F8FF] flex flex-col items-center w-screen pt-4 sm:pt-32 p-2">
       <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex justify-between">
-          <div className="flex items-center space-x-2">
+        <div className="flex flex-col sm:flex-row gap-4 items-center sm:justify-between">
+          <div className="flex  items-center space-x-2">
             <Image
               src="/assets/svg/Checklist.svg"
               alt="Wave SVG"
               width={32}
               height={32}
             />
-            <h1 className="text-3xl">Interview Assessment</h1>
+            <h1 className="text-xl sm:text-3xl">Interview Assessment</h1>
           </div>
           <div className="flex items-center space-x-2">
             <CircleCheck className="w-6 h-6 text-white fill-[#47B881]" />
-            <h1 className="text-xl font-medium">
+            <h1 className="text-base sm:text-xl font-medium">
               Progress: Question {questionCount} of {maxQuestions}
             </h1>
           </div>
         </div>
 
-        <div className="border-2 border-[#E2E8F0] bg-white py-9 px-4 rounded-3xl">
-          <div className="px-4 flex justify-between">
+        <div className="border-2 border-[#E2E8F0] bg-white py-3 sm:py-9 px-2 sm:px-4 rounded-3xl">
+          <div className="px-4 flex items-center justify-between">
             <p className="text-xl leading-relaxed">
-              <span className="text-[#2E2E2E]">Overall Score: </span>
-              <span className="text-[#3B64F6]">
+              <span className="text-[#2E2E2E] text-sm sm:text-base">
+                Overall Score:{" "}
+              </span>
+              <span className="text-[#3B64F6] text-sm sm:text-base">
                 {overallFeedback?.overall_score}/100%
               </span>
             </p>
             {overallFeedback?.response_depth && (
-              <div className="text-[16px] text-center flex items-center juctify-center font-medium text-[#47B881] border border-[#47B881] rounded-full px-3.5 space-x-2">
+              <div className="text-sm sm:text-base text-center flex items-center juctify-center font-medium text-[#47B881] border border-[#47B881] rounded-full px-2 sm:px-3.5 space-x-2">
                 <span className="text-3xl">•</span>
                 <p>{overallFeedback?.response_depth}</p>
               </div>
             )}
           </div>
 
-          <div className="bg-[#F7F9FC] rounded-2xl p-4 mt-9 mb-6">
-            <p className="text-[16px] font-semibold leading-relaxed text-[#4A5A75]">
+          <div className="bg-[#F7F9FC] rounded-2xl px-4 mt-2 sm:mt-9 mb-2 sm:mb-6">
+            <p className="text-sm sm:text-base font-semibold leading-relaxed text-[#4A5A75]">
               Summary:
             </p>
-            <p className="text-[16px] font-medium leading-relaxed text-[#4A5A75]">
+            <p className="text-sm sm:text-base font-medium leading-relaxed text-[#4A5A75]">
               {overallFeedback?.summary}
             </p>
           </div>
 
-          <div className="px-4 space-y-4">
-            <p className="text-[16px] font-medium leading-relaxed text-[#2E2E2E]">
+          <div className="px-4 space-y-2 sm:space-y-4">
+            <p className="text-sm sm:text-base font-medium leading-relaxed text-[#2E2E2E]">
               💡 Clarity of Motivation:
               {overallFeedback?.coaching_scores?.clarity_of_motivation}
             </p>
-            <p className="text-[16px] font-medium leading-relaxed text-[#2E2E2E]">
+            <p className="text-sm sm:text-base font-medium leading-relaxed text-[#2E2E2E]">
               🎯 Career Goal Alignment:
               {overallFeedback?.coaching_scores?.career_goal_alignment}
             </p>
-            <p className="text-[16px] font-medium leading-relaxed text-[#2E2E2E]">
+            <p className="text-sm sm:text-base font-medium leading-relaxed text-[#2E2E2E]">
               📖 Specificity of Learning:
               {overallFeedback?.coaching_scores?.specificity_of_learning}
             </p>
           </div>
         </div>
 
-        <div className="border-2 border-[#E2E8F0] bg-white py-9 px-8 rounded-3xl">
-          <div className="border-b border-[#E2E8F0] border-dashed pb-4">
-            <p className="text-xl leading-relaxed text-[#2E2E2E] text-center">
+        <div className="border-2 border-[#E2E8F0] bg-white pt-3 sm:py-9 px-2 sm:px-8 rounded-3xl">
+          <div className="border-b border-[#E2E8F0] border-dashed  sm:pb-4">
+            <p className="text-lg sm:text-xl leading-relaxed text-[#2E2E2E] text-center">
               📋 Question-wise Feedback
             </p>
           </div>
@@ -187,16 +189,16 @@ function FinalAssessment() {
                     <AccordionItem
                       value={index.toString()}
                       key={index}
-                      className="bg-[#F7F9FC] mt-6 rounded-3xl px-6"
+                      className="bg-[#F7F9FC] mt-2 sm:mt-6 rounded-3xl px-2 sm:px-6"
                     >
-                      <AccordionTrigger>
+                      <AccordionTrigger className="text-sm font-medium">
                         Q{index + 1}: {section.question}
                       </AccordionTrigger>
-                      <AccordionContent className="flex flex-col gap-4 text-balance">
+                      <AccordionContent className="flex flex-col gap-2 sm:gap-4 text-balance">
                         <div className="flex items-start space-x-3">
                           <p className="text-sm leading-relaxed text-[#2E2E2E]">
                             <span className="font-semibold">
-                              🗨️ Your Answer:{" "}
+                              🗨️ Your Answer:&nbsp;
                             </span>
                             {section.response}
                           </p>
@@ -215,7 +217,7 @@ function FinalAssessment() {
                                 (item: string, idx: number) => (
                                   <span
                                     key={`strength-${idx}`}
-                                    className="bg-green-100 text-green-800 px-3 py-1 text-xs rounded-full font-medium"
+                                    className="bg-green-100 text-green-800 sm:px-3 py-1 text-xs rounded-full font-medium"
                                   >
                                     {item}
                                   </span>
@@ -227,13 +229,13 @@ function FinalAssessment() {
 
                         {section.improvements.length > 0 && (
                           <div className="flex items-start space-x-3 mb-2">
-                            <p>⚠️ Improvements: </p>
+                            <p className="text-nowrap">⚠️ Improvements: </p>
                             <div className="flex flex-wrap gap-2">
                               {section.improvements?.map(
                                 (item: string, idx: number) => (
                                   <span
                                     key={`improvement-${idx}`}
-                                    className="bg-red-100 text-red-800 px-3 py-1 text-xs rounded-full font-medium"
+                                    className=" text-red-800 sm:px-3 py-1 text-xs font-medium"
                                   >
                                     {item}
                                   </span>
@@ -269,7 +271,7 @@ function FinalAssessment() {
           </div>
         </div>
 
-        <div className="border-2 border-[#E2E8F0] bg-white py-9 px-8 rounded-3xl">
+        <div className="border-2 border-[#E2E8F0] bg-white py-3 sm:py-9 px-2 sm:px-8 rounded-3xl">
           <div className="flex items-start space-x-3">
             <CheckCircle className="w-4 h-4 text-purple-600 mt-1 flex-shrink-0" />
             <p className="text-sm leading-relaxed">

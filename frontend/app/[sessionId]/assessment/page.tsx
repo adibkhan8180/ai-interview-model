@@ -44,15 +44,17 @@ function FinalAssessment() {
     try {
       const overallData = await submitFinalInterviewAPI(sessionId);
 
-      if (overallData.status && overallData.status === "error") {
+      if (
+        !overallData?.overallFeedback ||
+        (overallData.status && overallData.status === "error")
+      ) {
         console.error("Error fetching final assessment data:", overallData);
-        setLoading(false);
         return;
       }
 
       console.log("final assessment data", overallData);
       setInterviewComplete(true);
-      setOverallFeedback(overallData.overallFeedback);
+      setOverallFeedback(overallData?.overallFeedback);
       setLoading(false);
     } catch (error) {
       console.log("Error getting next question:", error);

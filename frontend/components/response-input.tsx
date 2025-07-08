@@ -112,7 +112,7 @@ export function ResponseInput({
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Enter" && !event.shiftKey) {
         event.preventDefault();
-        if (textResponse.trim()) {
+        if (textResponse.trim() && textResponse.length > minAnswerLength) {
           handleSubmit();
         } else {
           event.preventDefault();

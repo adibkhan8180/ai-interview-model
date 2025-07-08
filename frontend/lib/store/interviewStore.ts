@@ -70,9 +70,11 @@ export const useInterviewStore = create<InterviewStoreState>()(
       stopSpeaking: () => {
         const { audioInstance, browserUtterance } = get();
 
-        if (audioInstance) {
+        if (audioInstance instanceof HTMLAudioElement) {
           audioInstance.pause();
           audioInstance.currentTime = 0;
+          set({ audioInstance: null });
+        } else {
           set({ audioInstance: null });
         }
 
@@ -84,7 +86,9 @@ export const useInterviewStore = create<InterviewStoreState>()(
         set({ isAISpeaking: false });
       },
 
-      resetStore: () => set({ ...initialState }),
+      resetStore: () => {
+        set({ ...initialState });
+      },
     }),
     {
       name: "interview-storage",

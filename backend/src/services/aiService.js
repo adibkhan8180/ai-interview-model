@@ -18,7 +18,6 @@ import {
   finalFeedbackPrompt,
 } from "../utils/prompts.js";
 import { z } from "zod";
-import { StructuredOutputParser } from "@langchain/core/output_parsers";
 import { jsonrepair } from "jsonrepair";
 
 export class AIService {
@@ -147,8 +146,9 @@ export class AIService {
     });
   }
 
-  async generateFeedback(studentAnswer, chatHistory) {
-    const feedbackChain = feedbackPrompt.pipe(this.model);
+  async generateFeedback(studentAnswer, chatHistory, interviewType) {
+    const prompt = feedbackPrompt(interviewType);
+    const feedbackChain = prompt.pipe(this.model);
     return await feedbackChain.invoke({
       input: studentAnswer,
       chat_history: chatHistory,

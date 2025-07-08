@@ -20,9 +20,10 @@ interface Props {
 export function ConfirmDialog({ openDialogue, setOpenDialog }: Props) {
   const router = useRouter();
   const { resetForm: resetInterviewSetup } = useFormStore();
-  const { resetStore: resetInterviewStore } = useInterviewStore();
+  const { resetStore: resetInterviewStore, stopSpeaking } = useInterviewStore();
 
   const startNewInterview = async () => {
+    stopSpeaking();
     resetInterviewStore();
     resetInterviewSetup();
     router.replace("/");
@@ -33,14 +34,19 @@ export function ConfirmDialog({ openDialogue, setOpenDialog }: Props) {
         <AlertDialogHeader>
           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            Your interview session isn’t finished yet. Leaving now will erase
-            your progress. Are you sure you want to go back?
+            Your interview session isn&apos;t finished yet. Leaving now will
+            erase your progress. Are you sure you want to go back?
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={startNewInterview}>
-            Continue
+          <AlertDialogCancel className="cursor-pointer">
+            Stay on page
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={startNewInterview}
+            className="cursor-pointer"
+          >
+            Leave page
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

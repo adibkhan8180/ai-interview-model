@@ -56,12 +56,10 @@ export default function AIInterviewSetup() {
         isFeedback: data.isFeedback ?? false,
       });
 
-      router.push(`/${data.sessionId}`);
+      router.replace(`/${data.sessionId}`);
       speakTextWithTTS(data.question);
     } catch (error) {
       console.error("Error starting interview:", error);
-    } finally {
-      setLoading(false);
     }
   };
 

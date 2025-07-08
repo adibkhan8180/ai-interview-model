@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -98,11 +98,11 @@ export function InterviewSetupForm({
     }));
   };
 
-  const handleStartInterview = () => {
+  const handleStartInterview = useCallback(() => {
     saveFormData(formData);
     onSubmit(formData);
     setInterviewStarted(true);
-  };
+  }, [saveFormData, onSubmit, setInterviewStarted, formData]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {

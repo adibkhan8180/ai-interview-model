@@ -46,7 +46,7 @@ export function ResponseInput({
       onSubmitText(textResponse);
       setTextResponse("");
     }
-  }, [textResponse, onSubmitText]);
+  }, [textResponse, onSubmitText, setTextResponse]);
 
   const handleReviseQuestion = useCallback(async () => {
     setLoading(true);

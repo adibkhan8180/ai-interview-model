@@ -36,24 +36,25 @@ function FinalAssessment() {
   const getFinalAssessment = useCallback(async () => {
     if (!sessionId) {
       console.error("Session ID not found.");
+      setLoading(false); // Handle edge case where sessionId is missing
       return;
     }
+
     try {
       const overallData = await submitFinalInterviewAPI(sessionId);
+
       if (overallData.status && overallData.status === "error") {
         console.error("Error fetching final assessment data:", overallData);
+        setLoading(false);
         return;
       }
 
       console.log("final assessment data", overallData);
       setInterviewComplete(true);
       setOverallFeedback(overallData.overallFeedback);
-
-      // uncomment this line if  you want to use TTS for overall feedback
-      // speakTextWithTTS(`${JSON.stringify(overallData.overallFeedback)}`);
+      setLoading(false);
     } catch (error) {
       console.log("Error getting next question:", error);
-    } finally {
       setLoading(false);
     }
   }, [sessionId, setInterviewComplete, setOverallFeedback, setLoading]);

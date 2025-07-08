@@ -29,7 +29,7 @@ export function FeedbackDisplay({
           (audioInstance ? (
             <Button
               variant="ghost"
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition"
+              className="flex items-center gap-2 px-2 py-1 h-fit text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition cursor-pointer"
               onClick={stopSpeaking}
             >
               <Image

@@ -11,7 +11,7 @@ export const startInterviewSchema = Joi.object({
     }),
     skills: Joi.when('inputType', {
         is: 'skills-based',
-        then: Joi.array().items(Joi.string()).min(3).max(20).required(),
+        then: Joi.array().items(Joi.string()).min(3).max(5).required(),
         otherwise: Joi.optional(),
     }),
     interviewType: Joi.string().valid('HR', 'domain-specific').required(),

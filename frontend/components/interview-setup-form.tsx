@@ -16,7 +16,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useFormStore } from "@/lib/store/formStore";
-import { InterviewSetupData } from "@/types";
+import { DomainProps, InterviewSetupData } from "@/types";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "./ui/badge";
 import { useInterviewStore } from "@/lib/store/interviewStore";
@@ -26,6 +26,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import ReactMarkdown from "react-markdown";
+import { getDomains, getRolesByDomainId } from "@/lib/jobsApi";
 
 interface InterviewSetupFormProps {
   onSubmit: (data: InterviewSetupData) => void;
@@ -54,6 +55,10 @@ export function InterviewSetupForm({
 
   const [skill, setSkill] = useState("");
   const [steps, setSteps] = useState(1);
+  const [domains, setDomains] = useState<DomainProps[]>([]);
+  const [selectedDomainId, setSelectedDomainId] = useState<string | null>(null);
+  const [jobRoles, setJobRoles] = useState<string[]>([]);
+
   const { saveFormData } = useFormStore();
   const { setInterviewStarted } = useInterviewStore();
 
@@ -171,6 +176,42 @@ export function InterviewSetupForm({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [formData, steps, handleStartInterview]);
 
+  useEffect(() => {
+    const getAllDomains = async () => {
+      if (formData.interviewCategory === "domain-specific") {
+        const response = await getDomains();
+
+        if (!response.success) {
+          console.error(
+            "failed to fetch the domains, you can try again by refreshing"
+          );
+        }
+
+        setDomains(response.domains);
+        return;
+      }
+    };
+
+    getAllDomains();
+  }, [formData.interviewCategory]);
+
+  useEffect(() => {
+    const getJobRoleByDomain = async () => {
+      if (formData.domain && selectedDomainId) {
+        const response = await getRolesByDomainId(selectedDomainId);
+
+        if (!response.success) {
+          console.error("failed to load job roles, try again by refreshing");
+        }
+
+        setJobRoles(response?.jobRoles);
+        return;
+      }
+    };
+
+    getJobRoleByDomain();
+  }, [formData.domain, selectedDomainId]);
+
   if (steps !== 1 && steps !== 2 && steps !== 3) return null;
 
   return (
@@ -286,9 +327,11 @@ export function InterviewSetupForm({
                   </Label>
                   <Select
                     value={formData.domain}
-                    onValueChange={(value) =>
-                      handleSelectChange("domain", value)
-                    }
+                    onValueChange={(value) => {
+                      const selected = domains.find((d) => d.domain === value);
+                      setSelectedDomainId(selected ? selected.id : null);
+                      handleSelectChange("domain", value);
+                    }}
                     required={isDomainSpecific}
                   >
                     <SelectTrigger
@@ -297,9 +340,12 @@ export function InterviewSetupForm({
                     >
                       <SelectValue placeholder="eg. Software Developer" />
                     </SelectTrigger>
-                    <SelectContent className="w-full">
-                      <SelectItem value="tech">tech</SelectItem>
-                      <SelectItem value="CA">CA</SelectItem>
+                    <SelectContent className="w-full max-h-[500px]">
+                      {domains?.map((domain) => (
+                        <SelectItem value={domain.domain} key={domain.id}>
+                          {domain.domain}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -342,8 +388,11 @@ export function InterviewSetupForm({
                     <SelectValue placeholder="eg. Full Stack Developer" />
                   </SelectTrigger>
                   <SelectContent className="w-full">
-                    <SelectItem value="full">Full stack</SelectItem>
-                    <SelectItem value="backend">backend</SelectItem>
+                    {jobRoles?.map((role, i) => (
+                      <SelectItem value={role} key={`role_${i}`}>
+                        {role}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -399,7 +448,7 @@ export function InterviewSetupForm({
               {formData.inputType === "skills-based" ? (
                 <div className="space-y-1 relative">
                   <p className="text-xs flex justify-between h-4 ml-1">
-                    (Enter maximum 5 skills.)
+                    (Enter 3 - 5 skills.)
                     {skill && (
                       <RemainingLength
                         currentLength={skill.length}

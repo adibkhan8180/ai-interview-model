@@ -16,7 +16,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useFormStore } from "@/lib/store/formStore";
-import { InterviewSetupData } from "@/types";
+import { DomainProps, InterviewSetupData } from "@/types";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "./ui/badge";
 import { useInterviewStore } from "@/lib/store/interviewStore";
@@ -26,6 +26,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import ReactMarkdown from "react-markdown";
+import { getDomains, getRolesByDomainId } from "@/lib/jobsApi";
 
 interface InterviewSetupFormProps {
   onSubmit: (data: InterviewSetupData) => void;
@@ -45,7 +46,7 @@ export function InterviewSetupForm({
   const [formData, setFormData] = useState<InterviewSetupData>({
     companyName: "",
     jobRole: "",
-    interviewCategory: "HR",
+    interviewCategory: "",
     domain: "",
     jobDescription: "",
     inputType: "skills-based",
@@ -54,12 +55,18 @@ export function InterviewSetupForm({
 
   const [skill, setSkill] = useState("");
   const [steps, setSteps] = useState(1);
+  const [domains, setDomains] = useState<DomainProps[]>([]);
+  const [selectedDomainId, setSelectedDomainId] = useState<string | null>(null);
+  const [jobRoles, setJobRoles] = useState<string[]>([]);
+
   const { saveFormData } = useFormStore();
   const { setInterviewStarted } = useInterviewStore();
 
   const inputRef = useRef<HTMLInputElement>(null);
-  const jobRoleRef = useRef<HTMLInputElement>(null);
+  const jobRoleRef = useRef<HTMLButtonElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const categoryRef = useRef<HTMLButtonElement>(null);
+  const domainRef = useRef<HTMLButtonElement>(null);
 
   const isDomainSpecific = formData.interviewCategory === "domain-specific";
 
@@ -112,20 +119,31 @@ export function InterviewSetupForm({
         event.preventDefault();
 
         if (steps === 1) {
-          if (inputRef.current && !formData.companyName.trim()) {
-            inputRef.current.focus();
-          } else if (jobRoleRef.current && !formData.jobRole.trim()) {
-            jobRoleRef.current.focus();
-          } else {
-            setSteps(2);
-          }
-        } else if (steps === 2) {
-          const isValidCategory =
+          const isCategoryValid =
             formData.interviewCategory &&
             (formData.interviewCategory !== "domain-specific" ||
               formData.domain);
 
-          if (isValidCategory) {
+          if (inputRef.current && !formData.companyName.trim()) {
+            inputRef.current.focus();
+          } else if (
+            categoryRef.current &&
+            !formData.interviewCategory.trim()
+          ) {
+            categoryRef.current.focus();
+          } else if (
+            domainRef.current &&
+            formData.interviewCategory === "domain-specific" &&
+            !formData.domain?.trim()
+          ) {
+            domainRef.current?.focus();
+          } else if (isCategoryValid) {
+            setSteps(2);
+          }
+        } else if (steps === 2) {
+          if (jobRoleRef.current && !formData.jobRole.trim()) {
+            jobRoleRef.current?.focus();
+          } else {
             setSteps(3);
           }
         } else if (steps === 3) {
@@ -141,7 +159,6 @@ export function InterviewSetupForm({
             if (shiftKey && key === "Enter") {
               handleStartInterview();
             }
-            // handleStartInterview();  //Todoauto start if trying to enter skills
           } else {
             inputRef.current?.focus();
             textareaRef.current?.focus();
@@ -159,10 +176,45 @@ export function InterviewSetupForm({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [formData, steps, handleStartInterview]);
 
+  useEffect(() => {
+    const getAllDomains = async () => {
+      if (formData.interviewCategory === "domain-specific") {
+        const response = await getDomains();
+
+        if (!response.success) {
+          console.error(
+            "failed to fetch the domains, you can try again by refreshing"
+          );
+        }
+
+        setDomains(response.domains);
+        return;
+      }
+    };
+
+    getAllDomains();
+  }, [formData.interviewCategory]);
+
+  useEffect(() => {
+    const getJobRoleByDomain = async () => {
+      if (formData.domain && selectedDomainId) {
+        const response = await getRolesByDomainId(selectedDomainId);
+
+        if (!response.success) {
+          console.error("failed to load job roles, try again by refreshing");
+        }
+
+        setJobRoles(response?.jobRoles);
+        return;
+      }
+    };
+
+    getJobRoleByDomain();
+  }, [formData.domain, selectedDomainId]);
+
   if (steps !== 1 && steps !== 2 && steps !== 3) return null;
 
   return (
-    // TODO: height should not be scrollable
     <div className="h-screen w-full flex flex-col items-center justify-center gap-4 sm:gap-6 px-3 sm:px-0">
       <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">
         <span className="text-[#3B64F6]">AI-Video</span> Interview Setup
@@ -239,37 +291,6 @@ export function InterviewSetupForm({
 
               <div>
                 <Label
-                  htmlFor="jobRole"
-                  className="text-sm mb-1 sm:mb-0 sm:text-base text-black capitalize"
-                >
-                  Job Role
-                </Label>
-                <Input
-                  id="jobRole"
-                  name="jobRole"
-                  ref={jobRoleRef}
-                  placeholder="eg. Frontend Developer"
-                  value={formData.jobRole}
-                  onChange={handleChange}
-                  required
-                  className="px-3 py-2 text-sm sm:text-base"
-                />
-              </div>
-
-              <Button
-                onClick={() => setSteps(2)}
-                className="text-base font-bold cursor-pointer"
-                disabled={formData.companyName.length < 3 || !formData.jobRole}
-              >
-                Next
-              </Button>
-            </div>
-          )}
-
-          {steps === 2 && (
-            <div className="flex flex-col gap-4">
-              <div>
-                <Label
                   htmlFor="interviewCategory"
                   className="text-sm mb-1 sm:mb-0 sm:text-base text-black capitalize"
                 >
@@ -281,7 +302,10 @@ export function InterviewSetupForm({
                     handleSelectChange("interviewCategory", value)
                   }
                 >
-                  <SelectTrigger className="w-full text-sm sm:text-base">
+                  <SelectTrigger
+                    className="w-full text-sm sm:text-base"
+                    ref={categoryRef}
+                  >
                     <SelectValue placeholder="eg. HR" />
                   </SelectTrigger>
                   <SelectContent className="w-full">
@@ -301,26 +325,82 @@ export function InterviewSetupForm({
                   >
                     Select Domain
                   </Label>
-                  <Input
-                    id="domain"
-                    name="domain"
-                    ref={inputRef}
-                    placeholder="e.g., Frontend Development, Machine Learning"
+                  <Select
                     value={formData.domain}
-                    onChange={handleChange}
+                    onValueChange={(value) => {
+                      const selected = domains.find((d) => d.domain === value);
+                      setSelectedDomainId(selected ? selected.id : null);
+                      handleSelectChange("domain", value);
+                    }}
                     required={isDomainSpecific}
-                    className="px-3 py-2 text-sm sm:text-base"
-                  />
+                  >
+                    <SelectTrigger
+                      className="w-full text-sm sm:text-base"
+                      ref={domainRef}
+                    >
+                      <SelectValue placeholder="eg. Software Developer" />
+                    </SelectTrigger>
+                    <SelectContent className="w-full max-h-[500px]">
+                      {domains?.map((domain) => (
+                        <SelectItem value={domain.domain} key={domain.id}>
+                          {domain.domain}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               )}
 
               <Button
-                onClick={() => setSteps(3)}
+                onClick={() => setSteps(2)}
                 className="text-base font-bold cursor-pointer"
                 disabled={
-                  !formData.interviewCategory ||
-                  (isDomainSpecific && !formData.domain)
+                  formData.companyName.length < 3 ||
+                  formData.interviewCategory === "" ||
+                  (isDomainSpecific && formData.domain === "")
                 }
+              >
+                Next
+              </Button>
+            </div>
+          )}
+
+          {steps === 2 && (
+            <div className="flex flex-col gap-4">
+              <div>
+                <Label
+                  htmlFor="jobRole"
+                  className="text-sm mb-1 sm:mb-0 sm:text-base text-black capitalize"
+                >
+                  Job Role
+                </Label>
+                <Select
+                  value={formData.jobRole}
+                  onValueChange={(value) =>
+                    handleSelectChange("jobRole", value)
+                  }
+                  required
+                >
+                  <SelectTrigger
+                    className="w-full text-sm sm:text-base"
+                    ref={jobRoleRef}
+                  >
+                    <SelectValue placeholder="eg. Full Stack Developer" />
+                  </SelectTrigger>
+                  <SelectContent className="w-full">
+                    {jobRoles?.map((role, i) => (
+                      <SelectItem value={role} key={`role_${i}`}>
+                        {role}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Button
+                onClick={() => setSteps(3)}
+                className="text-base font-bold cursor-pointer"
+                disabled={formData.jobRole === ""}
               >
                 Next
               </Button>
@@ -368,7 +448,7 @@ export function InterviewSetupForm({
               {formData.inputType === "skills-based" ? (
                 <div className="space-y-1 relative">
                   <p className="text-xs flex justify-between h-4 ml-1">
-                    (Enter maximum 5 skills.)
+                    (Enter 3 - 5 skills.)
                     {skill && (
                       <RemainingLength
                         currentLength={skill.length}

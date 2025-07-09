@@ -84,3 +84,19 @@ export interface ResponseInputProps {
   textResponse: string;
   setTextResponse: (text: string) => void;
 }
+
+export interface DomainProps {
+  id: string;
+  domain: string;
+}
+
+export interface DomainsProps {
+  success: boolean;
+  domains: DomainProps[];
+}
+
+export interface RolesProps {
+  success: boolean;
+  domain: string;
+  jobRoles: string[];
+}

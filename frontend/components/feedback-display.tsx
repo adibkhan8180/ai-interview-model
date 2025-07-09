@@ -22,7 +22,7 @@ export function FeedbackDisplay({
             height={24}
           />
         </div>
-        <p className="text-base font-semibold">Immediate Feedback</p>
+        <p className="text-sm sm:text-base font-semibold">Immediate Feedback</p>
 
         {isLastMessage &&
           isAISpeaking &&
@@ -51,7 +51,7 @@ export function FeedbackDisplay({
           ))}
       </div>
       <div
-        className={`p-6  border-l-4 border-[#FFC342] rounded-2xl text-sm  leading-relaxed bg-[#FFF5EA]`}
+        className={`px-3 py-2 sm:p-6  border-l-4 border-[#FFC342] rounded-2xl text-sm  leading-relaxed bg-[#FFF5EA]`}
       >
         <ReactMarkdown>{feedback}</ReactMarkdown>
       </div>

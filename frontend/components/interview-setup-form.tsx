@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -98,11 +98,11 @@ export function InterviewSetupForm({
     }));
   };
 
-  const handleStartInterview = () => {
+  const handleStartInterview = useCallback(() => {
     saveFormData(formData);
     onSubmit(formData);
     setInterviewStarted(true);
-  };
+  }, [saveFormData, onSubmit, setInterviewStarted, formData]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -130,7 +130,8 @@ export function InterviewSetupForm({
           }
         } else if (steps === 3) {
           const isSkillsValid =
-            formData.inputType === "skills-based" && formData.skills.length > 0;
+            formData.inputType === "skills-based" &&
+            formData.skills.length >= 3;
 
           const isJobDescriptionValid =
             formData.inputType === "job-description" &&
@@ -161,8 +162,9 @@ export function InterviewSetupForm({
   if (steps !== 1 && steps !== 2 && steps !== 3) return null;
 
   return (
-    <div className="h-screen flex flex-col items-center justify-center gap-6">
-      <h1 className="text-4xl font-bold">
+    // TODO: height should not be scrollable
+    <div className="h-screen w-full flex flex-col items-center justify-center gap-4 sm:gap-6 px-3 sm:px-0">
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">
         <span className="text-[#3B64F6]">AI-Video</span> Interview Setup
       </h1>
 
@@ -194,9 +196,9 @@ export function InterviewSetupForm({
         ))}
       </div>
 
-      <Card className="w-md z-10">
+      <Card className="w-full sm:w-md z-10">
         <CardHeader>
-          <CardTitle className="text-base text-[#4F637E] text-center font-normal">
+          <CardTitle className="text-sm sm:text-base text-[#4F637E] text-center font-normal">
             {steps === 1 &&
               "Tell us where you're aiming and what role you're targeting."}
             {steps === 2 &&
@@ -210,7 +212,7 @@ export function InterviewSetupForm({
               <div>
                 <Label
                   htmlFor="companyName"
-                  className="text-base text-black capitalize flex justify-between"
+                  className="text-sm mb-1 sm:mb-0 sm:text-base text-black capitalize"
                 >
                   Company Name
                   {formData.companyName.trim() && (
@@ -231,14 +233,14 @@ export function InterviewSetupForm({
                   minLength={3}
                   maxLength={maxCompanyNameLength}
                   required
-                  className="px-3 py-2"
+                  className="px-3 py-2 text-sm sm:text-base"
                 />
               </div>
 
               <div>
                 <Label
                   htmlFor="jobRole"
-                  className="text-base text-black capitalize"
+                  className="text-sm mb-1 sm:mb-0 sm:text-base text-black capitalize"
                 >
                   Job Role
                 </Label>
@@ -250,7 +252,7 @@ export function InterviewSetupForm({
                   value={formData.jobRole}
                   onChange={handleChange}
                   required
-                  className="px-3 py-2"
+                  className="px-3 py-2 text-sm sm:text-base"
                 />
               </div>
 
@@ -269,7 +271,7 @@ export function InterviewSetupForm({
               <div>
                 <Label
                   htmlFor="interviewCategory"
-                  className="text-base text-black capitalize"
+                  className="text-sm mb-1 sm:mb-0 sm:text-base text-black capitalize"
                 >
                   Interview Category
                 </Label>
@@ -279,7 +281,7 @@ export function InterviewSetupForm({
                     handleSelectChange("interviewCategory", value)
                   }
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger className="w-full text-sm sm:text-base">
                     <SelectValue placeholder="eg. HR" />
                   </SelectTrigger>
                   <SelectContent className="w-full">
@@ -295,7 +297,7 @@ export function InterviewSetupForm({
                 <div>
                   <Label
                     htmlFor="domain"
-                    className="text-base text-black capitalize"
+                    className="text-sm mb-1 sm:mb-0 sm:text-base text-black capitalize"
                   >
                     Select Domain
                   </Label>
@@ -306,7 +308,8 @@ export function InterviewSetupForm({
                     placeholder="e.g., Frontend Development, Machine Learning"
                     value={formData.domain}
                     onChange={handleChange}
-                    required
+                    required={isDomainSpecific}
+                    className="px-3 py-2 text-sm sm:text-base"
                   />
                 </div>
               )}
@@ -331,13 +334,17 @@ export function InterviewSetupForm({
                 onValueChange={(value) =>
                   handleSelectChange("inputType", value)
                 }
-                className="flex gap-6"
+                className="flex flex-col sm:flex-row gap-1 sm:gap-6"
               >
-                <div className="flex items-center gap-2 cursor-pointer">
-                  <RadioGroupItem value="skills-based" id="skills-based" />
+                <div className="flex items-center gap-2 cursor-pointer w-fit">
+                  <RadioGroupItem
+                    value="skills-based"
+                    id="skills-based"
+                    className="mb-2"
+                  />
                   <Label
                     htmlFor="skills-based"
-                    className="cursor-pointer text-base text-black capitalize"
+                    className="cursor-pointer text-sm mb-1 sm:mb-0 sm:text-base text-black capitalize"
                   >
                     Skills-Based
                   </Label>
@@ -347,10 +354,11 @@ export function InterviewSetupForm({
                   <RadioGroupItem
                     value="job-description"
                     id="job-description"
+                    className="mb-2"
                   />
                   <Label
                     htmlFor="job-description"
-                    className="cursor-pointer text-base text-black capitalize"
+                    className="cursor-pointer text-sm mb-1 sm:mb-0 sm:text-base text-black capitalize"
                   >
                     Job Description-Based
                   </Label>
@@ -358,9 +366,9 @@ export function InterviewSetupForm({
               </RadioGroup>
 
               {formData.inputType === "skills-based" ? (
-                <div className="space-y-0 relative">
+                <div className="space-y-1 relative">
                   <p className="text-xs flex justify-between h-4 ml-1">
-                    (Type and Enter a skill. Enter maximum 5 skills.)
+                    (Enter maximum 5 skills.)
                     {skill && (
                       <RemainingLength
                         currentLength={skill.length}
@@ -377,6 +385,7 @@ export function InterviewSetupForm({
                     minLength={2}
                     maxLength={maxSkillLength}
                     onKeyDown={handleKeyDown}
+                    className="px-3 py-2 text-sm sm:text-base"
                     disabled={formData.skills.length >= maxNoOfSkills}
                   />
                   <div className="flex flex-wrap gap-2 mt-2">
@@ -415,7 +424,7 @@ export function InterviewSetupForm({
                     onChange={handleChange}
                     minLength={minJDLength}
                     maxLength={maxJDLength}
-                    className="min-h-[150px] px-3 py-2"
+                    className="min-h-[150px] max-h-[200px] text-sm sm:text-base"
                     required
                   />
                 </div>
@@ -426,7 +435,7 @@ export function InterviewSetupForm({
                 className="text-base font-bold cursor-pointer"
                 disabled={
                   (formData.inputType === "skills-based" &&
-                    formData.skills.length === 0) ||
+                    formData.skills.length < 3) ||
                   (formData.inputType === "job-description" &&
                     formData.jobDescription.length < minJDLength) ||
                   loading

@@ -8,11 +8,11 @@ export default function Header() {
   const { interviewStarted } = useInterviewStore();
 
   return (
-    <header className="fixed top-0 left-0 right-0 bg-white shadow-md z-50 border-[#E2E8F0] border-b">
-      <div className="max-w-7xl mx-auto flex items-center justify-between py-3">
+    <header className="sm:fixed top-0 left-0 right-0 bg-white shadow-md z-50 border-[#E2E8F0] border-b">
+      <div className="w-full xl:w-7xl mx-auto flex items-center justify-between py-3 px-3 xl:px-0">
         {interviewStarted ? (
-          <div>
-            <h1 className="text-2xl font-medium capitalize">
+          <div className="w-full">
+            <h1 className="text-xl sm:text-2xl font-medium capitalize wrap-break-word w-full">
               {formData.companyName} - {formData.jobRole} Interview
             </h1>
           </div>
@@ -23,9 +23,9 @@ export default function Header() {
               alt="AI Interviewer"
               width={56}
               height={56}
-              className="rounded-full border-2 border-[#C5DAFF] bg-[#D9D9D9]"
+              className="rounded-full border-2 border-[#C5DAFF] bg-[#D9D9D9] w-8 sm:w-14"
             />
-            <h1 className="text-2xl font-medium capitalize">
+            <h1 className="text-xl sm:text-2xl font-medium capitalize">
               <span className="text-blue-600">AI </span>Interview Preparation
             </h1>
           </div>
@@ -35,7 +35,7 @@ export default function Header() {
           alt="User Avatar"
           width={56}
           height={56}
-          className="rounded-full border-2 border-[#C5DAFF] bg-[#D9D9D9]"
+          className="rounded-full border-2 border-[#C5DAFF] bg-[#D9D9D9] w-8 sm:w-14 hidden sm:block"
         />
       </div>
     </header>

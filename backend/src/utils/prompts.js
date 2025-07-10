@@ -3,18 +3,6 @@ import {
   MessagesPlaceholder,
 } from "@langchain/core/prompts";
 
-const maleNames = [
-  "Sumit Nagrikar",
-  "Sandesh Lawhale",
-  "Adib Khan",
-  "Sohail Ali",
-  "Atharva Tipkari",
-  "Nayan Kamble",
-  "Aaradhya Dengree",
-  "Shantanu Kopche",
-  "Kapil Sharma",
-  "Pratik Chaoudhary",
-];
 const femaleNames = [
   "Priya Sharma",
   "Aishwarya Nair",
@@ -38,9 +26,10 @@ export const createIntroPrompt = (
   jobRole
 ) => {
   const randomName = getRandomName();
+  const isHR = interviewType === "HR";
   const introInstructions = `
-Your name is ${randomName}, you are an HR interviewer from ${companyName} company, for the JD : ({context}). The job description is provided in context. You're conducting a mock ${interviewType} interview${domain ? ` focused on ${domain}` : ""
-    } and will ask questions strictly based on the role.
+
+Your name is ${randomName}, and you are ${isHR ? "an HR interviewer" : "an interviewer"} at ${companyName}. You are taking a mock ${isHR ? "HR" : "technical"} interview for the JD: ({context}).
 
 Instructions:
 - Greet the student
@@ -68,10 +57,8 @@ export const createSkillsBasedIntroPrompt = (
 ) => {
   const randomName = getRandomName();
   const skillsBasedIntroInstructions = `
-Your name is ${randomName}, you are an HR interviewer from ${companyName} company, for the position of ${jobRole}. You're conducting a mock ${interviewType} interview${domain ? ` focused on ${domain}` : ""
-    }. The candidate has mentioned the following skills: ${skills.join(
-      ", "
-    )}. You will ask questions strictly based on the role.
+Your name is ${randomName}, you are ${interviewType === "HR" ? "an HR interviewer" : "an interviewer"} from ${companyName}, for the position of ${jobRole}. You're conducting a mock ${interviewType} interview${domain ? ` focused on ${domain}` : ""
+    }. The candidate has mentioned the following skills: ${skills.join(", ")}. You will ask questions strictly based on the role.
 
 Instructions:
 - Greet the student
@@ -109,8 +96,6 @@ Instructions:
   const typeSpecificInstructions = {
     HR: `
 - Focus on soft skills like communication or teamwork, but only within the JD or project context.`,
-    general: `
-- Use a mix of HR, technical, and domain-specific questions from the JD.`,
     domain_specific: `
 - Ask about domain-specific tools, projects, challenges, and trends only.`,
   };
@@ -119,8 +104,7 @@ Instructions:
     [
       "system",
       baseInstructions +
-      (typeSpecificInstructions[interviewType] ||
-        typeSpecificInstructions["general"]),
+      (typeSpecificInstructions[interviewType]),
     ],
     new MessagesPlaceholder("chat_history"),
     ["user", "{input}"],
@@ -147,8 +131,6 @@ Instructions:
   const typeSpecificInstructions = {
     HR: `
 - Focus on soft skills like communication or teamwork, but only within the JD or project context.`,
-    general: `
-- Use a mix of HR, technical, and domain-specific questions from the JD.`,
     domain_specific: `
 - Ask about domain-specific tools, projects, challenges, and trends only.`,
   };
@@ -156,18 +138,17 @@ Instructions:
     [
       "system",
       baseInstructions +
-      (typeSpecificInstructions[interviewType] ||
-        typeSpecificInstructions["general"]),
+      (typeSpecificInstructions[interviewType]),
     ],
     new MessagesPlaceholder("chat_history"),
     ["user", "{input}"],
   ]);
 };
 
-export const feedbackPrompt = ChatPromptTemplate.fromMessages([
+export const feedbackPrompt = (interviewType) => ChatPromptTemplate.fromMessages([
   [
     "system",
-    `You are an HR assistant providing personalized and constructive feedback to a student after each answer in a mock interview.
+    `You are ${interviewType === "HR" ? "an HR assistant" : "an assistant"} providing personalized and constructive feedback to a student after each answer in a mock ${interviewType} interview.
     Differentiate each point new lines. If the interviewee goes off-track — for example, the interview is about frontend development, but the answer sounds like a customer care role — gently point it out without discouraging them.
 
 Follow this 5-part framework:
@@ -175,7 +156,7 @@ Follow this 5-part framework:
 1. Acknowledge to encourage:
    - Greet the candidate by name (if available), appreciate their effort.
    - Use natural expressions like "Thanks for sharing" or "Got it, thank you."
-   - dont bold the heading of section
+   - dont bold the heading of acknowledgement section
 2. Strengths:
    - Mention at least one strength or positive aspect of the answer.
    - Refer to specific details they mentioned to show you're listening.

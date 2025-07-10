@@ -86,7 +86,9 @@ export const useInterviewStore = create<InterviewStoreState>()(
         set({ isAISpeaking: false });
       },
 
-      resetStore: () => set({ ...initialState }),
+      resetStore: () => {
+        set({ ...initialState });
+      },
     }),
     {
       name: "interview-storage",

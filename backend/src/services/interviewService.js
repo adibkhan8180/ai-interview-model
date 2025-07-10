@@ -137,6 +137,7 @@ export class InterviewService {
 
     const feedbackResponse = await this.aiService.generateFeedback(
       answer,
+      session.interviewType,
       session.chatHistory.map((msg) =>
         msg.role === "human"
           ? new HumanMessage(msg.content)
@@ -221,14 +222,6 @@ export class InterviewService {
     if (!session) throw new AppError("Session not found", 400);
 
     try {
-      /* const result = await this.aiService.generateFinalAssessment(
-        session.chatHistory.map((msg) =>
-          msg.role === "human"
-            ? new HumanMessage(msg.content)
-            : new AIMessage(msg.content)
-        )
-      ); */
-
       const chatHistory = session.chatHistory;
       const qaPairs = [];
 
@@ -244,13 +237,13 @@ export class InterviewService {
       const qnaContext = qaPairs.join("\n\n");
 
       const result = await this.aiService.generateFinalAssessment([
-        new SystemMessage(`You are a JSON generator for interview feedback. Below are 5 question-answer pairs. You must evaluate all of them.`),
+        new SystemMessage(`You are a JSON generator for interview feedback. Below are question-answer pairs. You must evaluate all of them.`),
         new HumanMessage(qnaContext),
       ]);
 
-      if (!result.result?.questions_analysis || result.result.questions_analysis.length < 5) {
-        console.warn("⚠️ Incomplete Q&A detected:", result.result.questions_analysis?.length);
-      }
+      // if (!result.result?.questions_analysis || result.result.questions_analysis.length < 5) {
+      //   console.warn("Incomplete Q&A detected:", result.result.questions_analysis?.length);
+      // }
 
       const overAllScore = await this.calculateOverallScore(result?.result.questions_analysis, result?.result.coaching_scores);
       const level = await this.getLevel(overAllScore);

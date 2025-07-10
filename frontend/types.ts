@@ -56,6 +56,9 @@ export interface InterviewStoreState {
   isAISpeaking: boolean;
   audioInstance: HTMLAudioElement | null;
   browserUtterance: SpeechSynthesisUtterance | null;
+  ttsAbortController: AbortController | null;
+  setTTSAbortController: (controller: AbortController | null) => void;
+  abortTTS: () => void;
 
   addMessage: (message: ConversationEntry) => void;
   resetConversation: () => void;

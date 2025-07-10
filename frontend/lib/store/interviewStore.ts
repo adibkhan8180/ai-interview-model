@@ -26,6 +26,7 @@ const initialState = {
   isAISpeaking: false,
   audioInstance: null,
   browserUtterance: null,
+  ttsAbortController: null as AbortController | null,
 };
 
 export const useInterviewStore = create<InterviewStoreState>()(
@@ -65,16 +66,31 @@ export const useInterviewStore = create<InterviewStoreState>()(
       setIsAISpeaking: (value: boolean) => set({ isAISpeaking: value }),
 
       setAudioInstance: (audio) => set({ audioInstance: audio }),
+
       setBrowserUtterance: (utterance) => set({ browserUtterance: utterance }),
 
+      setTTSAbortController: (controller: AbortController | null) =>
+        set({ ttsAbortController: controller }),
+
+      abortTTS: () => {
+        const { ttsAbortController } = get();
+        if (ttsAbortController) {
+          ttsAbortController.abort();
+          set({ ttsAbortController: null });
+        }
+      },
+
       stopSpeaking: () => {
-        const { audioInstance, browserUtterance } = get();
+        const { audioInstance, browserUtterance, ttsAbortController } = get();
+
+        if (ttsAbortController) {
+          ttsAbortController.abort();
+          set({ ttsAbortController: null });
+        }
 
         if (audioInstance instanceof HTMLAudioElement) {
           audioInstance.pause();
           audioInstance.currentTime = 0;
-          set({ audioInstance: null });
-        } else {
           set({ audioInstance: null });
         }
 

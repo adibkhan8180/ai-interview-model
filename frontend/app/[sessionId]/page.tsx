@@ -187,9 +187,8 @@ export default function AIInterviewSystem() {
                             AI Interviewer
                           </p>
 
-                          {isLastMessage &&
-                            isAISpeaking &&
-                            (audioInstance ? (
+                          {isLastMessage && isAISpeaking && (
+                            <div className="flex items-center gap-1.5">
                               <Button
                                 variant="ghost"
                                 className="flex items-center gap-2 px-2 py-1 h-fit text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition cursor-pointer"
@@ -207,11 +206,13 @@ export default function AIInterviewSystem() {
                                 </div>
                                 <span>Skip Audio</span>
                               </Button>
-                            ) : (
-                              <p className="text-sm text-muted-foreground italic">
-                                Generating audio...
-                              </p>
-                            ))}
+                              {!audioInstance && (
+                                <p className="text-sm text-muted-foreground italic">
+                                  Generating audio...
+                                </p>
+                              )}
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <div className="flex flex-row-reverse items-center gap-2">
@@ -314,9 +315,8 @@ export default function AIInterviewSystem() {
                                 AI Interviewer
                               </p>
 
-                              {isLastMessage &&
-                                isAISpeaking &&
-                                (audioInstance ? (
+                              {isLastMessage && isAISpeaking && (
+                                <div className="flex items-center gap-1.5">
                                   <Button
                                     variant="ghost"
                                     className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition"
@@ -330,11 +330,13 @@ export default function AIInterviewSystem() {
                                     />
                                     <span>Skip Audio</span>
                                   </Button>
-                                ) : (
-                                  <p className="text-sm text-muted-foreground italic">
-                                    Generating audio...
-                                  </p>
-                                ))}
+                                  {!audioInstance && (
+                                    <p className="text-sm text-muted-foreground italic">
+                                      Generating audio...
+                                    </p>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           ) : (
                             <div className="flex flex-row-reverse items-center gap-2">

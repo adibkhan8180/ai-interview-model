@@ -173,7 +173,7 @@ export function ResponseInput({
               ref={inputRef}
               value={textResponse}
               onChange={(e) => setTextResponse(e.target.value)}
-              onPaste={(e) => e.preventDefault()}
+              // onPaste={(e) => e.preventDefault()}
               minLength={minAnswerLength}
               maxLength={maxAnswerLength}
               className="ml-2 text-sm sm:text-base flex-1 sm:font-medium border-none outline-none shadow-none placeholder:text-[#919ECD] px-2 py-3 resize-none h-[40px]"

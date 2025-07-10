@@ -83,14 +83,18 @@ export const useInterviewStore = create<InterviewStoreState>()(
       stopSpeaking: () => {
         const { audioInstance, browserUtterance, ttsAbortController } = get();
 
-        if (ttsAbortController) {
+        if (ttsAbortController instanceof AbortController) {
           ttsAbortController.abort();
+          set({ ttsAbortController: null });
+        } else {
           set({ ttsAbortController: null });
         }
 
         if (audioInstance instanceof HTMLAudioElement) {
           audioInstance.pause();
           audioInstance.currentTime = 0;
+          set({ audioInstance: null });
+        } else {
           set({ audioInstance: null });
         }
 

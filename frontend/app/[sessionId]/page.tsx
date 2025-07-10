@@ -28,7 +28,6 @@ export default function AIInterviewSystem() {
     stopSpeaking,
     audioInstance,
   } = useInterviewStore();
-
   const [isRecording, setIsRecording] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const params = useParams();
@@ -148,6 +147,18 @@ export default function AIInterviewSystem() {
             <p className="text-xl font-medium">
               {questionCount}/{maxQuestions}
             </p>
+            <div className="w-[2px] h-full bg-[#E2E8F0] mx-2" />
+            <Button
+              className="bg-[#FF4343] w-12 rounded-full cursor-pointer hover:opacity-95"
+              onClick={() => setOpenDialog(true)}
+            >
+              <Image
+                src="/assets/svg/call.svg"
+                alt="AI"
+                width={24}
+                height={24}
+              />
+            </Button>
           </div>
 
           <div className="w-full h-[1px] bg-[#E2E8F0] hidden md:block" />

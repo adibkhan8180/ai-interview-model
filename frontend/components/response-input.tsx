@@ -214,8 +214,9 @@ export function ResponseInput({
               onClick={isRecording ? handleStopRecording : handleSubmit}
               disabled={
                 isAISpeaking ||
-                (!isRecording && !textResponse?.trim()) ||
-                textResponse?.length < minAnswerLength
+                (!isRecording &&
+                  (!textResponse?.trim() ||
+                    textResponse?.length < minAnswerLength))
               }
               className="w-12 h-12 rounded-none cursor-pointer bg-[#3B64F6]"
             >

@@ -24,9 +24,8 @@ export function FeedbackDisplay({
         </div>
         <p className="text-sm sm:text-base font-semibold">Immediate Feedback</p>
 
-        {isLastMessage &&
-          isAISpeaking &&
-          (audioInstance ? (
+        {isLastMessage && isAISpeaking && (
+          <div className="flex items-center gap-1.5">
             <Button
               variant="ghost"
               className="flex items-center gap-2 px-2 py-1 h-fit text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition cursor-pointer"
@@ -44,11 +43,13 @@ export function FeedbackDisplay({
               </div>
               <span>Skip Audio</span>
             </Button>
-          ) : (
-            <p className="text-sm text-muted-foreground italic">
-              Generating audio...
-            </p>
-          ))}
+            {!audioInstance && (
+              <p className="text-sm text-muted-foreground italic">
+                Generating audio...
+              </p>
+            )}
+          </div>
+        )}
       </div>
       <div
         className={`px-3 py-2 sm:p-6  border-l-4 border-[#FFC342] rounded-2xl text-sm  leading-relaxed bg-[#FFF5EA]`}

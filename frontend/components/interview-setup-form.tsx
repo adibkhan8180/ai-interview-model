@@ -119,25 +119,13 @@ export function InterviewSetupForm({
         event.preventDefault();
 
         if (steps === 1) {
-          const isCategoryValid =
-            formData.interviewCategory &&
-            (formData.interviewCategory !== "domain-specific" ||
-              formData.domain);
-
-          if (inputRef.current && !formData.companyName.trim()) {
-            inputRef.current.focus();
-          } else if (
-            categoryRef.current &&
-            !formData.interviewCategory.trim()
+          if (
+            !formData.companyName ||
+            !formData.interviewCategory ||
+            !formData.domain
           ) {
-            categoryRef.current.focus();
-          } else if (
-            domainRef.current &&
-            formData.interviewCategory === "domain-specific" &&
-            !formData.domain?.trim()
-          ) {
-            domainRef.current?.focus();
-          } else if (isCategoryValid) {
+            inputRef.current?.focus();
+          } else {
             setSteps(2);
           }
         } else if (steps === 2) {
@@ -178,22 +166,20 @@ export function InterviewSetupForm({
 
   useEffect(() => {
     const getAllDomains = async () => {
-      if (formData.interviewCategory === "domain-specific") {
-        const response = await getDomains();
+      const response = await getDomains();
 
-        if (!response.success) {
-          console.error(
-            "failed to fetch the domains, you can try again by refreshing"
-          );
-        }
-
-        setDomains(response.domains);
-        return;
+      if (!response.success) {
+        console.error(
+          "failed to fetch the domains, you can try again by refreshing"
+        );
       }
+
+      setDomains(response.domains);
+      return;
     };
 
     getAllDomains();
-  }, [formData.interviewCategory]);
+  }, []);
 
   useEffect(() => {
     const getJobRoleByDomain = async () => {
@@ -317,39 +303,37 @@ export function InterviewSetupForm({
                 </Select>
               </div>
 
-              {isDomainSpecific && (
-                <div>
-                  <Label
-                    htmlFor="domain"
-                    className="text-sm mb-1 sm:mb-0 sm:text-base text-black capitalize"
+              <div>
+                <Label
+                  htmlFor="domain"
+                  className="text-sm mb-1 sm:mb-0 sm:text-base text-black capitalize"
+                >
+                  Select Domain
+                </Label>
+                <Select
+                  value={formData.domain}
+                  onValueChange={(value) => {
+                    const selected = domains.find((d) => d.domain === value);
+                    setSelectedDomainId(selected ? selected.id : null);
+                    handleSelectChange("domain", value);
+                  }}
+                  required={isDomainSpecific}
+                >
+                  <SelectTrigger
+                    className="w-full text-sm sm:text-base"
+                    ref={domainRef}
                   >
-                    Select Domain
-                  </Label>
-                  <Select
-                    value={formData.domain}
-                    onValueChange={(value) => {
-                      const selected = domains.find((d) => d.domain === value);
-                      setSelectedDomainId(selected ? selected.id : null);
-                      handleSelectChange("domain", value);
-                    }}
-                    required={isDomainSpecific}
-                  >
-                    <SelectTrigger
-                      className="w-full text-sm sm:text-base"
-                      ref={domainRef}
-                    >
-                      <SelectValue placeholder="eg. Software Developer" />
-                    </SelectTrigger>
-                    <SelectContent className="w-full max-h-[500px]">
-                      {domains?.map((domain) => (
-                        <SelectItem value={domain.domain} key={domain.id}>
-                          {domain.domain}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+                    <SelectValue placeholder="eg. Software Developer" />
+                  </SelectTrigger>
+                  <SelectContent className="w-full max-h-[500px]">
+                    {domains?.map((domain) => (
+                      <SelectItem value={domain.domain} key={domain.id}>
+                        {domain.domain}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
               <Button
                 onClick={() => setSteps(2)}
@@ -357,7 +341,7 @@ export function InterviewSetupForm({
                 disabled={
                   formData.companyName.length < 3 ||
                   formData.interviewCategory === "" ||
-                  (isDomainSpecific && formData.domain === "")
+                  formData.domain === ""
                 }
               >
                 Next

@@ -1,13 +1,36 @@
 import { OverallFeedback } from "@/types";
 import jsPDF from "jspdf";
 
-export const downloadFeedbackPdf = (feedback: OverallFeedback) => {
+export const downloadFeedbackPdf = async (feedback: OverallFeedback) => {
   const pdf = new jsPDF("p", "pt", "a4");
   const margin = 40;
   const pageHeight = 800;
   const lineHeight = 16;
   const bottomMargin = 40;
   let yPos = margin;
+
+  const loadImageAsBase64 = (url: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.setAttribute("crossOrigin", "anonymous");
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) reject("Canvas context not available");
+        ctx?.drawImage(img, 0, 0);
+        const dataURL = canvas.toDataURL("image/png");
+        resolve(dataURL);
+      };
+      img.onerror = (err) => reject(err);
+      img.src = url;
+    });
+  };
+
+  const logoBase64 = await loadImageAsBase64(
+    "https://truscholar-assets-public.s3.ap-south-1.amazonaws.com/websiteimages/truscholar+new+logo.png"
+  );
 
   const colors = {
     primary: [59, 100, 246],
@@ -53,6 +76,7 @@ export const downloadFeedbackPdf = (feedback: OverallFeedback) => {
   pdf.setTextColor(...colors.primary);
   pdf.setFont("helvetica", "bold");
   pdf.text("Interview Feedback Summary", margin, yPos);
+  pdf.addImage(logoBase64, "PNG", 510, 10, 70, 20);
   yPos += 35;
 
   // Overall Score

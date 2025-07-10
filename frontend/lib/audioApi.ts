@@ -2,21 +2,40 @@ import { useInterviewStore } from "./store/interviewStore";
 import { generateSpeech } from "@/services/text-to-speech";
 
 export const speakTextWithTTS = async (text: string) => {
+  const store = useInterviewStore.getState();
+  store.setIsAISpeaking(true);
+
+  if (store.ttsAbortController) {
+    store.ttsAbortController.abort();
+  }
+
+  const controller = new AbortController();
+  store.setTTSAbortController(controller);
+
   try {
-    useInterviewStore.getState().setIsAISpeaking(true);
-    const audioData = await generateSpeech({ text });
+    const audioData = await generateSpeech({ text }, controller.signal);
+
+    if (controller.signal.aborted) return;
+
     const audio = new Audio(URL.createObjectURL(new Blob([audioData])));
-    useInterviewStore.getState().setAudioInstance(audio);
+    store.setAudioInstance(audio);
 
     audio.onended = () => {
-      useInterviewStore.getState().setIsAISpeaking(false);
-      useInterviewStore.getState().setAudioInstance(null);
+      store.setIsAISpeaking(false);
+      store.setAudioInstance(null);
+      store.setTTSAbortController(null);
     };
 
     audio.play();
   } catch (error) {
-    console.error("Error with TTS:", error);
-    speakTextWithBrowser(text);
+    if ((error as any).name === "AbortError") {
+      console.log("TTS fetch aborted");
+    } else {
+      console.error("Error with TTS:", error);
+      speakTextWithBrowser(text);
+    }
+    store.setIsAISpeaking(false);
+    store.setTTSAbortController(null);
   }
 };
 

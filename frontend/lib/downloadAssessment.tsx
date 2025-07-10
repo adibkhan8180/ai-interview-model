@@ -1,96 +1,162 @@
-import { OverallFeedback } from "@/types";
+import { InterviewSetupData, OverallFeedback } from "@/types";
 import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 
-export const downloadFeedbackPdf = (feedback: OverallFeedback) => {
+export const downloadFeedbackPdf = async (
+  feedback: OverallFeedback,
+  formData: InterviewSetupData
+) => {
   const pdf = new jsPDF("p", "pt", "a4");
   const margin = 40;
+  const pageHeight = 800;
+  const lineHeight = 16;
+  const bottomMargin = 40;
   let yPos = margin;
 
-  pdf.setFontSize(18);
+  const loadImageAsBase64 = (url: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.setAttribute("crossOrigin", "anonymous");
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) reject("Canvas context not available");
+        ctx?.drawImage(img, 0, 0);
+        const dataURL = canvas.toDataURL("image/png");
+        resolve(dataURL);
+      };
+      img.onerror = (err) => reject(err);
+      img.src = url;
+    });
+  };
+
+  const logoBase64 = await loadImageAsBase64(
+    "https://truscholar-assets-public.s3.ap-south-1.amazonaws.com/websiteimages/truscholar+new+logo.png"
+  );
+
+  const colors = {
+    primary: [59, 100, 246],
+    section: [22, 160, 133],
+    black: [0, 0, 0],
+    gray: [80, 80, 80],
+  };
+
+  const addTextWithCheck = (
+    text: string | string[],
+    fontSize = 10,
+    fontStyle: "normal" | "bold" = "normal",
+    color: number[] = colors.gray
+  ) => {
+    pdf.setFont("helvetica", fontStyle);
+    pdf.setFontSize(fontSize);
+    pdf.setTextColor(...color);
+
+    const lines =
+      typeof text === "string" ? pdf.splitTextToSize(text, 500) : text;
+
+    lines.forEach((line) => {
+      if (yPos + lineHeight > pageHeight - bottomMargin) {
+        pdf.addPage();
+        yPos = margin;
+      }
+      pdf.text(line, margin, yPos);
+      yPos += lineHeight;
+    });
+  };
+
+  const addSectionTitle = (title: string) => {
+    yPos += 10;
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(12);
+    pdf.setTextColor(...colors.section);
+    pdf.text(title, margin, yPos);
+    yPos += lineHeight;
+  };
+
+  // Header
+  pdf.setFontSize(20);
+  pdf.setTextColor(...colors.primary);
+  pdf.setFont("helvetica", "bold");
   pdf.text("Interview Feedback Summary", margin, yPos);
-  yPos += 30;
+  pdf.addImage(logoBase64, "PNG", 510, 10, 70, 20);
+  yPos += 35;
+
+  // Interview Setup
+  addSectionTitle("Interview Setup");
+  addTextWithCheck(
+    `Company Name: ${formData.companyName}`,
+    12,
+    "bold",
+    colors.black
+  );
+  addTextWithCheck(`Domain: ${formData.domain}`, 12, "bold", colors.black);
+  addTextWithCheck(`Job Role: ${formData.jobRole}`, 12, "bold", colors.black);
+  addTextWithCheck(
+    `Interview Category: ${formData.interviewCategory}`,
+    12,
+    "bold",
+    colors.black
+  );
+  {
+    formData.inputType === "skills-based"
+      ? formData.skills.forEach((skill, index) => {
+          addTextWithCheck(
+            `Skill ${index + 1}: ${skill}`,
+            11,
+            "bold",
+            colors.black
+          );
+        })
+      : addTextWithCheck(
+          `Job Description: ${formData.jobDescription}`,
+          12,
+          "bold",
+          colors.black
+        );
+  }
+
+  // Overall Score
+  addSectionTitle("Overall Score");
+  addTextWithCheck(`${feedback.overall_score}/100`, 12, "bold", colors.black);
 
   // Summary
-  pdf.setFontSize(12);
-  pdf.text(`Overall Score: ${feedback.overall_score}`, margin, yPos);
-  yPos += 20;
-  pdf.text("Summary:", margin, yPos);
-  yPos += 15;
-  pdf.setFontSize(10);
-  const splitSummary = pdf.splitTextToSize(feedback.summary, 500);
-  pdf.text(splitSummary, margin, yPos);
-  yPos += splitSummary.length * 12 + 15;
+  addSectionTitle("Summary");
+  addTextWithCheck(feedback.summary);
 
-  // Questions Analysis Table
-  pdf.setFontSize(12);
-  pdf.text("Questions Analysis:", margin, yPos);
-  yPos += 15;
-
-  const questionsTableData = feedback.questions_analysis.map((qa) => [
-    qa.question,
-    qa.response,
-    qa.feedback,
-    qa.score.toString(),
-  ]);
-
-  autoTable(pdf, {
-    startY: yPos,
-    head: [["Question", "Response", "Feedback", "Score"]],
-    body: questionsTableData,
-    styles: { fontSize: 8, cellWidth: "wrap" },
-    headStyles: { fillColor: [22, 160, 133] },
-    columnStyles: {
-      0: { cellWidth: 120 },
-      1: { cellWidth: 180 },
-      2: { cellWidth: 120 },
-      3: { cellWidth: 40, halign: "center" },
-    },
-    margin: { left: margin, right: margin },
-    didDrawPage: (data) => {
-      if (data.cursor) {
-        yPos = data.cursor.y + 15;
-      }
-    },
+  // Questions Analysis
+  addSectionTitle("Questions Analysis");
+  feedback.questions_analysis.forEach((qa, index) => {
+    addTextWithCheck(`Q${index + 1}: ${qa.question}`, 11, "bold", colors.black);
+    addTextWithCheck(`Response: ${qa.response}`);
+    addTextWithCheck(`Feedback: ${qa.feedback}`);
+    addTextWithCheck(`Score: ${qa.score}/10`);
+    yPos += 5;
   });
 
   // Coaching Scores
-  pdf.setFontSize(12);
-  pdf.text("Coaching Scores:", margin, yPos);
-  yPos += 15;
+  addSectionTitle("Coaching Scores");
+  Object.entries(feedback.coaching_scores).forEach(([key, value]) => {
+    const formattedKey =
+      key.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase()) +
+      ":";
 
-  const coachingScores = feedback.coaching_scores;
-  pdf.setFontSize(10);
-  Object.entries(coachingScores).forEach(([key, value]) => {
-    pdf.text(`${key.replace(/_/g, " ")}: ${value}`, margin + 10, yPos);
-    yPos += 15;
+    addTextWithCheck(`${formattedKey} ${value}/5`, 10, "normal", colors.black);
   });
-  yPos += 10;
 
   // Recommendations
-  pdf.setFontSize(12);
-  pdf.text("Recommendations:", margin, yPos);
-  yPos += 15;
-  pdf.setFontSize(10);
+  addSectionTitle("Recommendations");
   feedback.recommendations.forEach((rec) => {
-    pdf.text(`• ${rec}`, margin + 10, yPos);
-    yPos += 15;
+    addTextWithCheck(`• ${rec}`, 10, "normal", colors.black);
   });
-  yPos += 10;
 
-  // Closure message
-  pdf.setFontSize(12);
-  pdf.text("Closure Message:", margin, yPos);
-  yPos += 15;
-  pdf.setFontSize(10);
-  const closureSplit = pdf.splitTextToSize(feedback.closure_message, 500);
-  pdf.text(closureSplit, margin, yPos);
-  yPos += closureSplit.length * 12 + 15;
+  // Closure Message
+  addSectionTitle("Closure Message");
+  addTextWithCheck(feedback.closure_message);
 
-  // Level
-  pdf.setFontSize(12);
-  pdf.text(`Level: ${feedback.level}`, margin, yPos);
+  // Final Level
+  addSectionTitle("Candidate Level");
+  addTextWithCheck(`${feedback.level}`, 12, "bold", colors.primary);
 
-  // Save file
   pdf.save("feedback.pdf");
 };

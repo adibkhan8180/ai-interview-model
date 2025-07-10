@@ -1,7 +1,10 @@
-import { OverallFeedback } from "@/types";
+import { InterviewSetupData, OverallFeedback } from "@/types";
 import jsPDF from "jspdf";
 
-export const downloadFeedbackPdf = async (feedback: OverallFeedback) => {
+export const downloadFeedbackPdf = async (
+  feedback: OverallFeedback,
+  formData: InterviewSetupData
+) => {
   const pdf = new jsPDF("p", "pt", "a4");
   const margin = 40;
   const pageHeight = 800;
@@ -78,6 +81,40 @@ export const downloadFeedbackPdf = async (feedback: OverallFeedback) => {
   pdf.text("Interview Feedback Summary", margin, yPos);
   pdf.addImage(logoBase64, "PNG", 510, 10, 70, 20);
   yPos += 35;
+
+  // Interview Setup
+  addSectionTitle("Interview Setup");
+  addTextWithCheck(
+    `Company Name: ${formData.companyName}`,
+    12,
+    "bold",
+    colors.black
+  );
+  addTextWithCheck(`Domain: ${formData.domain}`, 12, "bold", colors.black);
+  addTextWithCheck(`Job Role: ${formData.jobRole}`, 12, "bold", colors.black);
+  addTextWithCheck(
+    `Interview Category: ${formData.interviewCategory}`,
+    12,
+    "bold",
+    colors.black
+  );
+  {
+    formData.inputType === "skills-based"
+      ? formData.skills.forEach((skill, index) => {
+          addTextWithCheck(
+            `Skill ${index + 1}: ${skill}`,
+            11,
+            "bold",
+            colors.black
+          );
+        })
+      : addTextWithCheck(
+          `Job Description: ${formData.jobDescription}`,
+          12,
+          "bold",
+          colors.black
+        );
+  }
 
   // Overall Score
   addSectionTitle("Overall Score");

@@ -5,7 +5,7 @@ import { persist } from "zustand/middleware";
 const defaultFormData: InterviewSetupData = {
   companyName: "",
   jobRole: "",
-  interviewCategory: "general",
+  interviewCategory: "",
   domain: "",
   jobDescription: "",
   inputType: "skills-based",

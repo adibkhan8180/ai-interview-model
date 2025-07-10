@@ -20,7 +20,7 @@ function FinalAssessment() {
   const router = useRouter();
   const params = useParams();
   const sessionId = params?.sessionId as string;
-  const { resetForm: resetInterviewSetup } = useFormStore();
+  const { resetForm: resetInterviewSetup, formData } = useFormStore();
   const {
     overallFeedback,
     resetStore: resetInterviewStore,
@@ -75,7 +75,7 @@ function FinalAssessment() {
   };
 
   const handleDownload = () => {
-    downloadFeedbackPdf(overallFeedback);
+    downloadFeedbackPdf(overallFeedback, formData);
   };
 
   useEffect(() => {

@@ -4,11 +4,10 @@ export interface TTSOptions {
   model?: string;
 }
 
-export async function generateSpeech({
-  text,
-  voice = "nova",
-  model = "tts-1",
-}: TTSOptions): Promise<ArrayBuffer> {
+export async function generateSpeech(
+  { text, voice = "nova", model = "tts-1" }: TTSOptions,
+  signal?: AbortSignal
+): Promise<ArrayBuffer> {
   const response = await fetch(`/api/text-to-speech`, {
     method: "POST",
     headers: {
@@ -19,6 +18,7 @@ export async function generateSpeech({
       voice,
       model,
     }),
+    signal,
   });
 
   if (!response.ok) {

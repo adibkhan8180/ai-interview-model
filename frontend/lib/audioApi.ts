@@ -28,7 +28,7 @@ export const speakTextWithTTS = async (text: string) => {
 
     audio.play();
   } catch (error) {
-    if ((error as any).name === "AbortError") {
+    if ((error as Error).name === "AbortError") {
       console.log("TTS fetch aborted");
     } else {
       console.error("Error with TTS:", error);

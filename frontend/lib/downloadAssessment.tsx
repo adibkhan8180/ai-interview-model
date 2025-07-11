@@ -37,7 +37,7 @@ export const downloadFeedbackPdf = async (
 
   const colors = {
     primary: [59, 100, 246],
-    section: [22, 160, 133],
+    section: '#C5DAFF',
     black: [0, 0, 0],
     gray: [80, 80, 80],
   };
@@ -50,12 +50,12 @@ export const downloadFeedbackPdf = async (
   ) => {
     pdf.setFont("helvetica", fontStyle);
     pdf.setFontSize(fontSize);
-    pdf.setTextColor(...color);
+    pdf.setTextColor(...color as [number, number, number]);
 
     const lines =
       typeof text === "string" ? pdf.splitTextToSize(text, 500) : text;
 
-    lines.forEach((line) => {
+    lines.forEach((line: string) => {
       if (yPos + lineHeight > pageHeight - bottomMargin) {
         pdf.addPage();
         yPos = margin;
@@ -69,14 +69,14 @@ export const downloadFeedbackPdf = async (
     yPos += 10;
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(12);
-    pdf.setTextColor(...colors.section);
+    pdf.setTextColor(colors.section);
     pdf.text(title, margin, yPos);
     yPos += lineHeight;
   };
 
   // Header
   pdf.setFontSize(20);
-  pdf.setTextColor(...colors.primary);
+  pdf.setTextColor(...(colors.primary as [number, number, number]));
   pdf.setFont("helvetica", "bold");
   pdf.text("Interview Feedback Summary", margin, yPos);
   pdf.addImage(logoBase64, "PNG", 510, 10, 70, 20);
@@ -99,22 +99,25 @@ export const downloadFeedbackPdf = async (
     colors.black
   );
   {
-    formData.inputType === "skills-based"
-      ? formData.skills.forEach((skill, index) => {
-          addTextWithCheck(
-            `Skill ${index + 1}: ${skill}`,
-            11,
-            "bold",
-            colors.black
-          );
-        })
-      : addTextWithCheck(
-          `Job Description: ${formData.jobDescription}`,
-          12,
+    if (formData.inputType === "skills-based") {
+      formData.skills.forEach((skill, index) => {
+        addTextWithCheck(
+          `Skill ${index + 1}: ${skill}`,
+          11,
           "bold",
           colors.black
         );
+      });
+    } else {
+      addTextWithCheck(
+        `Job Description: ${formData.jobDescription}`,
+        12,
+        "bold",
+        colors.black
+      );
+    }
   }
+
 
   // Overall Score
   addSectionTitle("Overall Score");

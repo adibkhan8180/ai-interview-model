@@ -80,6 +80,7 @@ export interface ResponseInputProps {
   onSubmitText: (text: string) => void;
   onStartRecording: () => void;
   onStopRecording: () => void;
+  isTranscribing: boolean;
   isRecording: boolean;
   isAISpeaking: boolean;
   speakTextWithTTS: (text: string) => Promise<void>;

@@ -29,6 +29,7 @@ export default function AIInterviewSystem() {
     audioInstance,
   } = useInterviewStore();
   const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const params = useParams();
   const sessionId = params?.sessionId as string;
@@ -37,11 +38,15 @@ export default function AIInterviewSystem() {
 
   const { startRecording, stopRecording } = AudioRecorder({
     onTranscription: (text) => {
-      setTextResponse(text);
+      setTextResponse((prev) => prev + text);
+      setIsTranscribing(false);
     },
     isRecording,
     onRecordingStart: () => setIsRecording(true),
-    onRecordingStop: () => setIsRecording(false),
+    onRecordingStop: () => {
+      setIsRecording(false);
+      setIsTranscribing(true);
+    },
   });
 
   const handleUserResponse = async (userResponse: string) => {
@@ -260,6 +265,7 @@ export default function AIInterviewSystem() {
                 onSubmitText={handleUserResponse}
                 onStartRecording={startRecording}
                 onStopRecording={stopRecording}
+                isTranscribing={isTranscribing}
                 isRecording={isRecording}
                 isAISpeaking={isAISpeaking}
                 speakTextWithTTS={speakTextWithTTS}
@@ -390,6 +396,7 @@ export default function AIInterviewSystem() {
             onSubmitText={handleUserResponse}
             onStartRecording={startRecording}
             onStopRecording={stopRecording}
+            isTranscribing={isTranscribing}
             isRecording={isRecording}
             isAISpeaking={isAISpeaking}
             speakTextWithTTS={speakTextWithTTS}

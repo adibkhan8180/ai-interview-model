@@ -8,7 +8,7 @@ import { useParams, useRouter } from "next/navigation";
 import { ResponseInputProps } from "@/types";
 import Image from "next/image";
 import { Textarea } from "./ui/textarea";
-import { Pause } from "lucide-react";
+import { Pause, Loader } from "lucide-react";
 
 const maxAnswerLength = 1499;
 const minAnswerLength = 140;
@@ -17,6 +17,7 @@ export function ResponseInput({
   onSubmitText,
   onStartRecording,
   onStopRecording,
+  isTranscribing,
   isRecording,
   isAISpeaking,
   speakTextWithTTS,
@@ -168,6 +169,10 @@ export function ResponseInput({
               placeholder={
                 isAISpeaking
                   ? "AI is speaking..."
+                  : isRecording
+                  ? "Recording..."
+                  : isTranscribing
+                  ? "Transcribing..."
                   : "Type your response here..."
               }
               ref={inputRef}
@@ -177,7 +182,7 @@ export function ResponseInput({
               minLength={minAnswerLength}
               maxLength={maxAnswerLength}
               className="ml-2 text-sm sm:text-base flex-1 sm:font-medium border-none outline-none shadow-none placeholder:text-[#919ECD] px-2 py-3 resize-none h-[40px]"
-              disabled={isRecording || isAISpeaking}
+              disabled={isRecording || isAISpeaking || isTranscribing}
             />
             {textResponse?.trim() && (
               <p className="text-xs hidden md:block">
@@ -222,6 +227,8 @@ export function ResponseInput({
             >
               {isRecording ? (
                 <Pause className="w-4 h-4 mr-2" />
+              ) : isTranscribing ? (
+                <Loader className="w-4 h-4 mr-2" />
               ) : (
                 <Image
                   src="/assets/svg/send.svg"

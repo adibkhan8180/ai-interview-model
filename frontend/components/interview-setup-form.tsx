@@ -33,10 +33,10 @@ interface InterviewSetupFormProps {
   loading: boolean;
 }
 
-const maxCompanyNameLength = 30;
+const maxCompanyNameLength = 50;
 const maxJDLength = 1999;
 const minJDLength = 100;
-const maxSkillLength = 20;
+const maxSkillLength = 50;
 const maxNoOfSkills = 5;
 
 export function InterviewSetupForm({
@@ -217,7 +217,7 @@ export function InterviewSetupForm({
         {[1, 2, 3].map((step) => (
           <div key={step} className="flex items-center space-x-4">
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
+              className={`w-8 h-8 rounded-full flex items-center justify-center border-2 cursor-pointer ${
                 steps === step
                   ? "bg-[#E7ECFF] text-[#3B64F6] border-[#3B64F6]"
                   : steps > step
@@ -253,18 +253,18 @@ export function InterviewSetupForm({
         </CardHeader>
         <CardContent>
           {steps === 1 && (
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-6">
               <div>
                 <Label
                   htmlFor="companyName"
-                  className="text-sm mb-1 sm:mb-0 sm:text-base text-black capitalize"
+                  className="text-sm mb-1 sm:text-base text-black capitalize"
                 >
                   Target Company
                   {formData.companyName.trim() && (
                     <RemainingLength
                       currentLength={formData.companyName.length}
                       maxLength={maxCompanyNameLength}
-                      message="Company name should be 3-30 char long."
+                      message="Company name should be 3-50 char long."
                     />
                   )}
                 </Label>
@@ -285,7 +285,7 @@ export function InterviewSetupForm({
               <div>
                 <Label
                   htmlFor="interviewCategory"
-                  className="text-sm mb-1 sm:mb-0 sm:text-base text-black capitalize"
+                  className="text-sm mb-1 sm:text-base text-black capitalize"
                 >
                   Interview Category
                 </Label>
@@ -299,7 +299,7 @@ export function InterviewSetupForm({
                     className="w-full text-sm sm:text-base"
                     ref={categoryRef}
                   >
-                    <SelectValue placeholder="eg. HR" />
+                    <SelectValue placeholder="Select Interview Category" />
                   </SelectTrigger>
                   <SelectContent className="w-full">
                     <SelectItem value="HR">HR</SelectItem>
@@ -313,7 +313,7 @@ export function InterviewSetupForm({
               <div>
                 <Label
                   htmlFor="domain"
-                  className="text-sm mb-1 sm:mb-0 sm:text-base text-black capitalize"
+                  className="text-sm mb-1 sm:text-base text-black capitalize"
                 >
                   Select Domain
                 </Label>
@@ -330,7 +330,7 @@ export function InterviewSetupForm({
                     className="w-full text-sm sm:text-base"
                     ref={domainRef}
                   >
-                    <SelectValue placeholder="eg. Software Developer" />
+                    <SelectValue placeholder="Select Domain" />
                   </SelectTrigger>
                   <SelectContent className="w-full max-h-[500px]">
                     {domains?.map((domain) => (
@@ -361,7 +361,7 @@ export function InterviewSetupForm({
               <div>
                 <Label
                   htmlFor="jobRole"
-                  className="text-sm mb-1 sm:mb-0 sm:text-base text-black capitalize"
+                  className="text-sm mb-1 sm:text-base text-black capitalize"
                 >
                   Job Role
                 </Label>
@@ -376,7 +376,7 @@ export function InterviewSetupForm({
                     className="w-full text-sm sm:text-base"
                     ref={jobRoleRef}
                   >
-                    <SelectValue placeholder="eg. Full Stack Developer" />
+                    <SelectValue placeholder="Select Job Role" />
                   </SelectTrigger>
                   <SelectContent className="w-full">
                     {jobRoles?.map((role, i) => (
@@ -399,7 +399,7 @@ export function InterviewSetupForm({
           )}
 
           {steps === 3 && (
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-6">
               <RadioGroup
                 value={formData.inputType}
                 onValueChange={(value) =>
@@ -417,7 +417,7 @@ export function InterviewSetupForm({
                     htmlFor="skills-based"
                     className="cursor-pointer text-sm mb-1 sm:mb-0 sm:text-base text-black capitalize"
                   >
-                    Skills-Based
+                    Add Skills
                   </Label>
                 </div>
 
@@ -431,20 +431,20 @@ export function InterviewSetupForm({
                     htmlFor="job-description"
                     className="cursor-pointer text-sm mb-1 sm:mb-0 sm:text-base text-black capitalize"
                   >
-                    Job Description-Based
+                    Upload Job Description
                   </Label>
                 </div>
               </RadioGroup>
 
               {formData.inputType === "skills-based" ? (
                 <div className="space-y-1 relative">
-                  <p className="text-xs flex justify-between h-4 ml-1">
+                  <p className="text-xs mb-2 flex justify-between h-4 ml-1">
                     (Enter 3 - 5 skills.)
                     {skill && (
                       <RemainingLength
                         currentLength={skill.length}
                         maxLength={maxSkillLength}
-                        message="Skills length should be 2 - 20 letters."
+                        message="Skills length should be 2 - 50 letters."
                       />
                     )}
                   </p>
@@ -500,7 +500,7 @@ export function InterviewSetupForm({
                   <Textarea
                     ref={textareaRef}
                     name="jobDescription"
-                    placeholder="Upload the job description here..."
+                    placeholder="Paste the job description here..."
                     value={formData.jobDescription}
                     onChange={handleChange}
                     minLength={minJDLength}

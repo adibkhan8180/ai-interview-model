@@ -259,7 +259,7 @@ export function InterviewSetupForm({
                   htmlFor="companyName"
                   className="text-sm mb-1 sm:mb-0 sm:text-base text-black capitalize"
                 >
-                  Company Name
+                  Target Company
                   {formData.companyName.trim() && (
                     <RemainingLength
                       currentLength={formData.companyName.length}
@@ -500,12 +500,12 @@ export function InterviewSetupForm({
                   <Textarea
                     ref={textareaRef}
                     name="jobDescription"
-                    placeholder="Paste the job description here..."
+                    placeholder="Upload the job description here..."
                     value={formData.jobDescription}
                     onChange={handleChange}
                     minLength={minJDLength}
                     maxLength={maxJDLength}
-                    className="min-h-[150px] max-h-[200px] text-sm sm:text-base"
+                    className="min-h-[150px] max-h-[200px] text-sm sm:text-base p-2"
                     required
                   />
                 </div>

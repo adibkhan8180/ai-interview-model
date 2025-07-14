@@ -1,9 +1,10 @@
-import { Job } from "../../models/job.js";
+import { Job } from "../models/job.js";
 
-export const getDomains = async (req,res, next) => {
+export const getDomains = async (req, res, next) => {
     try {
         const domains = await Job.find({});
-        res.status(200).json({ success: true, domains: domains.map(d => ({ id: d._id, domain: d.domain })) });
+        const formattedDomains = domains.map(domain => domain.domain);
+        res.status(200).json({ success: true, domains: formattedDomains });
     } catch (error) {
         next(error);
     }
@@ -26,7 +27,7 @@ export const getJobRoles = async (req, res, next) => {
 export const searchJobRoles = async (req, res, next) => {
     try {
         const { searchedRole } = req.query;
-        
+
         const roles = await Job.aggregate([
             {
                 $unwind: "$job_roles",

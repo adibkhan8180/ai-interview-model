@@ -3,7 +3,7 @@ import {
   HumanMessage,
   SystemMessage,
 } from "@langchain/core/messages";
-import { InterviewSession } from "../../models/interviewSession.js";
+import { InterviewSession } from "../models/interviewSession.js";
 import { AIService } from "./aiService.js";
 import { AppError } from "../utils/AppError.js";
 
@@ -242,8 +242,7 @@ export class InterviewService {
 
         if (aiMsg?.role === "ai" && humanMsg?.role === "human") {
           qaPairs.push(
-            `Q${qaPairs.length + 1}: ${aiMsg.content}\nA${
-              qaPairs.length + 1
+            `Q${qaPairs.length + 1}: ${aiMsg.content}\nA${qaPairs.length + 1
             }: ${humanMsg.content}`
           );
         }

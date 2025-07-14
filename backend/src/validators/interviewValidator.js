@@ -1,7 +1,7 @@
 import Joi from 'joi';
 
 export const startInterviewSchema = Joi.object({
-    companyName: Joi.string().trim().min(1).max(40).required(),
+    companyName: Joi.string().trim().min(1).max(50).required(),
     jobRole: Joi.string().required(),
     inputType: Joi.string().valid('job-description', 'skills-based').required(),
     jobDescription: Joi.when('inputType', {

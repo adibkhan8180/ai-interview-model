@@ -20,6 +20,7 @@ export function ResponseInput({
   isTranscribing,
   isRecording,
   isAISpeaking,
+  isWaiting,
   speakTextWithTTS,
   isLatestFeedback,
   textResponse,
@@ -182,7 +183,9 @@ export function ResponseInput({
               minLength={minAnswerLength}
               maxLength={maxAnswerLength}
               className="ml-2 text-sm sm:text-base flex-1 sm:font-medium border-none outline-none shadow-none placeholder:text-[#919ECD] px-2 py-3 resize-none h-[40px]"
-              disabled={isRecording || isAISpeaking || isTranscribing}
+              disabled={
+                isRecording || isAISpeaking || isTranscribing || isWaiting
+              }
             />
             {textResponse?.trim() && (
               <p className="text-xs hidden md:block">
@@ -192,7 +195,7 @@ export function ResponseInput({
             <Button
               onClick={handleStartRecording}
               variant="outline"
-              disabled={isAISpeaking}
+              disabled={isAISpeaking || isWaiting}
               className="rounded-full cursor-pointer h-fit py-1 px-2"
             >
               <Image
@@ -218,6 +221,7 @@ export function ResponseInput({
             <Button
               onClick={isRecording ? handleStopRecording : handleSubmit}
               disabled={
+                isWaiting ||
                 isAISpeaking ||
                 (!isRecording &&
                   (!textResponse?.trim() ||

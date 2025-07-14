@@ -30,6 +30,7 @@ export default function AIInterviewSystem() {
   } = useInterviewStore();
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
+  const [isWaiting, setIsWaiting] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const params = useParams();
   const sessionId = params?.sessionId as string;
@@ -59,6 +60,7 @@ export default function AIInterviewSystem() {
 
     const newConversation = { role: "user" as const, content: userResponse };
     setConversation(newConversation);
+    setIsWaiting(true);
 
     try {
       const data = await submitAnswerAPI(sessionId, userResponse);
@@ -67,6 +69,8 @@ export default function AIInterviewSystem() {
       await speakTextWithTTS(data.feedback);
     } catch (error) {
       console.error("Error getting AI response:", error);
+    } finally {
+      setIsWaiting(false);
     }
   };
 
@@ -268,6 +272,7 @@ export default function AIInterviewSystem() {
                 isTranscribing={isTranscribing}
                 isRecording={isRecording}
                 isAISpeaking={isAISpeaking}
+                isWaiting={isWaiting}
                 speakTextWithTTS={speakTextWithTTS}
                 isLatestFeedback={
                   conversation.length > 0
@@ -399,6 +404,7 @@ export default function AIInterviewSystem() {
             isTranscribing={isTranscribing}
             isRecording={isRecording}
             isAISpeaking={isAISpeaking}
+            isWaiting={isWaiting}
             speakTextWithTTS={speakTextWithTTS}
             isLatestFeedback={
               conversation.length > 0

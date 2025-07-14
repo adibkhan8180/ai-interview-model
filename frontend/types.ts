@@ -83,6 +83,7 @@ export interface ResponseInputProps {
   isTranscribing: boolean;
   isRecording: boolean;
   isAISpeaking: boolean;
+  isWaiting: boolean;
   speakTextWithTTS: (text: string) => Promise<void>;
   isLatestFeedback?: boolean;
   textResponse: string;

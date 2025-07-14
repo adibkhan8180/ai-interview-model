@@ -81,20 +81,27 @@ export function InterviewSetupForm({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && skill.trim()) {
-      e.preventDefault();
+  const handleAddSkill = (newSkill: string) => {
+    const trimmed = newSkill.trim();
 
-      if (skill.length < 2) return;
-      if (formData.skills.length >= maxNoOfSkills) return;
+    const isValid =
+      trimmed.length >= 2 &&
+      !formData.skills.includes(trimmed) &&
+      formData.skills.length < maxNoOfSkills;
 
-      if (!formData.skills.includes(skill.trim())) {
-        setFormData((prev) => ({
-          ...prev,
-          skills: [...prev.skills, skill.trim()],
-        }));
-      }
+    if (isValid) {
+      setFormData((prev) => ({
+        ...prev,
+        skills: [...prev.skills, trimmed],
+      }));
       setSkill("");
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddSkill(skill);
     }
   };
 
@@ -452,6 +459,16 @@ export function InterviewSetupForm({
                     className="px-3 py-2 text-sm sm:text-base"
                     disabled={formData.skills.length >= maxNoOfSkills}
                   />
+                  {skill.trim() && (
+                    <ul className="absolute z-10 w-full bg-white border rounded mt-1 shadow-md">
+                      <li
+                        className="px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer"
+                        onClick={() => handleAddSkill(skill)}
+                      >
+                        Add “{skill}”
+                      </li>
+                    </ul>
+                  )}
                   <div className="flex flex-wrap gap-2 mt-2">
                     {formData.skills.map((skill) => (
                       <Badge

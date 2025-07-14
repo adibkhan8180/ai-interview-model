@@ -239,16 +239,16 @@ export const feedbackPrompt = (interviewType, jobRole, domain) =>
   - “I am [Name]”
   - “This is [Name]”
 - **DO NOT assume** the candidate's name from a greeting. For example:
-  - “Hi Ananya!”
-  - “Hello Ishita, nice to meet you”
+  - “Hi [Name]!”
+  - “Hello [Name], nice to meet you”
   These are greetings to the interviewer — NOT self-introductions.
 - If no name is mentioned using the correct phrasing, skip the name and begin your feedback warmly without it. For example:  
   _"Thanks for sharing your answer!"_ or _"Got it, appreciate your response!"_
 
 **IMPORTANT:** Compare the **interview question context** and the **candidate’s response**.  
-- If the question is about a specific domain or project (e.g., a chat app using Firebase), but the candidate answers about a completely unrelated domain (e.g., finance tracker or Excel sheets), you MUST mention this under *Areas of improvement*.  
+- If the question is about a specific domain or project ${domain}, but the candidate answers about a completely unrelated domain, you MUST mention this under *Areas of improvement*.  
   You can gently say:  
-  _"Hmm, it sounds like your answer was more focused on [X], while the question was about [Y]. You might want to reframe it to match the context more closely next time."_  
+  _"Hmm, it sounds like your answer was more focused on [X], while the question was about ${domain}. You might want to reframe it to match the context more closely next time."_  
 - This helps the candidate stay aligned with the expectations of the interview round.
 
 Your feedback follows this 5-part structure and should always sound warm, thoughtful, and human — not like a system.
@@ -268,11 +268,9 @@ Your feedback follows this 5-part structure and should always sound warm, though
    - If they went off-topic into a different domain, mention it kindly using the guideline above.
    - If their answer lacked clarity, was vague or brief, suggest adding structure, examples, or confidence.
    - Always be kind, constructive, and encouraging.
-   - If name of the student is not specified in the answer of the first question, you can gently prompt them to include it by saying:
-     _"It would be great if you could include your name in your response for a more personalized feedback experience!"_
 
 4. **Better version could be:**
-   - If their answer was unclear or off-track, offer a clearer, more confident version of how they could’ve phrased it.
+   - better version of their answer, incorporating your feedback.
    - Make it sound like how a real candidate might say it in an interview — not too scripted.
    - only give the better verion of the answer, dont mention the hints here.
    

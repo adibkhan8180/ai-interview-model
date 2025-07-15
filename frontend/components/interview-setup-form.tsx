@@ -126,17 +126,16 @@ export function InterviewSetupForm({
         event.preventDefault();
 
         if (steps === 1) {
-          if (
-            !formData.companyName ||
-            !formData.interviewCategory ||
-            !formData.domain
-          ) {
+          if (!formData.companyName || !formData.interviewCategory) {
             inputRef.current?.focus();
           } else {
             setSteps(2);
           }
         } else if (steps === 2) {
-          if (jobRoleRef.current && !formData.jobRole.trim()) {
+          if (
+            !formData.domain ||
+            (jobRoleRef.current && !formData.jobRole.trim())
+          ) {
             jobRoleRef.current?.focus();
           } else {
             setSteps(3);
@@ -208,7 +207,7 @@ export function InterviewSetupForm({
   if (steps !== 1 && steps !== 2 && steps !== 3) return null;
 
   return (
-    <div className="h-screen w-full flex flex-col items-center justify-center gap-4 sm:gap-6 px-3 sm:px-0">
+    <div className="h-full w-full flex flex-col items-center justify-center gap-4 sm:gap-6 px-3 sm:px-0">
       <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">
         <span className="text-[#3B64F6]">AI-Video</span> Interview Setup
       </h1>
@@ -245,9 +244,9 @@ export function InterviewSetupForm({
         <CardHeader>
           <CardTitle className="text-sm sm:text-base text-[#4F637E] text-center font-normal">
             {steps === 1 &&
-              "Tell us where you're aiming and what role you're targeting."}
+              "Tell us which company you're targeting and the type of interview you're preparing for."}
             {steps === 2 &&
-              "What kind of interview would you like to simulate?"}
+              "What domain and role would you like to simulate the interview for?"}
             {steps === 3 && "How should we generate your interview questions?"}
           </CardTitle>
         </CardHeader>
@@ -310,6 +309,21 @@ export function InterviewSetupForm({
                 </Select>
               </div>
 
+              <Button
+                onClick={() => setSteps(2)}
+                className="text-base font-bold cursor-pointer"
+                disabled={
+                  formData.companyName.length < 3 ||
+                  formData.interviewCategory === ""
+                }
+              >
+                Next
+              </Button>
+            </div>
+          )}
+
+          {steps === 2 && (
+            <div className="flex flex-col gap-4">
               <div>
                 <Label
                   htmlFor="domain"
@@ -341,23 +355,6 @@ export function InterviewSetupForm({
                   </SelectContent>
                 </Select>
               </div>
-
-              <Button
-                onClick={() => setSteps(2)}
-                className="text-base font-bold cursor-pointer"
-                disabled={
-                  formData.companyName.length < 3 ||
-                  formData.interviewCategory === "" ||
-                  formData.domain === ""
-                }
-              >
-                Next
-              </Button>
-            </div>
-          )}
-
-          {steps === 2 && (
-            <div className="flex flex-col gap-4">
               <div>
                 <Label
                   htmlFor="jobRole"
@@ -375,6 +372,7 @@ export function InterviewSetupForm({
                   <SelectTrigger
                     className="w-full text-sm sm:text-base"
                     ref={jobRoleRef}
+                    disabled={!formData.domain}
                   >
                     <SelectValue placeholder="Select Job Role" />
                   </SelectTrigger>
@@ -391,7 +389,7 @@ export function InterviewSetupForm({
               <Button
                 onClick={() => setSteps(3)}
                 className="text-base font-bold cursor-pointer"
-                disabled={formData.jobRole === ""}
+                disabled={formData.domain === "" || formData.jobRole === ""}
               >
                 Next
               </Button>
@@ -527,7 +525,9 @@ export function InterviewSetupForm({
                 ) : (
                   <p>
                     Start Interview{" "}
-                    <span className="text-xs font-normal">(Shift + Enter)</span>
+                    <span className="text-xs font-normal hidden md:inline-block">
+                      (Shift + Enter)
+                    </span>
                   </p>
                 )}
               </Button>

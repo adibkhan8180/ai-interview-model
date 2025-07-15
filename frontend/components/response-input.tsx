@@ -132,7 +132,7 @@ export function ResponseInput({
   if (!sessionId) return null;
 
   return (
-    <div className="w-full flex flex-col p-2 pb-5 sm:pb-0">
+    <div className="w-full flex flex-col p-2 ">
       {!interviewComplete && isLatestFeedback ? (
         <div className="w-full flex sm:flex-row flex-col items-center justify-center gap-2 sm:p-5 md:p-0 sm:gap-5">
           <p className="text-black text-sm sm:text-base leading-relaxed font-medium wrap-break-word">
@@ -179,7 +179,7 @@ export function ResponseInput({
               ref={inputRef}
               value={textResponse}
               onChange={(e) => setTextResponse(e.target.value)}
-              onPaste={(e) => e.preventDefault()}
+              // onPaste={(e) => e.preventDefault()}
               minLength={minAnswerLength}
               maxLength={maxAnswerLength}
               className="ml-2 text-sm sm:text-base flex-1 sm:font-medium border-none outline-none shadow-none placeholder:text-[#919ECD] px-2 py-3 resize-none h-[40px]"

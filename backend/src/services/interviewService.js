@@ -120,6 +120,7 @@ export class InterviewService {
         session.domain,
         session.companyName,
         session.chatHistory,
+        session.jobRole,
         input
       );
       data = response.answer;

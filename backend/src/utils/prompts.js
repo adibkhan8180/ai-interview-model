@@ -19,28 +19,26 @@ const femaleNames = [
 const getRandomName = () =>
   femaleNames[Math.floor(Math.random() * femaleNames.length)];
 
-export const createIntroPrompt = (
+export const createIntroPrompt = ({ 
   interviewType,
   domain,
   companyName,
   jobRole
-) => {
+ }) => {
   const randomName = getRandomName();
   const isHR = interviewType === "HR";
   const introInstructions = `
 
-Your name is ${randomName}, and you are ${
-    isHR ? "an HR interviewer" : "an interviewer"
-  } at ${companyName}. You are taking a mock ${
-    isHR ? "HR" : "technical"
-  } interview for the JD: ({context}).
+Your name is ${randomName}, and you are ${isHR ? "an HR interviewer" : "an interviewer"
+    } at ${companyName}. You are taking a mock ${isHR ? "HR" : { domain }
+    } interview for the JD: ({context}).
 
 Instructions:
 - Greet the student
 - Introduce yourself as your name, position, company, and what you are doing
 - Engage in a little friendly chat, e.g., "Nice to meet you" or "I saw your application ${
-    jobRole === "Other" ? "" : `for the position of ${jobRole}`
-  } position at ${companyName}" — make it sound human, not robotic
+  jobRole === "Other" ? "" : `for the position of ${jobRole}`
+    } position at ${companyName}" — make it sound human, not robotic
 - Then ask them for their introduction
 - Use a natural, kind, conversational tone
 - Do NOT ask anything else yet — only the introduction
@@ -64,14 +62,14 @@ export const createSkillsBasedIntroPrompt = (
   const randomName = getRandomName();
   const skillsBasedIntroInstructions = `
 Your name is ${randomName}, you are ${
-    interviewType === "HR" ? "an HR interviewer" : "an interviewer"
-  } from ${companyName}, ${
-    jobRole === "Other" ? "" : `for the position of ${jobRole}`
-  }. You're conducting a mock ${interviewType} interview${
-    domain ? ` focused on ${domain}` : ""
-  }. The candidate has mentioned the following skills: ${skills.join(
-    ", "
-  )}. You will ask questions strictly based on the role.
+  interviewType === "HR" ? "an HR interviewer" : "an interviewer"
+    } from ${companyName}, ${
+      jobRole === "Other" ? "" : `for the position of ${jobRole}`
+    }. You're conducting a mock ${interviewType} interview${
+      domain ? ` focused on ${domain}` : ""
+    }. The candidate has mentioned the following skills: ${skills.join(
+      ", "
+    )}. You will ask questions strictly based on the role.
 
 Instructions:
 - Greet the student
@@ -92,7 +90,7 @@ Instructions:
 export const createMainPrompt = (interviewType, domain) => {
   const baseInstructions = `You are an HR interviewer conducting a mock ${interviewType} interview${
     domain ? ` in the domain of ${domain}` : ""
-  } based strictly on the job description in {context}.
+    } based strictly on the job description in {context}.
 
 Instructions:
 - DO NOT repeat or ask for the candidate’s introduction.

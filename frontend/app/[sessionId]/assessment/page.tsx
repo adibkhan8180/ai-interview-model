@@ -12,9 +12,10 @@ import { useParams, useRouter } from "next/navigation";
 import { useFormStore } from "@/lib/store/formStore";
 import { submitFinalInterviewAPI } from "@/lib/api";
 import { downloadFeedbackPdf } from "@/lib/downloadAssessment";
-import { Skeleton } from "@/components/ui/skeleton";
 import Image from "next/image";
 import { ConfirmDialog } from "../ConfirmDialog";
+import Lottie from "lottie-react";
+import feedbackLoading from "@/public/assets/lottie/feedback-loading.json";
 
 function FinalAssessment() {
   const router = useRouter();
@@ -93,14 +94,21 @@ function FinalAssessment() {
     };
   }, []);
 
-  if (loading) {
+  if (!loading) {
     return (
       <div className="bg-[#F5F8FF] flex flex-col items-center h-full w-screen pt-32">
-        <div className="max-w-4xl mx-auto space-y-6 text-center h-screen w-screen flex flex-col items-center justify-center">
-          <Skeleton className="h-8 w-full bg-gray-200" />
-          <Skeleton className="h-1/2 w-full bg-gray-200" />
-          <Skeleton className="h-1/2 w-full bg-gray-200" />
-        </div>
+        <Lottie
+          animationData={feedbackLoading}
+          loop
+          autoplay
+          className="w-[480px] h-[480px]"
+        />
+        <p className="text-sm sm:text-base font-medium leading-relaxed text-[#4A5A75]">
+          Generating your final assessment...
+        </p>
+        <p className="text-sm sm:text-base font-medium leading-relaxed text-[#4A5A75]">
+          please wait a few seconds.
+        </p>
       </div>
     );
   }

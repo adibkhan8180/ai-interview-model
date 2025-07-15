@@ -37,7 +37,7 @@ export const downloadFeedbackPdf = async (
 
   const colors = {
     primary: [59, 100, 246],
-    section: '#C5DAFF',
+    section: '#FF6652',
     black: [0, 0, 0],
     gray: [80, 80, 80],
   };

@@ -216,13 +216,12 @@ export function InterviewSetupForm({
         {[1, 2, 3].map((step) => (
           <div key={step} className="flex items-center space-x-4">
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center border-2 cursor-pointer ${
-                steps === step
-                  ? "bg-[#E7ECFF] text-[#3B64F6] border-[#3B64F6]"
-                  : steps > step
+              className={`w-8 h-8 rounded-full flex items-center justify-center border-2 cursor-pointer ${steps === step
+                ? "bg-[#E7ECFF] text-[#3B64F6] border-[#3B64F6]"
+                : steps > step
                   ? "bg-[#3B64F6] text-white border-[#3B64F6]"
                   : "border-[#E2E8F0] text-gray-400"
-              }`}
+                }`}
               onClick={() => {
                 if (steps > step) setSteps(step);
               }}
@@ -231,9 +230,8 @@ export function InterviewSetupForm({
             </div>
             {step < 3 && (
               <div
-                className={`h-0.5 w-12 ${
-                  steps > step ? "bg-[#3B64F6]" : "bg-[#E2E8F0]"
-                }`}
+                className={`h-0.5 w-12 ${steps > step ? "bg-[#3B64F6]" : "bg-[#E2E8F0]"
+                  }`}
               />
             )}
           </div>
@@ -487,14 +485,6 @@ export function InterviewSetupForm({
                 </div>
               ) : (
                 <div className="relative">
-                  {formData.jobDescription.trim() && (
-                    <RemainingLength
-                      currentLength={formData.jobDescription.length}
-                      maxLength={maxJDLength}
-                      message="JD Should be under 99 - 999 letters."
-                      position="absolute right-0 -top-6"
-                    />
-                  )}
                   <Textarea
                     ref={textareaRef}
                     name="jobDescription"
@@ -506,6 +496,18 @@ export function InterviewSetupForm({
                     className="min-h-[150px] max-h-[200px] text-sm sm:text-base p-2"
                     required
                   />
+                  <p className="text-xs mb-2 flex justify-between h-4 mt-1">
+                    (JD should be under 99 - 999 letters.)
+                    {formData.jobDescription.trim() && (
+                      <RemainingLength
+                        currentLength={formData.jobDescription.length}
+                        maxLength={maxJDLength}
+                        message="JD Should be under 99 - 999 letters."
+                        position=""
+                      />
+                    )}
+                  </p>
+
                 </div>
               )}
 

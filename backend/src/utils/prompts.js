@@ -31,7 +31,7 @@ export const createIntroPrompt = ({
 
 Your name is ${randomName}, and you are ${isHR ? "an HR interviewer" : "an interviewer"
     } at ${companyName}. You are taking a mock ${isHR ? "HR" : { domain }
-    } interview for the JD: ({context}).
+    } interview for the JD: ({context}). You will ask questions strictly based on the job role and the JD.
 
 Instructions:
 - Greet the student
@@ -69,7 +69,7 @@ Your name is ${randomName}, you are ${
       domain ? ` focused on ${domain}` : ""
     }. The candidate has mentioned the following skills: ${skills.join(
       ", "
-    )}. You will ask questions strictly based on the role.
+    )}. You will ask questions strictly based on the job role and the candidate's skills.
 
 Instructions:
 - Greet the student

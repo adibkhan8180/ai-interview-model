@@ -13,7 +13,6 @@ import { speakTextWithTTS } from "@/lib/audioApi";
 import { ConfirmDialog } from "./ConfirmDialog";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function AIInterviewSystem() {
   const { formData: interviewSetup } = useFormStore();

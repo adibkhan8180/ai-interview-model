@@ -14,12 +14,13 @@ export function FeedbackDisplay({
   return (
     <div className=" w-fit max-w-[90%]">
       <div className="flex items-center gap-2 mb-1">
-        <div className="w-8 h-8 flex items-center justify-center bg-[#FEFBED] rounded-sm">
+        <div className="sm:w-8 sm:h-8 w-6 h-6 flex items-center justify-center bg-[#FEFBED] rounded-sm">
           <Image
             src="/assets/images/bulb.png"
             alt="bulb"
             width={24}
             height={24}
+            className="sm:w-6 sm:h-6 w-4 h-4"
           />
         </div>
         <p className="text-sm sm:text-base font-semibold">Immediate Feedback</p>
@@ -37,14 +38,14 @@ export function FeedbackDisplay({
                   alt="Pause AI Audio"
                   width={16}
                   height={16}
-                  className="z-10"
+                  className="sm:w-4 sm:h-4 w-3 h-3 z-10"
                 />
-                <div className="absolute w-6 h-6 bg-[#3B64F6] opacity-50 rounded-full animate-ping" />
+                <div className="absolute w-4 h-4 sm:w-6 sm:h-6 bg-[#3B64F6] opacity-50 rounded-full animate-ping" />
               </div>
               <span>Skip Audio</span>
             </Button>
             {!audioInstance && (
-              <p className="text-sm text-muted-foreground italic">
+              <p className="text-sm text-muted-foreground italic hidden sm:flex">
                 Generating audio...
               </p>
             )}

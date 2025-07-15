@@ -31,7 +31,7 @@ export default function Header() {
           </div>
         )}
         <Image
-          src="/assets/images/johnDoe.png"
+          src="/assets/images/maleAvatar.jpg"
           alt="User Avatar"
           width={56}
           height={56}

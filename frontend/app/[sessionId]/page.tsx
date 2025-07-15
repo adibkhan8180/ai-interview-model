@@ -29,6 +29,8 @@ export default function AIInterviewSystem() {
     audioInstance,
   } = useInterviewStore();
   const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [isWaiting, setIsWaiting] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const params = useParams();
   const sessionId = params?.sessionId as string;
@@ -37,11 +39,15 @@ export default function AIInterviewSystem() {
 
   const { startRecording, stopRecording } = AudioRecorder({
     onTranscription: (text) => {
-      setTextResponse(text);
+      setTextResponse((prev) => prev + text);
+      setIsTranscribing(false);
     },
     isRecording,
     onRecordingStart: () => setIsRecording(true),
-    onRecordingStop: () => setIsRecording(false),
+    onRecordingStop: () => {
+      setIsRecording(false);
+      setIsTranscribing(true);
+    },
   });
 
   const handleUserResponse = async (userResponse: string) => {
@@ -54,6 +60,7 @@ export default function AIInterviewSystem() {
 
     const newConversation = { role: "user" as const, content: userResponse };
     setConversation(newConversation);
+    setIsWaiting(true);
 
     try {
       const data = await submitAnswerAPI(sessionId, userResponse);
@@ -62,6 +69,8 @@ export default function AIInterviewSystem() {
       await speakTextWithTTS(data.feedback);
     } catch (error) {
       console.error("Error getting AI response:", error);
+    } finally {
+      setIsWaiting(false);
     }
   };
 
@@ -260,8 +269,10 @@ export default function AIInterviewSystem() {
                 onSubmitText={handleUserResponse}
                 onStartRecording={startRecording}
                 onStopRecording={stopRecording}
+                isTranscribing={isTranscribing}
                 isRecording={isRecording}
                 isAISpeaking={isAISpeaking}
+                isWaiting={isWaiting}
                 speakTextWithTTS={speakTextWithTTS}
                 isLatestFeedback={
                   conversation.length > 0
@@ -390,8 +401,10 @@ export default function AIInterviewSystem() {
             onSubmitText={handleUserResponse}
             onStartRecording={startRecording}
             onStopRecording={stopRecording}
+            isTranscribing={isTranscribing}
             isRecording={isRecording}
             isAISpeaking={isAISpeaking}
+            isWaiting={isWaiting}
             speakTextWithTTS={speakTextWithTTS}
             isLatestFeedback={
               conversation.length > 0

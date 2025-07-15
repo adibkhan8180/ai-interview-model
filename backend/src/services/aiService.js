@@ -83,6 +83,7 @@ export class AIService {
     domain,
     companyName,
     chatHistory,
+    jobRole,
     input
   ) {
     const vectorstore = await this.initializeVectorStore(jobDescription);
@@ -103,7 +104,7 @@ export class AIService {
       rephrasePrompt: retrieverPrompt,
     });
 
-    const introPrompt = createIntroPrompt(interviewType, domain, companyName);
+    const introPrompt = createIntroPrompt({ interviewType, domain, companyName, jobRole });
     const introChain = await createStuffDocumentsChain({
       llm: this.model,
       prompt: introPrompt,
@@ -146,8 +147,14 @@ export class AIService {
     });
   }
 
-  async generateFeedback(studentAnswer, chatHistory, interviewType) {
-    const prompt = feedbackPrompt(interviewType);
+  async generateFeedback(
+    studentAnswer,
+    chatHistory,
+    interviewType,
+    jobRole,
+    domain
+  ) {
+    const prompt = feedbackPrompt(interviewType, jobRole, domain);
     const feedbackChain = prompt.pipe(this.model);
     return await feedbackChain.invoke({
       input: studentAnswer,
@@ -180,7 +187,6 @@ export class AIService {
     });
 
     try {
-
       for (let attempt = 1; attempt <= 3; attempt++) {
         console.log(`Assessment attempt ${attempt}/3`);
 
@@ -190,30 +196,33 @@ export class AIService {
             chat_history: chatHistory,
           });
 
-
-          const jsonResult = this.extractAndValidateJSON(response.content, assessmentSchema);
+          const jsonResult = this.extractAndValidateJSON(
+            response.content,
+            assessmentSchema
+          );
 
           if (jsonResult) {
             return { success: true, result: jsonResult };
           }
-
         } catch (attemptError) {
           console.warn(`Attempt ${attempt} failed:`, attemptError.message);
 
           if (attemptError.response) {
-            console.log('Failed response preview:', attemptError.response.substring(0, 200) + '...');
+            console.log(
+              "Failed response preview:",
+              attemptError.response.substring(0, 200) + "..."
+            );
           }
         }
 
         if (attempt < 3) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise((resolve) => setTimeout(resolve, 1000));
         }
       }
 
       const fallbackResult = this.generateFallbackAssessment(chatHistory);
 
       return { success: true, result: fallbackResult };
-
     } catch (error) {
       console.error("Critical error in final assessment generation:", error);
 
@@ -229,30 +238,32 @@ export class AIService {
             specificity_of_learning: 1,
             career_goal_alignment: 1,
           },
-          recommendations: ["Please retake the interview for proper assessment."],
-          closure_message: "We apologize for the technical difficulty. Please try again later.",
-        }
+          recommendations: [
+            "Please retake the interview for proper assessment.",
+          ],
+          closure_message:
+            "We apologize for the technical difficulty. Please try again later.",
+        },
       };
     }
   }
 
   extractAndValidateJSON(responseContent, schema) {
     try {
-
       let cleaned = responseContent
-        .replace(/```json\s*/gi, '')
-        .replace(/```\s*/g, '')
-        .replace(/^\s*json\s*/gi, '')
+        .replace(/```json\s*/gi, "")
+        .replace(/```\s*/g, "")
+        .replace(/^\s*json\s*/gi, "")
         .trim();
 
-      let jsonStart = cleaned.indexOf('{');
+      let jsonStart = cleaned.indexOf("{");
       let jsonEnd = -1;
 
       if (jsonStart !== -1) {
         let braceCount = 0;
         for (let i = jsonStart; i < cleaned.length; i++) {
-          if (cleaned[i] === '{') braceCount++;
-          if (cleaned[i] === '}') {
+          if (cleaned[i] === "{") braceCount++;
+          if (cleaned[i] === "}") {
             braceCount--;
             if (braceCount === 0) {
               jsonEnd = i + 1;
@@ -263,7 +274,7 @@ export class AIService {
       }
 
       if (jsonStart === -1 || jsonEnd === -1) {
-        throw new Error('No complete JSON object found in response');
+        throw new Error("No complete JSON object found in response");
       }
 
       cleaned = cleaned.substring(jsonStart, jsonEnd);
@@ -271,16 +282,18 @@ export class AIService {
       try {
         cleaned = jsonrepair(cleaned);
       } catch (repairError) {
-        console.warn('JSON repair failed, using original:', repairError.message);
+        console.warn(
+          "JSON repair failed, using original:",
+          repairError.message
+        );
       }
 
       const parsed = JSON.parse(cleaned);
       const validated = schema.parse(parsed);
 
       return validated;
-
     } catch (error) {
-      console.error('JSON extraction failed:', error.message);
+      console.error("JSON extraction failed:", error.message);
       error.response = responseContent;
       throw error;
     }
@@ -293,21 +306,22 @@ export class AIService {
       const currentMessage = chatHistory[i];
       const nextMessage = chatHistory[i + 1];
 
-      if (currentMessage.role === 'ai' && nextMessage.role === 'human') {
+      if (currentMessage.role === "ai" && nextMessage.role === "human") {
         const aiContent = currentMessage.content.toLowerCase();
-        if (aiContent.includes('?') ||
-          aiContent.includes('tell me') ||
-          aiContent.includes('can you') ||
-          aiContent.includes('what') ||
-          aiContent.includes('how') ||
-          aiContent.includes('why') ||
-          aiContent.includes('describe') ||
-          aiContent.includes('explain') ||
-          aiContent.includes('share')) {
-
+        if (
+          aiContent.includes("?") ||
+          aiContent.includes("tell me") ||
+          aiContent.includes("can you") ||
+          aiContent.includes("what") ||
+          aiContent.includes("how") ||
+          aiContent.includes("why") ||
+          aiContent.includes("describe") ||
+          aiContent.includes("explain") ||
+          aiContent.includes("share")
+        ) {
           qaPairs.push({
             question: currentMessage.content,
-            response: nextMessage.content
+            response: nextMessage.content,
           });
         }
       }
@@ -315,17 +329,19 @@ export class AIService {
 
     const questionsAnalysis = qaPairs.map((qa, index) => {
       const responseLength = qa.response.length;
-      const hasSpecificExamples = qa.response.toLowerCase().includes('project') ||
-        qa.response.toLowerCase().includes('experience') ||
-        qa.response.toLowerCase().includes('example') ||
-        qa.response.toLowerCase().includes('developed') ||
-        qa.response.toLowerCase().includes('worked');
-      const isStructured = qa.response.includes('.') && responseLength > 50;
+      const hasSpecificExamples =
+        qa.response.toLowerCase().includes("project") ||
+        qa.response.toLowerCase().includes("experience") ||
+        qa.response.toLowerCase().includes("example") ||
+        qa.response.toLowerCase().includes("developed") ||
+        qa.response.toLowerCase().includes("worked");
+      const isStructured = qa.response.includes(".") && responseLength > 50;
       const hasNumbers = /\d/.test(qa.response);
-      const hasTechnicalTerms = qa.response.toLowerCase().includes('api') ||
-        qa.response.toLowerCase().includes('database') ||
-        qa.response.toLowerCase().includes('framework') ||
-        qa.response.toLowerCase().includes('technology');
+      const hasTechnicalTerms =
+        qa.response.toLowerCase().includes("api") ||
+        qa.response.toLowerCase().includes("database") ||
+        qa.response.toLowerCase().includes("framework") ||
+        qa.response.toLowerCase().includes("technology");
 
       let score = 3; // Base score
       if (responseLength > 50) score += 1;
@@ -341,24 +357,34 @@ export class AIService {
       if (responseLength > 80 && (hasSpecificExamples || isStructured)) {
         responseDepth = "Intermediate";
       }
-      if (responseLength > 150 && hasSpecificExamples && isStructured && (hasNumbers || hasTechnicalTerms)) {
+      if (
+        responseLength > 150 &&
+        hasSpecificExamples &&
+        isStructured &&
+        (hasNumbers || hasTechnicalTerms)
+      ) {
         responseDepth = "Advanced";
       }
 
       return {
         question: qa.question,
         response: qa.response,
-        feedback: `Response ${index + 1}: ${this.generateBasicFeedback(qa.response, score)}`,
+        feedback: `Response ${index + 1}: ${this.generateBasicFeedback(
+          qa.response,
+          score
+        )}`,
         strengths: this.identifyStrengths(qa.response),
         improvements: this.identifyImprovements(qa.response, score),
         score: score,
-        response_depth: responseDepth
+        response_depth: responseDepth,
       };
     });
 
-    const averageScore = questionsAnalysis.length > 0
-      ? questionsAnalysis.reduce((sum, q) => sum + q.score, 0) / questionsAnalysis.length
-      : 3;
+    const averageScore =
+      questionsAnalysis.length > 0
+        ? questionsAnalysis.reduce((sum, q) => sum + q.score, 0) /
+        questionsAnalysis.length
+        : 3;
 
     const overallScore = Math.round(averageScore * 10);
 
@@ -366,9 +392,14 @@ export class AIService {
     if (averageScore >= 7) level = "High-Caliber";
     else if (averageScore >= 5) level = "Competent";
 
-    const summary = questionsAnalysis.length > 0
-      ? `Interview completed with ${questionsAnalysis.length} questions answered. Overall performance demonstrates ${level.toLowerCase()} level responses with an average score of ${averageScore.toFixed(1)}/10. ${this.generatePerformanceSummary(questionsAnalysis)}`
-      : `Interview session completed. Limited interaction detected for comprehensive assessment.`;
+    const summary =
+      questionsAnalysis.length > 0
+        ? `Interview completed with ${
+          questionsAnalysis.length
+        } questions answered. Overall performance demonstrates ${level.toLowerCase()} level responses with an average score of ${averageScore.toFixed(
+          1
+        )}/10. ${this.generatePerformanceSummary(questionsAnalysis)}`
+        : `Interview session completed. Limited interaction detected for comprehensive assessment.`;
 
     return {
       overall_score: overallScore,
@@ -376,92 +407,161 @@ export class AIService {
       summary: summary,
       questions_analysis: questionsAnalysis,
       coaching_scores: {
-        clarity_of_motivation: Math.min(5, Math.max(1, Math.round(averageScore * 0.7))),
-        specificity_of_learning: Math.min(5, Math.max(1, Math.round(averageScore * 0.6))),
-        career_goal_alignment: Math.min(5, Math.max(1, Math.round(averageScore * 0.8))),
+        clarity_of_motivation: Math.min(
+          5,
+          Math.max(1, Math.round(averageScore * 0.7))
+        ),
+        specificity_of_learning: Math.min(
+          5,
+          Math.max(1, Math.round(averageScore * 0.6))
+        ),
+        career_goal_alignment: Math.min(
+          5,
+          Math.max(1, Math.round(averageScore * 0.8))
+        ),
       },
-      recommendations: this.generateRecommendations(questionsAnalysis, averageScore),
-      closure_message: questionsAnalysis.length > 0
-        ? `Thank you for participating in this mock interview. You answered ${questionsAnalysis.length} questions with an overall score of ${overallScore}/100. ${this.generateClosureMessage(level, averageScore)}`
-        : "Thank you for your participation. We recommend completing a full interview session for comprehensive feedback."
+      recommendations: this.generateRecommendations(
+        questionsAnalysis,
+        averageScore
+      ),
+      closure_message:
+        questionsAnalysis.length > 0
+          ? `Thank you for participating in this mock interview. You answered ${
+            questionsAnalysis.length
+          } questions with an overall score of ${overallScore}/100. ${this.generateClosureMessage(
+            level,
+            averageScore
+          )}`
+          : "Thank you for your participation. We recommend completing a full interview session for comprehensive feedback.",
     };
   }
 
   generatePerformanceSummary(questionsAnalysis) {
-    const avgDepth = questionsAnalysis.reduce((acc, q) => {
-      const depthScore = q.response_depth === "Advanced" ? 3 : q.response_depth === "Intermediate" ? 2 : 1;
-      return acc + depthScore;
-    }, 0) / questionsAnalysis.length;
+    const avgDepth =
+      questionsAnalysis.reduce((acc, q) => {
+        const depthScore =
+          q.response_depth === "Advanced"
+            ? 3
+            : q.response_depth === "Intermediate"
+              ? 2
+              : 1;
+        return acc + depthScore;
+      }, 0) / questionsAnalysis.length;
 
-    if (avgDepth >= 2.5) return "Responses showed strong technical depth and clear communication.";
-    if (avgDepth >= 1.5) return "Responses demonstrated good understanding with room for more detail.";
+    if (avgDepth >= 2.5)
+      return "Responses showed strong technical depth and clear communication.";
+    if (avgDepth >= 1.5)
+      return "Responses demonstrated good understanding with room for more detail.";
     return "Responses were basic and would benefit from more specific examples and detail.";
   }
 
   generateClosureMessage(level, averageScore) {
-    if (level === "High-Caliber") return "Excellent performance! Continue practicing to maintain this high standard.";
-    if (level === "Competent") return "Good performance with clear potential. Focus on the recommendations to reach the next level.";
+    if (level === "High-Caliber")
+      return "Excellent performance! Continue practicing to maintain this high standard.";
+    if (level === "Competent")
+      return "Good performance with clear potential. Focus on the recommendations to reach the next level.";
     return "Keep practicing! Focus on providing more detailed responses with specific examples.";
   }
 
   generateBasicFeedback(response, score) {
     if (score >= 8) return "Excellent response with good detail and structure.";
-    if (score >= 6) return "Good response but could benefit from more specific examples.";
-    if (score >= 4) return "Adequate response but needs more detail and structure.";
+    if (score >= 6)
+      return "Good response but could benefit from more specific examples.";
+    if (score >= 4)
+      return "Adequate response but needs more detail and structure.";
     return "Response needs significant improvement in detail and clarity.";
   }
 
   identifyStrengths(response) {
     const strengths = [];
     if (response.length > 100) strengths.push("Provided detailed response");
-    if (response.toLowerCase().includes('project') || response.toLowerCase().includes('experience')) strengths.push("Included relevant examples");
-    if (response.includes('.') && response.split('.').length > 2) strengths.push("Well-structured answer");
-    if (response.toLowerCase().includes('learn') || response.toLowerCase().includes('improve')) strengths.push("Shows growth mindset");
-    if (/\d/.test(response)) strengths.push("Included specific details/metrics");
+    if (
+      response.toLowerCase().includes("project") ||
+      response.toLowerCase().includes("experience")
+    )
+      strengths.push("Included relevant examples");
+    if (response.includes(".") && response.split(".").length > 2)
+      strengths.push("Well-structured answer");
+    if (
+      response.toLowerCase().includes("learn") ||
+      response.toLowerCase().includes("improve")
+    )
+      strengths.push("Shows growth mindset");
+    if (/\d/.test(response))
+      strengths.push("Included specific details/metrics");
 
-    return strengths.length > 0 ? strengths : ["Participated actively in the interview"];
+    return strengths.length > 0
+      ? strengths
+      : ["Participated actively in the interview"];
   }
 
   identifyImprovements(response, score) {
     const improvements = [];
-    if (response.length < 100) improvements.push("Provide more detailed responses");
-    if (!response.toLowerCase().includes('project') && !response.toLowerCase().includes('experience')) improvements.push("Include specific examples from experience");
-    if (score < 6) improvements.push("Use structured approach like STAR method");
-    if (!response.includes('.') || response.split('.').length < 2) improvements.push("Organize thoughts more clearly");
-    if (!/\d/.test(response) && score < 7) improvements.push("Include specific metrics or numbers when relevant");
+    if (response.length < 100)
+      improvements.push("Provide more detailed responses");
+    if (
+      !response.toLowerCase().includes("project") &&
+      !response.toLowerCase().includes("experience")
+    )
+      improvements.push("Include specific examples from experience");
+    if (score < 6)
+      improvements.push("Use structured approach like STAR method");
+    if (!response.includes(".") || response.split(".").length < 2)
+      improvements.push("Organize thoughts more clearly");
+    if (!/\d/.test(response) && score < 7)
+      improvements.push("Include specific metrics or numbers when relevant");
 
-    return improvements.length > 0 ? improvements : ["Continue practicing interview skills"];
+    return improvements.length > 0
+      ? improvements
+      : ["Continue practicing interview skills"];
   }
 
   generateRecommendations(questionsAnalysis, avgScore) {
     const recommendations = [];
 
     if (avgScore < 6) {
-      recommendations.push("Practice providing more detailed and structured responses");
-      recommendations.push("Prepare specific examples from your experience using the STAR method");
+      recommendations.push(
+        "Practice providing more detailed and structured responses"
+      );
+      recommendations.push(
+        "Prepare specific examples from your experience using the STAR method"
+      );
     }
 
-    const hasLowDetailResponses = questionsAnalysis.some(q => q.response.length < 100);
+    const hasLowDetailResponses = questionsAnalysis.some(
+      (q) => q.response.length < 100
+    );
     if (hasLowDetailResponses) {
-      recommendations.push("Work on expanding your answers with more context and details");
+      recommendations.push(
+        "Work on expanding your answers with more context and details"
+      );
     }
 
-    const lacksExamples = questionsAnalysis.some(q =>
-      !q.response.toLowerCase().includes('project') &&
-      !q.response.toLowerCase().includes('experience') &&
-      !q.response.toLowerCase().includes('example')
+    const lacksExamples = questionsAnalysis.some(
+      (q) =>
+        !q.response.toLowerCase().includes("project") &&
+        !q.response.toLowerCase().includes("experience") &&
+        !q.response.toLowerCase().includes("example")
     );
     if (lacksExamples) {
-      recommendations.push("Prepare concrete examples from your projects and experiences");
+      recommendations.push(
+        "Prepare concrete examples from your projects and experiences"
+      );
     }
 
-    const hasBasicDepth = questionsAnalysis.some(q => q.response_depth === "Novice");
+    const hasBasicDepth = questionsAnalysis.some(
+      (q) => q.response_depth === "Novice"
+    );
     if (hasBasicDepth) {
-      recommendations.push("Focus on providing more comprehensive answers with technical details");
+      recommendations.push(
+        "Focus on providing more comprehensive answers with technical details"
+      );
     }
 
     if (recommendations.length === 0) {
-      recommendations.push("Continue practicing to maintain your strong interview performance");
+      recommendations.push(
+        "Continue practicing to maintain your strong interview performance"
+      );
       recommendations.push("Consider mock interviews for advanced scenarios");
     }
 

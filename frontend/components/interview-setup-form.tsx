@@ -33,10 +33,10 @@ interface InterviewSetupFormProps {
   loading: boolean;
 }
 
-const maxCompanyNameLength = 30;
+const maxCompanyNameLength = 50;
 const maxJDLength = 1999;
 const minJDLength = 100;
-const maxSkillLength = 20;
+const maxSkillLength = 50;
 const maxNoOfSkills = 5;
 
 export function InterviewSetupForm({
@@ -81,20 +81,27 @@ export function InterviewSetupForm({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && skill.trim()) {
-      e.preventDefault();
+  const handleAddSkill = (newSkill: string) => {
+    const trimmed = newSkill.trim();
 
-      if (skill.length < 2) return;
-      if (formData.skills.length >= maxNoOfSkills) return;
+    const isValid =
+      trimmed.length >= 2 &&
+      !formData.skills.includes(trimmed) &&
+      formData.skills.length < maxNoOfSkills;
 
-      if (!formData.skills.includes(skill.trim())) {
-        setFormData((prev) => ({
-          ...prev,
-          skills: [...prev.skills, skill.trim()],
-        }));
-      }
+    if (isValid) {
+      setFormData((prev) => ({
+        ...prev,
+        skills: [...prev.skills, trimmed],
+      }));
       setSkill("");
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddSkill(skill);
     }
   };
 
@@ -119,17 +126,16 @@ export function InterviewSetupForm({
         event.preventDefault();
 
         if (steps === 1) {
-          if (
-            !formData.companyName ||
-            !formData.interviewCategory ||
-            !formData.domain
-          ) {
+          if (!formData.companyName || !formData.interviewCategory) {
             inputRef.current?.focus();
           } else {
             setSteps(2);
           }
         } else if (steps === 2) {
-          if (jobRoleRef.current && !formData.jobRole.trim()) {
+          if (
+            !formData.domain ||
+            (jobRoleRef.current && !formData.jobRole.trim())
+          ) {
             jobRoleRef.current?.focus();
           } else {
             setSteps(3);
@@ -201,7 +207,7 @@ export function InterviewSetupForm({
   if (steps !== 1 && steps !== 2 && steps !== 3) return null;
 
   return (
-    <div className="h-screen w-full flex flex-col items-center justify-center gap-4 sm:gap-6 px-3 sm:px-0">
+    <div className="h-full w-full flex flex-col items-center justify-center gap-4 sm:gap-6 px-3 sm:px-0">
       <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">
         <span className="text-[#3B64F6]">AI-Video</span> Interview Setup
       </h1>
@@ -210,13 +216,12 @@ export function InterviewSetupForm({
         {[1, 2, 3].map((step) => (
           <div key={step} className="flex items-center space-x-4">
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
-                steps === step
-                  ? "bg-[#E7ECFF] text-[#3B64F6] border-[#3B64F6]"
-                  : steps > step
+              className={`w-8 h-8 rounded-full flex items-center justify-center border-2 cursor-pointer ${steps === step
+                ? "bg-[#E7ECFF] text-[#3B64F6] border-[#3B64F6]"
+                : steps > step
                   ? "bg-[#3B64F6] text-white border-[#3B64F6]"
                   : "border-[#E2E8F0] text-gray-400"
-              }`}
+                }`}
               onClick={() => {
                 if (steps > step) setSteps(step);
               }}
@@ -225,9 +230,8 @@ export function InterviewSetupForm({
             </div>
             {step < 3 && (
               <div
-                className={`h-0.5 w-12 ${
-                  steps > step ? "bg-[#3B64F6]" : "bg-[#E2E8F0]"
-                }`}
+                className={`h-0.5 w-12 ${steps > step ? "bg-[#3B64F6]" : "bg-[#E2E8F0]"
+                  }`}
               />
             )}
           </div>
@@ -238,26 +242,26 @@ export function InterviewSetupForm({
         <CardHeader>
           <CardTitle className="text-sm sm:text-base text-[#4F637E] text-center font-normal">
             {steps === 1 &&
-              "Tell us where you're aiming and what role you're targeting."}
+              "Tell us which company you're targeting and the type of interview you're preparing for."}
             {steps === 2 &&
-              "What kind of interview would you like to simulate?"}
+              "What domain and role would you like to simulate the interview for?"}
             {steps === 3 && "How should we generate your interview questions?"}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {steps === 1 && (
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-6">
               <div>
                 <Label
                   htmlFor="companyName"
-                  className="text-sm mb-1 sm:mb-0 sm:text-base text-black capitalize"
+                  className="text-sm mb-1 sm:text-base text-black capitalize"
                 >
-                  Company Name
+                  Target Company
                   {formData.companyName.trim() && (
                     <RemainingLength
                       currentLength={formData.companyName.length}
                       maxLength={maxCompanyNameLength}
-                      message="Company name should be 3-30 char long."
+                      message="Company name should be 3-50 char long."
                     />
                   )}
                 </Label>
@@ -278,7 +282,7 @@ export function InterviewSetupForm({
               <div>
                 <Label
                   htmlFor="interviewCategory"
-                  className="text-sm mb-1 sm:mb-0 sm:text-base text-black capitalize"
+                  className="text-sm mb-1 sm:text-base text-black capitalize"
                 >
                   Interview Category
                 </Label>
@@ -292,7 +296,7 @@ export function InterviewSetupForm({
                     className="w-full text-sm sm:text-base"
                     ref={categoryRef}
                   >
-                    <SelectValue placeholder="eg. HR" />
+                    <SelectValue placeholder="Select Interview Category" />
                   </SelectTrigger>
                   <SelectContent className="w-full">
                     <SelectItem value="HR">HR</SelectItem>
@@ -303,10 +307,25 @@ export function InterviewSetupForm({
                 </Select>
               </div>
 
+              <Button
+                onClick={() => setSteps(2)}
+                className="text-base font-bold cursor-pointer"
+                disabled={
+                  formData.companyName.length < 3 ||
+                  formData.interviewCategory === ""
+                }
+              >
+                Next
+              </Button>
+            </div>
+          )}
+
+          {steps === 2 && (
+            <div className="flex flex-col gap-4">
               <div>
                 <Label
                   htmlFor="domain"
-                  className="text-sm mb-1 sm:mb-0 sm:text-base text-black capitalize"
+                  className="text-sm mb-1 sm:text-base text-black capitalize"
                 >
                   Select Domain
                 </Label>
@@ -323,7 +342,7 @@ export function InterviewSetupForm({
                     className="w-full text-sm sm:text-base"
                     ref={domainRef}
                   >
-                    <SelectValue placeholder="eg. Software Developer" />
+                    <SelectValue placeholder="Select Domain" />
                   </SelectTrigger>
                   <SelectContent className="w-full max-h-[500px]">
                     {domains?.map((domain) => (
@@ -334,27 +353,10 @@ export function InterviewSetupForm({
                   </SelectContent>
                 </Select>
               </div>
-
-              <Button
-                onClick={() => setSteps(2)}
-                className="text-base font-bold cursor-pointer"
-                disabled={
-                  formData.companyName.length < 3 ||
-                  formData.interviewCategory === "" ||
-                  formData.domain === ""
-                }
-              >
-                Next
-              </Button>
-            </div>
-          )}
-
-          {steps === 2 && (
-            <div className="flex flex-col gap-4">
               <div>
                 <Label
                   htmlFor="jobRole"
-                  className="text-sm mb-1 sm:mb-0 sm:text-base text-black capitalize"
+                  className="text-sm mb-1 sm:text-base text-black capitalize"
                 >
                   Job Role
                 </Label>
@@ -368,8 +370,9 @@ export function InterviewSetupForm({
                   <SelectTrigger
                     className="w-full text-sm sm:text-base"
                     ref={jobRoleRef}
+                    disabled={!formData.domain}
                   >
-                    <SelectValue placeholder="eg. Full Stack Developer" />
+                    <SelectValue placeholder="Select Job Role" />
                   </SelectTrigger>
                   <SelectContent className="w-full">
                     {jobRoles?.map((role, i) => (
@@ -384,7 +387,7 @@ export function InterviewSetupForm({
               <Button
                 onClick={() => setSteps(3)}
                 className="text-base font-bold cursor-pointer"
-                disabled={formData.jobRole === ""}
+                disabled={formData.domain === "" || formData.jobRole === ""}
               >
                 Next
               </Button>
@@ -392,7 +395,7 @@ export function InterviewSetupForm({
           )}
 
           {steps === 3 && (
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-6">
               <RadioGroup
                 value={formData.inputType}
                 onValueChange={(value) =>
@@ -410,7 +413,7 @@ export function InterviewSetupForm({
                     htmlFor="skills-based"
                     className="cursor-pointer text-sm mb-1 sm:mb-0 sm:text-base text-black capitalize"
                   >
-                    Skills-Based
+                    Add Skills
                   </Label>
                 </div>
 
@@ -424,20 +427,20 @@ export function InterviewSetupForm({
                     htmlFor="job-description"
                     className="cursor-pointer text-sm mb-1 sm:mb-0 sm:text-base text-black capitalize"
                   >
-                    Job Description-Based
+                    Upload Job Description
                   </Label>
                 </div>
               </RadioGroup>
 
               {formData.inputType === "skills-based" ? (
                 <div className="space-y-1 relative">
-                  <p className="text-xs flex justify-between h-4 ml-1">
+                  <p className="text-xs mb-2 flex justify-between h-4 ml-1">
                     (Enter 3 - 5 skills.)
                     {skill && (
                       <RemainingLength
                         currentLength={skill.length}
                         maxLength={maxSkillLength}
-                        message="Skills length should be 2 - 20 letters."
+                        message="Skills length should be 2 - 50 letters."
                       />
                     )}
                   </p>
@@ -452,6 +455,16 @@ export function InterviewSetupForm({
                     className="px-3 py-2 text-sm sm:text-base"
                     disabled={formData.skills.length >= maxNoOfSkills}
                   />
+                  {skill.trim() && (
+                    <ul className="absolute z-10 w-full bg-white border rounded mt-1 shadow-md">
+                      <li
+                        className="px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer"
+                        onClick={() => handleAddSkill(skill)}
+                      >
+                        Add “{skill}”
+                      </li>
+                    </ul>
+                  )}
                   <div className="flex flex-wrap gap-2 mt-2">
                     {formData.skills.map((skill) => (
                       <Badge
@@ -472,14 +485,6 @@ export function InterviewSetupForm({
                 </div>
               ) : (
                 <div className="relative">
-                  {formData.jobDescription.trim() && (
-                    <RemainingLength
-                      currentLength={formData.jobDescription.length}
-                      maxLength={maxJDLength}
-                      message="JD Should be under 99 - 999 letters."
-                      position="absolute right-0 -top-6"
-                    />
-                  )}
                   <Textarea
                     ref={textareaRef}
                     name="jobDescription"
@@ -488,9 +493,21 @@ export function InterviewSetupForm({
                     onChange={handleChange}
                     minLength={minJDLength}
                     maxLength={maxJDLength}
-                    className="min-h-[150px] max-h-[200px] text-sm sm:text-base"
+                    className="min-h-[150px] max-h-[200px] text-sm sm:text-base p-2"
                     required
                   />
+                  <p className="text-xs mb-2 flex justify-between h-4 mt-1">
+                    (JD should be under 99 - 999 letters.)
+                    {formData.jobDescription.trim() && (
+                      <RemainingLength
+                        currentLength={formData.jobDescription.length}
+                        maxLength={maxJDLength}
+                        message="JD Should be under 99 - 999 letters."
+                        position=""
+                      />
+                    )}
+                  </p>
+
                 </div>
               )}
 
@@ -510,7 +527,9 @@ export function InterviewSetupForm({
                 ) : (
                   <p>
                     Start Interview{" "}
-                    <span className="text-xs font-normal">(Shift + Enter)</span>
+                    <span className="text-xs font-normal hidden md:inline-block">
+                      (Shift + Enter)
+                    </span>
                   </p>
                 )}
               </Button>

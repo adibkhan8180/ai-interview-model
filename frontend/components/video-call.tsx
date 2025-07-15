@@ -73,7 +73,7 @@ export function VideoCall() {
   };
 
   return (
-    <div className="flex flex-col sm:flex-row md:flex-col-reverse gap-4 ">
+    <div className="flex flex-row md:flex-col-reverse gap-2 sm:gap-4">
       <Card className="overflow-hidden bg-black relative w-full aspect-[4/3]">
         <video
           ref={userVideoRef}
@@ -85,14 +85,14 @@ export function VideoCall() {
           }`}
         />
 
-        <div className="absolute top-4 left-4 text-white bg-[#808080] bg-opacity-75 px-4 py-2 rounded-3xl text-base">
+        <div className="absolute sm:top-4 sm:left-4 top-4 left-4 text-white bg-[#808080] bg-opacity-75 sm:px-4 sm:py-2 px-2 py-1 rounded-3xl text-xs sm:text-base">
           You
         </div>
 
         {!cameraEnabled && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
-            <div className="text-white text-center">
-              <CameraOff className="w-12 h-12 mx-auto mb-2 text-gray-400" />
+            <div className="text-white text-center text-sm sm:text-base">
+              <CameraOff className="sm:w-12 sm:h-12 w-8 h-8 mx-auto mb-2 text-gray-400" />
               <p>Camera is off</p>
             </div>
           </div>
@@ -139,22 +139,32 @@ export function VideoCall() {
           width={200}
           height={200}
         />
-        <div className="absolute inset-0 flex flex-col gap-8 items-center justify-center">
+        <div className="absolute inset-0 flex flex-col gap-2 sm:gap-8 items-center justify-center">
           <div className="relative w-full flex items-center justify-center">
-            <div className="w-20 h-20 rounded-full bg-white z-10" />
+            <Image
+              src="/AI-Interviewer.png"
+              alt="User Avatar"
+              width={100}
+              height={100}
+              className="sm:w-20 sm:h-20 w-8 h-8 rounded-full bg-white z-10"
+            />
             <Image
               src="/assets/svg/voicePulse.svg"
               alt="pulse"
-              className={`absolute ${isAISpeaking && "animate-pulse"}`}
+              className={`absolute ${
+                isAISpeaking && "animate-pulse"
+              } h-24 w-24 sm:h-48 sm:w-48`}
               width={200}
               height={200}
             />
           </div>
-          <div className="w-full items-center justify-center flex flex-col gap-2">
-            <p className="text-white font-medium">AI Interviewer</p>
+          <div className="w-full items-center justify-center flex flex-col sm:gap-2">
+            <p className="text-white font-medium text-sm sm:text-base">
+              AI Interviewer
+            </p>
             <div className="">
               {!isAISpeaking && (
-                <div className="text-white text-sm">
+                <div className="text-white text-xs sm:text-sm">
                   Waiting for your response...
                 </div>
               )}

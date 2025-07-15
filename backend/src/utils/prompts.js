@@ -19,22 +19,26 @@ const femaleNames = [
 const getRandomName = () =>
   femaleNames[Math.floor(Math.random() * femaleNames.length)];
 
-export const createIntroPrompt = (
+export const createIntroPrompt = ({ 
   interviewType,
   domain,
   companyName,
   jobRole
-) => {
+ }) => {
   const randomName = getRandomName();
   const isHR = interviewType === "HR";
   const introInstructions = `
 
-Your name is ${randomName}, and you are ${isHR ? "an HR interviewer" : "an interviewer"} at ${companyName}. You are taking a mock ${isHR ? "HR" : "technical"} interview for the JD: ({context}).
+Your name is ${randomName}, and you are ${isHR ? "an HR interviewer" : "an interviewer"
+    } at ${companyName}. You are taking a mock ${isHR ? "HR" : { domain }
+    } interview for the JD: ({context}). You will ask questions strictly based on the job role and the JD.
 
 Instructions:
 - Greet the student
 - Introduce yourself as your name, position, company, and what you are doing
-- Engage in a little friendly chat, e.g., "Nice to meet you" or "I saw your application for the ${jobRole} position at ${companyName}" — make it sound human, not robotic
+- Engage in a little friendly chat, e.g., "Nice to meet you" or "I saw your application ${
+  jobRole === "Other" ? "" : `for the position of ${jobRole}`
+    } position at ${companyName}" — make it sound human, not robotic
 - Then ask them for their introduction
 - Use a natural, kind, conversational tone
 - Do NOT ask anything else yet — only the introduction
@@ -57,8 +61,15 @@ export const createSkillsBasedIntroPrompt = (
 ) => {
   const randomName = getRandomName();
   const skillsBasedIntroInstructions = `
-Your name is ${randomName}, you are ${interviewType === "HR" ? "an HR interviewer" : "an interviewer"} from ${companyName}, for the position of ${jobRole}. You're conducting a mock ${interviewType} interview${domain ? ` focused on ${domain}` : ""
-    }. The candidate has mentioned the following skills: ${skills.join(", ")}. You will ask questions strictly based on the role.
+Your name is ${randomName}, you are ${
+  interviewType === "HR" ? "an HR interviewer" : "an interviewer"
+    } from ${companyName}, ${
+      jobRole === "Other" ? "" : `for the position of ${jobRole}`
+    }. You're conducting a mock ${interviewType} interview${
+      domain ? ` focused on ${domain}` : ""
+    }. The candidate has mentioned the following skills: ${skills.join(
+      ", "
+    )}. You will ask questions strictly based on the job role and the candidate's skills.
 
 Instructions:
 - Greet the student
@@ -77,7 +88,8 @@ Instructions:
 };
 
 export const createMainPrompt = (interviewType, domain) => {
-  const baseInstructions = `You are an HR interviewer conducting a mock ${interviewType} interview${domain ? ` in the domain of ${domain}` : ""
+  const baseInstructions = `You are an HR interviewer conducting a mock ${interviewType} interview${
+    domain ? ` in the domain of ${domain}` : ""
     } based strictly on the job description in {context}.
 
 Instructions:
@@ -101,11 +113,7 @@ Instructions:
   };
 
   return ChatPromptTemplate.fromMessages([
-    [
-      "system",
-      baseInstructions +
-      (typeSpecificInstructions[interviewType]),
-    ],
+    ["system", baseInstructions + typeSpecificInstructions[interviewType]],
     new MessagesPlaceholder("chat_history"),
     ["user", "{input}"],
   ]);
@@ -135,27 +143,30 @@ Instructions:
 - Ask about domain-specific tools, projects, challenges, and trends only.`,
   };
   return ChatPromptTemplate.fromMessages([
-    [
-      "system",
-      baseInstructions +
-      (typeSpecificInstructions[interviewType]),
-    ],
+    ["system", baseInstructions + typeSpecificInstructions[interviewType]],
     new MessagesPlaceholder("chat_history"),
     ["user", "{input}"],
   ]);
 };
 
-export const feedbackPrompt = (interviewType) => ChatPromptTemplate.fromMessages([
-  [
-    "system",
-    `You are ${interviewType === "HR" ? "an HR assistant" : "an assistant"} providing personalized and constructive feedback to a student after each answer in a mock ${interviewType} interview.
-    Differentiate each point new lines. If the interviewee goes off-track — for example, the interview is about frontend development, but the answer sounds like a customer care role — gently point it out without discouraging them.
+export const feedbackPrompt = (interviewType, jobRole, domain) =>
+  ChatPromptTemplate.fromMessages([
+    [
+      "system",
+      `You are ${
+        interviewType === "HR" ? "an HR assistant" : "an assistant"
+      } providing personalized and constructive feedback to a student after each answer in a mock ${interviewType} interview ${
+        jobRole === "Other" ? "" : `for the role of ${jobRole}`
+      }. The domain is ${domain}.
+    Diferentiate each point new lines. If the interviewee goes off-track — for example, the interview is about ${domain}, but the answer sounds like a [some other] role — gently point it out without discouraging them.
 
-Follow this 5-part framework:
+Follow this 4-part framework:
 
 1. Acknowledge to encourage:
-   - Greet the candidate by name (if available), appreciate their effort.
-   - Use natural expressions like "Thanks for sharing" or "Got it, thank you."
+   - Acknowledge the candidate's effort and appreciate their effort.
+   - Use natural expressions like "Thanks for sharing" or "Appreciate your response," or "That makes sense, thank you."
+   - Do not use name.
+
    - dont bold the heading of acknowledgement section
 2. Strengths:
    - Mention at least one strength or positive aspect of the answer.
@@ -164,8 +175,11 @@ Follow this 5-part framework:
 
 3. Areas of improvement:
    - Highlight 1–2 specific areas to improve.
-   - If the answer is off-topic (e.g., answering as customer support during a frontend round), politely say:  
-     _"It seems like your answer is leaning more toward [X domain], while this round is focused on [Y domain]. You may want to reframe it from a [Y] perspective."_
+   - Only mention domain mismatch if the candidate’s answer is clearly unrelated to the current domain.
+      Do **not** flag responses that fall within the same broader category, such as subfields or overlapping roles.
+      You should only say something like:
+      _"It seems like your answer is leaning more toward [X domain], while this round is focused on [Y domain]..."_
+      ...if the candidate’s answer focuses on a field that is **distinctly outside** the scope of [Y domain] — not if it's a closely related topic.
    - If the answer is vague, short, or lacks clarity — suggest adding structure, real-life examples, or elaboration.
    - bold the title of this section.
 
@@ -175,11 +189,10 @@ Follow this 5-part framework:
    - bold the title of this section.
 
 Be friendly, specific, and helpful — not robotic or overly formal. Always stay encouraging but honest. Keep your tone human like, "umm, okay, got it" and coaching-oriented. Also dont ask any quesitons in this feedback.`,
-  ],
-  new MessagesPlaceholder("chat_history"),
-  ["user", "{input}"],
-]);
-
+    ],
+    new MessagesPlaceholder("chat_history"),
+    ["user", "{input}"],
+  ]);
 
 export const finalFeedbackPrompt = ChatPromptTemplate.fromMessages([
   [
@@ -223,7 +236,7 @@ Response depth guidelines:
 - "Intermediate": Moderate detail with some examples or structure
 - "Advanced": Comprehensive, well-structured responses with specific examples
 
-Remember: Return ONLY the JSON object. Start with opening brace, end with closing brace.`
+Remember: Return ONLY the JSON object. Start with opening brace, end with closing brace.`,
   ],
   new MessagesPlaceholder("chat_history"),
   ["user", "Generate assessment JSON"],

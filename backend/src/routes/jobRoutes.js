@@ -1,7 +1,7 @@
 import express from "express";
 import { getDomains, getJobRoles, searchJobRoles } from "../controllers/jobsController.js";
 import { validateParams, validateBody, validateQuery } from "../middleware/validate.js";
-import { domainIdParamSchema, searchJobRolesQuerySchema } from "../../validators/jobValidator.js";
+import { domainIdParamSchema, searchJobRolesQuerySchema } from "../validators/jobValidator.js";
 
 const router = express.Router();
 

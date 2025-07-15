@@ -1,13 +1,16 @@
 import { Job } from "../models/job.js";
 
 export const getDomains = async (req, res, next) => {
-    try {
-        const domains = await Job.find({});
-        const formattedDomains = domains.map(domain => domain.domain);
-        res.status(200).json({ success: true, domains: formattedDomains });
-    } catch (error) {
-        next(error);
-    }
+  try {
+    const domains = await Job.find({});
+    const formattedDomains = domains.map((d) => ({
+      id: d._id,
+      domain: d.domain,
+    }));
+    res.status(200).json({ success: true, domains: formattedDomains });
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const getJobRoles = async (req, res, next) => {

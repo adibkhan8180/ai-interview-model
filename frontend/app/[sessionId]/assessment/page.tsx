@@ -94,7 +94,7 @@ function FinalAssessment() {
     };
   }, []);
 
-  if (!loading) {
+  if (loading) {
     return (
       <div className="bg-[#F5F8FF] flex flex-col items-center h-full w-screen pt-32">
         <Lottie

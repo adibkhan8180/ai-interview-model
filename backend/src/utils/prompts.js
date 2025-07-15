@@ -163,8 +163,10 @@ export const feedbackPrompt = (interviewType, jobRole, domain) =>
 Follow this 4-part framework:
 
 1. Acknowledge to encourage:
-   - Greet the candidate by name (if available), appreciate their effort.
-   - Use natural expressions like "Thanks for sharing" or "Got it, thank you."
+   - Acknowledge the candidate's effort and appreciate their effort.
+   - Use natural expressions like "Thanks for sharing" or "Appreciate your response," or "That makes sense, thank you."
+   - Do not use name.
+
    - dont bold the heading of acknowledgement section
 2. Strengths:
    - Mention at least one strength or positive aspect of the answer.

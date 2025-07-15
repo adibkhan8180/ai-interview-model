@@ -83,6 +83,7 @@ export class AIService {
     domain,
     companyName,
     chatHistory,
+    jobRole,
     input
   ) {
     const vectorstore = await this.initializeVectorStore(jobDescription);
@@ -103,7 +104,7 @@ export class AIService {
       rephrasePrompt: retrieverPrompt,
     });
 
-    const introPrompt = createIntroPrompt(interviewType, domain, companyName);
+    const introPrompt = createIntroPrompt({ interviewType, domain, companyName, jobRole });
     const introChain = await createStuffDocumentsChain({
       llm: this.model,
       prompt: introPrompt,
@@ -382,7 +383,7 @@ export class AIService {
     const averageScore =
       questionsAnalysis.length > 0
         ? questionsAnalysis.reduce((sum, q) => sum + q.score, 0) /
-          questionsAnalysis.length
+        questionsAnalysis.length
         : 3;
 
     const overallScore = Math.round(averageScore * 10);
@@ -394,10 +395,10 @@ export class AIService {
     const summary =
       questionsAnalysis.length > 0
         ? `Interview completed with ${
-            questionsAnalysis.length
-          } questions answered. Overall performance demonstrates ${level.toLowerCase()} level responses with an average score of ${averageScore.toFixed(
-            1
-          )}/10. ${this.generatePerformanceSummary(questionsAnalysis)}`
+          questionsAnalysis.length
+        } questions answered. Overall performance demonstrates ${level.toLowerCase()} level responses with an average score of ${averageScore.toFixed(
+          1
+        )}/10. ${this.generatePerformanceSummary(questionsAnalysis)}`
         : `Interview session completed. Limited interaction detected for comprehensive assessment.`;
 
     return {
@@ -426,11 +427,11 @@ export class AIService {
       closure_message:
         questionsAnalysis.length > 0
           ? `Thank you for participating in this mock interview. You answered ${
-              questionsAnalysis.length
-            } questions with an overall score of ${overallScore}/100. ${this.generateClosureMessage(
-              level,
-              averageScore
-            )}`
+            questionsAnalysis.length
+          } questions with an overall score of ${overallScore}/100. ${this.generateClosureMessage(
+            level,
+            averageScore
+          )}`
           : "Thank you for your participation. We recommend completing a full interview session for comprehensive feedback.",
     };
   }
@@ -442,8 +443,8 @@ export class AIService {
           q.response_depth === "Advanced"
             ? 3
             : q.response_depth === "Intermediate"
-            ? 2
-            : 1;
+              ? 2
+              : 1;
         return acc + depthScore;
       }, 0) / questionsAnalysis.length;
 

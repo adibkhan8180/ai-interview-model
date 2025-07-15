@@ -8,7 +8,7 @@ export default function Header() {
   const { interviewStarted } = useInterviewStore();
 
   return (
-    <header className="sm:fixed top-0 left-0 right-0 bg-white shadow-md z-50 border-[#E2E8F0] border-b">
+    <header className="sm:fixed h-fit top-0 left-0 right-0 bg-white shadow-md z-50 border-[#E2E8F0] border-b">
       <div className="w-full xl:w-7xl mx-auto flex items-center justify-between py-3 px-3 xl:px-0">
         {interviewStarted ? (
           <div className="w-full">

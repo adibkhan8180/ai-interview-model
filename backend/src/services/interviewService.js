@@ -1,8 +1,11 @@
-import { AIMessage, HumanMessage, SystemMessage } from "@langchain/core/messages";
-import { InterviewSession } from "../../models/interviewSession.js";
+import {
+  AIMessage,
+  HumanMessage,
+  SystemMessage,
+} from "@langchain/core/messages";
+import { InterviewSession } from "../models/interviewSession.js";
 import { AIService } from "./aiService.js";
 import { AppError } from "../utils/AppError.js";
-
 
 export class InterviewService {
   constructor() {
@@ -41,7 +44,10 @@ export class InterviewService {
     if (!session) throw new Error("Session not found");
 
     if (session.status === "completed") {
-      throw new AppError("Interview is already completed, can not get next question", 400);
+      throw new AppError(
+        "Interview is already completed, can not get next question",
+        400
+      );
     }
 
     let conversationChain;
@@ -130,7 +136,10 @@ export class InterviewService {
     if (!session) throw new Error("Session not found");
 
     if (session.status === "completed") {
-      throw new AppError("Interview is already completed, can not post answer", 400);
+      throw new AppError(
+        "Interview is already completed, can not post answer",
+        400
+      );
     }
 
     session.chatHistory.push({ role: "human", content: answer });
@@ -142,7 +151,9 @@ export class InterviewService {
         msg.role === "human"
           ? new HumanMessage(msg.content)
           : new AIMessage(msg.content)
-      )
+      ),
+      session.jobRole,
+      session.domain
     );
 
     session.currentStep = "feedback";
@@ -157,7 +168,10 @@ export class InterviewService {
     if (!session) throw new Error("Session not found");
 
     if (session.status === "completed") {
-      throw new AppError("Interview is already completed, can not revise answer", 400);
+      throw new AppError(
+        "Interview is already completed, can not revise answer",
+        400
+      );
     }
 
     const lastMessage = session.chatHistory.pop();
@@ -177,9 +191,8 @@ export class InterviewService {
     const session = await InterviewSession.findById(sessionId);
     if (!session) throw new AppError("Session not found", 400);
 
-
     if (session.status === "completed" && session.overallFeedback) {
-      console.log('Interview already completed, returning cached feedback');
+      console.log("Interview already completed, returning cached feedback");
       return {
         feedback: session.overallFeedback,
         status: session.status,
@@ -197,19 +210,17 @@ export class InterviewService {
       const feedback = await this.getFinalFeedback(sessionId);
 
       if (!feedback || !feedback.success) {
-        console.warn('Final feedback generation failed, using fallback');
+        console.warn("Final feedback generation failed, using fallback");
       }
 
       session.overallFeedback = feedback.result;
       session.status = "completed";
       await session.save();
 
-
       return {
         feedback: feedback.result,
         status: session.status,
       };
-
     } catch (error) {
       session.status = "active";
       await session.save();
@@ -230,14 +241,19 @@ export class InterviewService {
         const humanMsg = chatHistory[i + 1];
 
         if (aiMsg?.role === "ai" && humanMsg?.role === "human") {
-          qaPairs.push(`Q${qaPairs.length + 1}: ${aiMsg.content}\nA${qaPairs.length + 1}: ${humanMsg.content}`);
+          qaPairs.push(
+            `Q${qaPairs.length + 1}: ${aiMsg.content}\nA${qaPairs.length + 1
+            }: ${humanMsg.content}`
+          );
         }
       }
 
       const qnaContext = qaPairs.join("\n\n");
 
       const result = await this.aiService.generateFinalAssessment([
-        new SystemMessage(`You are a JSON generator for interview feedback. Below are question-answer pairs. You must evaluate all of them.`),
+        new SystemMessage(
+          `You are a JSON generator for interview feedback. Below are question-answer pairs. You must evaluate all of them.`
+        ),
         new HumanMessage(qnaContext),
       ]);
 
@@ -245,14 +261,16 @@ export class InterviewService {
       //   console.warn("Incomplete Q&A detected:", result.result.questions_analysis?.length);
       // }
 
-      const overAllScore = await this.calculateOverallScore(result?.result.questions_analysis, result?.result.coaching_scores);
+      const overAllScore = await this.calculateOverallScore(
+        result?.result.questions_analysis,
+        result?.result.coaching_scores
+      );
       const level = await this.getLevel(overAllScore);
 
       result.result.overall_score = overAllScore;
       result.result.level = level;
 
       return result;
-
     } catch (err) {
       console.error("AI feedback generation error:", err.message);
 
@@ -268,8 +286,11 @@ export class InterviewService {
             specificity_of_learning: 3,
             career_goal_alignment: 3,
           },
-          recommendations: ["Please retake the interview for proper assessment."],
-          closure_message: "Thank you for your participation. Please try again later.",
+          recommendations: [
+            "Please retake the interview for proper assessment.",
+          ],
+          closure_message:
+            "Thank you for your participation. Please try again later.",
         },
       };
     }
@@ -290,7 +311,10 @@ export class InterviewService {
     const totalQuestionScore = questions.reduce((sum, q) => sum + q.score, 0);
     const maxQuestionScore = questions.length * 10;
 
-    const coachingTotal = coaching.clarity_of_motivation + coaching.specificity_of_learning + coaching.career_goal_alignment;
+    const coachingTotal =
+      coaching.clarity_of_motivation +
+      coaching.specificity_of_learning +
+      coaching.career_goal_alignment;
 
     const weightedQuestion = (totalQuestionScore / maxQuestionScore) * 80;
     const weightedCoaching = (coachingTotal / 15) * 20;
@@ -304,5 +328,4 @@ export class InterviewService {
     if (score < 80) return "Competent";
     return "High-Caliber";
   }
-
 }

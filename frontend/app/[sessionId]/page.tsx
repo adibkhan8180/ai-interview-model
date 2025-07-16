@@ -380,7 +380,7 @@ export default function AIInterviewSystem() {
               <div className="w-full h-[1px] bg-[#E2E8F0] hidden md:block" />
 
               {/* conversation display */}
-              <div className="flex-1 max-h-[60vh] sm:max-h-[49vh] md:max-h-full overflow-y-scroll px-2 sm:px-6 ">
+              <div className="flex-1 max-h-[65vh] sm:max-h-[49vh] md:max-h-full overflow-y-scroll px-2 sm:px-6 ">
                 <div className="flex flex-col sm:space-y-4">
                   {conversation.map((message, index) => {
                     const isLastMessage = index === conversation.length - 1;

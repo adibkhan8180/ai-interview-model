@@ -39,6 +39,11 @@ const minJDLength = 100;
 const maxSkillLength = 50;
 const maxNoOfSkills = 5;
 
+const InterviewCategories = [
+  { value: "HR", label: "HR Interview" },
+  { value: "domain-specific", label: "Domain-specific Interview" },
+];
+
 export function InterviewSetupForm({
   onSubmit,
   loading,
@@ -216,12 +221,13 @@ export function InterviewSetupForm({
         {[1, 2, 3].map((step) => (
           <div key={step} className="flex items-center space-x-4">
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center border-2 cursor-pointer ${steps === step
-                ? "bg-[#E7ECFF] text-[#3B64F6] border-[#3B64F6]"
-                : steps > step
+              className={`w-8 h-8 rounded-full flex items-center justify-center border-2 cursor-pointer ${
+                steps === step
+                  ? "bg-[#E7ECFF] text-[#3B64F6] border-[#3B64F6]"
+                  : steps > step
                   ? "bg-[#3B64F6] text-white border-[#3B64F6]"
                   : "border-[#E2E8F0] text-gray-400"
-                }`}
+              }`}
               onClick={() => {
                 if (steps > step) setSteps(step);
               }}
@@ -230,8 +236,9 @@ export function InterviewSetupForm({
             </div>
             {step < 3 && (
               <div
-                className={`h-0.5 w-12 ${steps > step ? "bg-[#3B64F6]" : "bg-[#E2E8F0]"
-                  }`}
+                className={`h-0.5 w-12 ${
+                  steps > step ? "bg-[#3B64F6]" : "bg-[#E2E8F0]"
+                }`}
               />
             )}
           </div>
@@ -254,7 +261,7 @@ export function InterviewSetupForm({
               <div>
                 <Label
                   htmlFor="companyName"
-                  className="text-sm mb-1 sm:text-base text-black capitalize"
+                  className="text-sm mb-1 sm:text-base text-black capitalize justify-between items-center"
                 >
                   Target Company
                   {formData.companyName.trim() && (
@@ -275,7 +282,7 @@ export function InterviewSetupForm({
                   minLength={3}
                   maxLength={maxCompanyNameLength}
                   required
-                  className="px-3 py-2 text-sm sm:text-base"
+                  className="px-3 py-2 text-sm sm:text-base font-"
                 />
               </div>
 
@@ -296,13 +303,21 @@ export function InterviewSetupForm({
                     className="w-full text-sm sm:text-base"
                     ref={categoryRef}
                   >
-                    <SelectValue placeholder="Select Interview Category" />
+                    <SelectValue
+                      placeholder="Select Interview Category"
+                      className="w-full text-sm sm:text-base"
+                    />
                   </SelectTrigger>
                   <SelectContent className="w-full">
-                    <SelectItem value="HR">HR</SelectItem>
-                    <SelectItem value="domain-specific">
-                      Domain-specific
-                    </SelectItem>
+                    {InterviewCategories.map((c) => (
+                      <SelectItem
+                        value={c.value}
+                        key={c.value}
+                        className="cursor-pointer"
+                      >
+                        {c.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -344,7 +359,7 @@ export function InterviewSetupForm({
                   >
                     <SelectValue placeholder="Select Domain" />
                   </SelectTrigger>
-                  <SelectContent className="w-full max-h-[500px]">
+                  <SelectContent>
                     {domains?.map((domain) => (
                       <SelectItem value={domain.domain} key={domain.id}>
                         {domain.domain}
@@ -374,7 +389,7 @@ export function InterviewSetupForm({
                   >
                     <SelectValue placeholder="Select Job Role" />
                   </SelectTrigger>
-                  <SelectContent className="w-full">
+                  <SelectContent>
                     {jobRoles?.map((role, i) => (
                       <SelectItem value={role} key={`role_${i}`}>
                         {role}
@@ -497,17 +512,15 @@ export function InterviewSetupForm({
                     required
                   />
                   <p className="text-xs mb-2 flex justify-between h-4 mt-1">
-                    (JD should be under 99 - 999 letters.)
+                    ({`JD Should be between 99 - ${maxJDLength} letters.`})
                     {formData.jobDescription.trim() && (
                       <RemainingLength
                         currentLength={formData.jobDescription.length}
                         maxLength={maxJDLength}
-                        message="JD Should be under 99 - 999 letters."
-                        position=""
+                        message={`JD Should be between ${minJDLength} - ${maxJDLength} letters.`}
                       />
                     )}
                   </p>
-
                 </div>
               )}
 
@@ -522,16 +535,7 @@ export function InterviewSetupForm({
                   loading
                 }
               >
-                {loading ? (
-                  "Starting Interview..."
-                ) : (
-                  <p>
-                    Start Interview{" "}
-                    <span className="text-xs font-normal hidden md:inline-block">
-                      (Shift + Enter)
-                    </span>
-                  </p>
-                )}
+                {loading ? "Starting Interview..." : <p>Start Interview</p>}
               </Button>
             </div>
           )}

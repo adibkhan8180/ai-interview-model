@@ -8,8 +8,7 @@ import { useParams, useRouter } from "next/navigation";
 import { ResponseInputProps } from "@/types";
 import Image from "next/image";
 import { Textarea } from "./ui/textarea";
-import { Pause, Loader, PlayIcon, Mic } from "lucide-react";
-import { Play } from "next/font/google";
+import { Pause, Loader, Mic } from "lucide-react";
 
 const maxAnswerLength = 1499;
 const minAnswerLength = 140;

@@ -142,14 +142,20 @@ export default function AIInterviewSystem() {
           className="bg-[#FF4343] py-3 px-4 rounded-full cursor-pointer hover:opacity-95 h-fit"
           onClick={() => setOpenDialog(true)}
         >
-          <Image src="/assets/svg/call.svg" alt="AI" width={100} height={100} className="w-6"/>
+          <Image
+            src="/assets/svg/call.svg"
+            alt="AI"
+            width={100}
+            height={100}
+            className="w-6"
+          />
         </Button>
       </div>
 
       {/* main screens with video */}
       <div className="w-full xl:w-7xl h-full mx-auto flex flex-col md:grid-cols-[2fr_5fr] gap-2 lg:gap-4 md:grid ">
         {/* video screens */}
-        <div className="hidden gap-4 w-full sm:w-[80%] md:w-full h-fit mx-auto md:mx-0">
+        <div className="hidden sm:flex gap-4 w-full sm:w-[80%] md:w-full h-fit mx-auto md:mx-0">
           <VideoCall />
         </div>
 

@@ -130,6 +130,13 @@ export function ResponseInput({
     };
   }, [textResponse, handleSubmit]);
 
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.style.height = "auto";
+      inputRef.current.style.height = `${inputRef.current.scrollHeight}px`;
+    }
+  }, [textResponse]);
+
   if (!sessionId) return null;
 
   return (
@@ -166,7 +173,7 @@ export function ResponseInput({
         </div>
       ) : (
         <>
-          <div className="flex-1 flex items-center h-full gap-2 rounded-2xl overflow-hidden shadow-md bg-white">
+          <div className="flex-1 flex h-full gap-2 rounded-2xl overflow-hidden shadow-md bg-white">
             <Textarea
               placeholder={
                 isAISpeaking
@@ -183,21 +190,19 @@ export function ResponseInput({
               onPaste={(e) => e.preventDefault()}
               minLength={minAnswerLength}
               maxLength={maxAnswerLength}
-              className="ml-2 text-sm sm:text-base flex-1 sm:font-medium border-none outline-none shadow-none placeholder:text-[#919ECD] px-2 py-3 resize-none h-[40px]"
-              disabled={
-                isRecording || isAISpeaking || isTranscribing || isWaiting
-              }
+              rows={1}
+              style={{
+                height: "auto",
+                maxHeight: "6rem",
+                overflowY: "auto",
+              }}
+              className="ml-2 text-sm sm:text-base flex-1 sm:font-medium border-none outline-none shadow-none placeholder:text-[#919ECD] px-2 py-3 resize-none"
             />
-            {textResponse?.trim() && (
-              <p className="text-xs hidden md:block">
-                ({maxAnswerLength - textResponse?.length})
-              </p>
-            )}
             <Button
               onClick={isRecording ? handleStopRecording : handleStartRecording}
               variant="outline"
               disabled={isAISpeaking || isWaiting || isTranscribing}
-              className="rounded-full cursor-pointer h-fit p-2 py-3 sm:py-1 sm:px-2"
+              className="rounded-full cursor-pointer h-fit p-2 py-3 sm:py-1 sm:px-2 self-end mb-1 sm:mb-2"
             >
               {isRecording ? (
                 <Pause size={16} color="#3B64F6" />
@@ -220,7 +225,7 @@ export function ResponseInput({
                 !textResponse?.trim() ||
                 textResponse?.length < minAnswerLength
               }
-              className="w-12 h-12 rounded-none cursor-pointer bg-[#3B64F6]"
+              className="w-12 h-12 rounded-none cursor-pointer bg-[#3B64F6] self-end rounded-tr-2xl"
             >
               <Image
                 src="/assets/svg/send.svg"

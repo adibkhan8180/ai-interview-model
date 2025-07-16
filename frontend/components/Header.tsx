@@ -9,7 +9,7 @@ export default function Header() {
 
   return (
     <header className="sm:fixed h-fit top-0 left-0 right-0 bg-white shadow-md z-50 border-[#E2E8F0] border-b">
-      <div className="w-full xl:w-7xl mx-auto flex items-center justify-between py-3 px-3 xl:px-0">
+      <div className="w-full xl:w-7xl mx-auto flex flex-row-reverse items-center justify-between py-3 px-3 xl:px-0">
         <Image
           src="https://truscholar-assets-public.s3.ap-south-1.amazonaws.com/websiteimages/truscholar+new+logo.png"
           alt="AI Interviewer"
@@ -18,8 +18,8 @@ export default function Header() {
           className="w-24 sm:w-48"
         />
         {interviewStarted ? (
-          <div>
-            <h1 className="text-xl sm:text-2xl font-medium capitalize wrap-break-word w-full">
+          <div className="max-w-[70%] sm:max-w-none">
+            <h1 className="text-sm sm:text-2xl font-medium capitalize w-full truncate overflow-hidden whitespace-nowrap">
               {formData.companyName} - {formData.jobRole} Interview
             </h1>
           </div>
@@ -37,13 +37,6 @@ export default function Header() {
             </h1>
           </div>
         )}
-        <Image
-          src="/assets/images/maleAvatar.jpg"
-          alt="User Avatar"
-          width={56}
-          height={56}
-          className="rounded-full border-2 border-[#C5DAFF] bg-[#D9D9D9] w-8 sm:w-14 hidden sm:block"
-        />
       </div>
     </header>
   );

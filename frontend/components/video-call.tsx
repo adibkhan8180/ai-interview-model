@@ -73,7 +73,7 @@ export function VideoCall() {
   };
 
   return (
-    <div className="flex flex-row md:flex-col-reverse gap-2 sm:gap-4">
+    <div className="flex flex-col-reverse gap-2 sm:gap-4">
       <Card className="overflow-hidden bg-black relative w-full aspect-[4/3]">
         <video
           ref={userVideoRef}
@@ -92,7 +92,7 @@ export function VideoCall() {
         {!cameraEnabled && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
             <div className="text-white text-center text-sm sm:text-base">
-              <CameraOff className="sm:w-12 sm:h-12 w-8 h-8 mx-auto mb-2 text-gray-400" />
+              <CameraOff className="w-12 h-12 mx-auto mb-2 text-gray-400" />
               <p>Camera is off</p>
             </div>
           </div>
@@ -139,21 +139,21 @@ export function VideoCall() {
           width={200}
           height={200}
         />
-        <div className="absolute inset-0 flex flex-col gap-2 sm:gap-8 items-center justify-center">
+        <div className="absolute inset-0 flex flex-col gap-4 sm:gap-8 items-center justify-center">
           <div className="relative w-full flex items-center justify-center">
             <Image
               src="/AI-Interviewer.png"
               alt="User Avatar"
               width={100}
               height={100}
-              className="sm:w-20 sm:h-20 w-8 h-8 rounded-full bg-white z-10"
+              className="w-20 h-20 rounded-full bg-white z-10"
             />
             <Image
               src="/assets/svg/voicePulse.svg"
               alt="pulse"
               className={`absolute ${
                 isAISpeaking && "animate-pulse"
-              } h-24 w-24 sm:h-48 sm:w-48`}
+              } h-48 w-48`}
               width={200}
               height={200}
             />

@@ -285,7 +285,7 @@ export default function AIInterviewSystem() {
             </div>
           </div>
 
-          <div className="px-2 pb-1 sm:px-5 border-t border-[#E2E8F0]">
+          <div className="pb-1 sm:px-5 border-t border-[#E2E8F0] hidden sm:block">
             {!interviewComplete && (
               <ResponseInput
                 onSubmitText={handleUserResponse}
@@ -306,6 +306,27 @@ export default function AIInterviewSystem() {
               />
             )}
           </div>
+        </div>
+        <div className="pb-1 sm:px-5 sm:hidden">
+          {!interviewComplete && (
+            <ResponseInput
+              onSubmitText={handleUserResponse}
+              onStartRecording={startRecording}
+              onStopRecording={stopRecording}
+              isTranscribing={isTranscribing}
+              isRecording={isRecording}
+              isAISpeaking={isAISpeaking}
+              isWaiting={isWaiting}
+              speakTextWithTTS={speakTextWithTTS}
+              isLatestFeedback={
+                conversation.length > 0
+                  ? conversation[conversation.length - 1]?.isFeedback ?? false
+                  : false
+              }
+              textResponse={textResponse}
+              setTextResponse={setTextResponse}
+            />
+          )}
         </div>
       </div>
 

@@ -8,7 +8,8 @@ import { useParams, useRouter } from "next/navigation";
 import { ResponseInputProps } from "@/types";
 import Image from "next/image";
 import { Textarea } from "./ui/textarea";
-import { Pause, Loader } from "lucide-react";
+import { Pause, Loader, PlayIcon, Mic } from "lucide-react";
+import { Play } from "next/font/google";
 
 const maxAnswerLength = 1499;
 const minAnswerLength = 140;
@@ -89,7 +90,7 @@ export function ResponseInput({
     if (isRecording) {
       return;
     }
-    setCountdown(120);
+    setCountdown(60);
     onStartRecording();
 
     timerRef.current = setInterval(() => {
@@ -129,10 +130,17 @@ export function ResponseInput({
     };
   }, [textResponse, handleSubmit]);
 
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.style.height = "auto";
+      inputRef.current.style.height = `${inputRef.current.scrollHeight}px`;
+    }
+  }, [textResponse]);
+
   if (!sessionId) return null;
 
   return (
-    <div className="w-full flex flex-col p-2 ">
+    <div className="w-full flex flex-col sm:py-2">
       {!interviewComplete && isLatestFeedback ? (
         <div className="w-full flex sm:flex-row flex-col items-center justify-center gap-2 sm:p-5 md:p-0 sm:gap-5">
           <p className="text-black text-sm sm:text-base leading-relaxed font-medium wrap-break-word">
@@ -165,13 +173,13 @@ export function ResponseInput({
         </div>
       ) : (
         <>
-          <div className="flex-1 flex items-center h-full gap-2 rounded-2xl overflow-hidden shadow-md">
+          <div className="flex-1 flex h-full gap-2 rounded-2xl overflow-hidden shadow-md bg-white">
             <Textarea
               placeholder={
                 isAISpeaking
                   ? "AI is speaking..."
                   : isRecording
-                  ? "Recording..."
+                  ? "Listening..."
                   : isTranscribing
                   ? "Transcribing..."
                   : "Type your response here..."
@@ -182,40 +190,29 @@ export function ResponseInput({
               onPaste={(e) => e.preventDefault()}
               minLength={minAnswerLength}
               maxLength={maxAnswerLength}
-              className="ml-2 text-sm sm:text-base flex-1 sm:font-medium border-none outline-none shadow-none placeholder:text-[#919ECD] px-2 py-3 resize-none h-[40px]"
-              disabled={
-                isRecording || isAISpeaking || isTranscribing || isWaiting
-              }
+              rows={1}
+              style={{
+                height: "auto",
+                maxHeight: "6rem",
+                overflowY: "auto",
+              }}
+              className="ml-2 text-sm sm:text-base flex-1 sm:font-medium border-none outline-none shadow-none placeholder:text-[#919ECD] px-2 py-3 resize-none"
             />
-            {textResponse?.trim() && (
-              <p className="text-xs hidden md:block">
-                ({maxAnswerLength - textResponse?.length})
-              </p>
-            )}
             <Button
-              onClick={handleStartRecording}
+              onClick={isRecording ? handleStopRecording : handleStartRecording}
               variant="outline"
-              disabled={isAISpeaking || isWaiting}
-              className="rounded-full cursor-pointer h-fit py-1 px-2"
+              disabled={isAISpeaking || isWaiting || isTranscribing}
+              className="rounded-full cursor-pointer h-fit p-2 py-3 sm:py-1 sm:px-2 self-end mb-1 sm:mb-2"
             >
-              <Image
-                src={
-                  isRecording
-                    ? "/assets/gif/audioWave.gif"
-                    : "/assets/svg/audioPulse.svg"
-                }
-                alt="audio_pulse"
-                height={16}
-                width={16}
-              />
-              <p className="text-sm font-medium text-[#3B64F6]">
-                {isRecording
-                  ? `${Math.floor((countdown || 0) / 60)
-                      .toString()
-                      .padStart(2, "0")}:${((countdown || 0) % 60)
-                      .toString()
-                      .padStart(2, "0")}`
-                  : "Voice"}
+              {isRecording ? (
+                <Pause size={16} color="#3B64F6" />
+              ) : isTranscribing ? (
+                <Loader className="w-4 h-4 animate-spin" />
+              ) : (
+                <Mic size={16} color="#3B64F6" />
+              )}
+              <p className="text-sm font-medium text-[#3B64F6] hidden md:flex">
+                {isRecording ? "Listening..." : "Voice"}
               </p>
             </Button>
             <Button
@@ -223,32 +220,38 @@ export function ResponseInput({
               disabled={
                 isWaiting ||
                 isAISpeaking ||
-                (!isRecording &&
-                  (!textResponse?.trim() ||
-                    textResponse?.length < minAnswerLength))
+                isRecording ||
+                isTranscribing ||
+                !textResponse?.trim() ||
+                textResponse?.length < minAnswerLength
               }
-              className="w-12 h-12 rounded-none cursor-pointer bg-[#3B64F6]"
+              className="w-12 h-12 rounded-none cursor-pointer bg-[#3B64F6] self-end rounded-tr-2xl"
             >
-              {isRecording ? (
-                <Pause className="w-4 h-4 mr-2" />
-              ) : isTranscribing ? (
-                <Loader className="w-4 h-4 mr-2" />
-              ) : (
-                <Image
-                  src="/assets/svg/send.svg"
-                  alt="send"
-                  height={20}
-                  width={20}
-                />
-              )}
+              <Image
+                src="/assets/svg/send.svg"
+                alt="send"
+                height={20}
+                width={20}
+              />
             </Button>
           </div>
-          {isAISpeaking ||
+          {isRecording ? (
+            <p className="text-xs text-muted-foreground w-full text-end mt-1">
+              {`${Math.floor((countdown || 0) / 60)
+                .toString()
+                .padStart(2, "0")}:${((countdown || 0) % 60)
+                .toString()
+                .padStart(2, "0")}`}{" "}
+              time remaining.
+            </p>
+          ) : (
+            isAISpeaking ||
             (textResponse?.length < minAnswerLength && (
-              <p className="text-xs text-muted-foreground w-full text-center mt-1">
-                Answer/Response should be atleast 140 character long
+              <p className="text-xs text-muted-foreground w-full text-end mt-1">
+                {textResponse?.length} / {minAnswerLength} letters minimum.
               </p>
-            ))}
+            ))
+          )}
         </>
       )}
       {isAISpeaking && (

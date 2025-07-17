@@ -7,3 +7,8 @@ export const domainIdParamSchema = Joi.object({
 export const searchJobRolesQuerySchema = Joi.object({
     searchedRole: Joi.string().trim().min(2).max(50).required(),
 });
+
+export const recommendedSkillsBodySchema = Joi.object({
+    jobRole: Joi.string().required(),
+    domain: Joi.string().required(),
+});

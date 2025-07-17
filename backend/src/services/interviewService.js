@@ -164,6 +164,14 @@ export class InterviewService {
     return { feedback: feedbackResponse.content };
   }
 
+  async getTopSkills(domain, jobRole) {
+
+    const recommendedSkills = await this.aiService.generateRecommendedSkills(
+      domain, jobRole
+    );
+    return Array.from(JSON.parse(recommendedSkills.content));
+  }
+
   async reviseAnswer(sessionId) {
     const session = await InterviewSession.findById(sessionId);
     if (!session) throw new Error("Session not found");

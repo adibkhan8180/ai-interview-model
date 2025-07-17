@@ -16,6 +16,7 @@ import {
   createSkillsBasedMainPrompt,
   feedbackPrompt,
   finalFeedbackPrompt,
+  getSkillsPrompt,
 } from "../utils/prompts.js";
 import { z } from "zod";
 import { jsonrepair } from "jsonrepair";
@@ -566,5 +567,10 @@ export class AIService {
     }
 
     return recommendations;
+  }
+
+  async generateRecommendedSkills(domain, jobRole) {
+    const prompt = getSkillsPrompt(domain, jobRole);
+    return prompt.pipe(this.model).invoke();
   }
 }

@@ -241,3 +241,24 @@ Remember: Return ONLY the JSON object. Start with opening brace, end with closin
   new MessagesPlaceholder("chat_history"),
   ["user", "Generate assessment JSON"],
 ]);
+
+export const getSkillsPrompt = (domain, jobRole) => {
+  const skillsPrompt = `You are a helpful assistant. Your task is to generate a list of technical and soft skills based on the given domain and job role.
+
+Domain: ${domain}
+Job Role: ${jobRole}
+
+Instructions:
+- Return the result as a valid JavaScript array of strings.
+- Include at least 5 relevant skills.
+- Ensure the skills are aligned with both the domain and the job role.
+- do not give the markdown format and any special characters.
+
+Example Output:
+["Problem Solving", "JavaScript", "System Design", "Team Communication", "API Development"]
+`;
+
+  return ChatPromptTemplate.fromMessages([
+    ["system", skillsPrompt],
+  ]);
+};

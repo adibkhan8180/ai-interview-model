@@ -1,16 +1,18 @@
 import { Job } from "../models/job.js";
+import { InterviewService } from "../services/interviewService.js";
 
+const interviewService = new InterviewService();
 export const getDomains = async (req, res, next) => {
-  try {
-    const domains = await Job.find({});
-    const formattedDomains = domains.map((d) => ({
-      id: d._id,
-      domain: d.domain,
-    }));
-    res.status(200).json({ success: true, domains: formattedDomains });
-  } catch (error) {
-    next(error);
-  }
+    try {
+        const domains = await Job.find({});
+        const formattedDomains = domains.map((d) => ({
+            id: d._id,
+            domain: d.domain,
+        }));
+        res.status(200).json({ success: true, domains: formattedDomains });
+    } catch (error) {
+        next(error);
+    }
 };
 
 export const getJobRoles = async (req, res, next) => {
@@ -53,3 +55,14 @@ export const searchJobRoles = async (req, res, next) => {
         next(error);
     }
 };
+
+export const recommendedSkills = async (req, res, next) => {
+    try {
+        const { domain, jobRole } = req.body;
+
+        const skills = await interviewService.getTopSkills(domain, jobRole);
+        res.status(200).json({ success: true, skills: skills });
+    } catch (error) {
+        next(error);
+    }
+}

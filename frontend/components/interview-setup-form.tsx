@@ -27,6 +27,8 @@ import {
 } from "@/components/ui/tooltip";
 import ReactMarkdown from "react-markdown";
 import { getDomains, getRolesByDomainId } from "@/lib/jobsApi";
+import { getSkills } from "@/lib/api";
+import { Skeleton } from "./ui/skeleton";
 
 interface InterviewSetupFormProps {
   onSubmit: (data: InterviewSetupData) => void;
@@ -38,6 +40,11 @@ const maxJDLength = 1999;
 const minJDLength = 100;
 const maxSkillLength = 50;
 const maxNoOfSkills = 5;
+
+const InterviewCategories = [
+  { value: "HR", label: "HR Interview" },
+  { value: "domain-specific", label: "Domain-specific Interview" },
+];
 
 export function InterviewSetupForm({
   onSubmit,
@@ -58,6 +65,9 @@ export function InterviewSetupForm({
   const [domains, setDomains] = useState<DomainProps[]>([]);
   const [selectedDomainId, setSelectedDomainId] = useState<string | null>(null);
   const [jobRoles, setJobRoles] = useState<string[]>([]);
+  const [recommendedSkills, setRecommendedSkills] = useState<string[]>([]);
+  const [recommendedSkillsLoading, setRecommendedSkillsLoading] =
+    useState(false);
 
   const { saveFormData } = useFormStore();
   const { setInterviewStarted } = useInterviewStore();
@@ -204,6 +214,44 @@ export function InterviewSetupForm({
     getJobRoleByDomain();
   }, [formData.domain, selectedDomainId]);
 
+  useEffect(() => {
+    const getRecommendedSkills = async () => {
+      if (!formData.domain || !formData.jobRole) return;
+      setRecommendedSkillsLoading(true);
+
+      try {
+        const response = await getSkills({
+          domain: formData.domain,
+          jobRole: formData.jobRole,
+        });
+        if (!response?.success) return;
+        setRecommendedSkills(response?.skills);
+        setRecommendedSkillsLoading(false);
+      } catch (error) {
+        console.log(
+          "Something went wrong while searching for recommended skills.",
+          error
+        );
+        setRecommendedSkillsLoading(false);
+      }
+    };
+
+    getRecommendedSkills();
+  }, [formData.jobRole, formData.domain]);
+
+  const toggleSkills = (skill: string) => {
+    if (!skill) return;
+
+    const isExist = formData.skills.find((s) => s === skill);
+
+    if (isExist) {
+      setRecommendedSkills(recommendedSkills.filter((s) => s !== skill));
+    } else {
+      handleAddSkill(skill);
+      setRecommendedSkills(recommendedSkills.filter((s) => s !== skill));
+    }
+  };
+
   if (steps !== 1 && steps !== 2 && steps !== 3) return null;
 
   return (
@@ -216,12 +264,13 @@ export function InterviewSetupForm({
         {[1, 2, 3].map((step) => (
           <div key={step} className="flex items-center space-x-4">
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center border-2 cursor-pointer ${steps === step
-                ? "bg-[#E7ECFF] text-[#3B64F6] border-[#3B64F6]"
-                : steps > step
+              className={`w-8 h-8 rounded-full flex items-center justify-center border-2 cursor-pointer ${
+                steps === step
+                  ? "bg-[#E7ECFF] text-[#3B64F6] border-[#3B64F6]"
+                  : steps > step
                   ? "bg-[#3B64F6] text-white border-[#3B64F6]"
                   : "border-[#E2E8F0] text-gray-400"
-                }`}
+              }`}
               onClick={() => {
                 if (steps > step) setSteps(step);
               }}
@@ -230,8 +279,9 @@ export function InterviewSetupForm({
             </div>
             {step < 3 && (
               <div
-                className={`h-0.5 w-12 ${steps > step ? "bg-[#3B64F6]" : "bg-[#E2E8F0]"
-                  }`}
+                className={`h-0.5 w-12 ${
+                  steps > step ? "bg-[#3B64F6]" : "bg-[#E2E8F0]"
+                }`}
               />
             )}
           </div>
@@ -254,7 +304,7 @@ export function InterviewSetupForm({
               <div>
                 <Label
                   htmlFor="companyName"
-                  className="text-sm mb-1 sm:text-base text-black capitalize"
+                  className="text-sm mb-1 sm:text-base text-black capitalize justify-between items-center"
                 >
                   Target Company
                   {formData.companyName.trim() && (
@@ -296,13 +346,21 @@ export function InterviewSetupForm({
                     className="w-full text-sm sm:text-base"
                     ref={categoryRef}
                   >
-                    <SelectValue placeholder="Select Interview Category" />
+                    <SelectValue
+                      placeholder="Select Interview Category"
+                      className="w-full text-sm sm:text-base"
+                    />
                   </SelectTrigger>
                   <SelectContent className="w-full">
-                    <SelectItem value="HR">HR</SelectItem>
-                    <SelectItem value="domain-specific">
-                      Domain-specific
-                    </SelectItem>
+                    {InterviewCategories.map((c) => (
+                      <SelectItem
+                        value={c.value}
+                        key={c.value}
+                        className="cursor-pointer"
+                      >
+                        {c.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -344,7 +402,7 @@ export function InterviewSetupForm({
                   >
                     <SelectValue placeholder="Select Domain" />
                   </SelectTrigger>
-                  <SelectContent className="w-full max-h-[500px]">
+                  <SelectContent>
                     {domains?.map((domain) => (
                       <SelectItem value={domain.domain} key={domain.id}>
                         {domain.domain}
@@ -374,7 +432,7 @@ export function InterviewSetupForm({
                   >
                     <SelectValue placeholder="Select Job Role" />
                   </SelectTrigger>
-                  <SelectContent className="w-full">
+                  <SelectContent>
                     {jobRoles?.map((role, i) => (
                       <SelectItem value={role} key={`role_${i}`}>
                         {role}
@@ -482,6 +540,41 @@ export function InterviewSetupForm({
                       </Badge>
                     ))}
                   </div>
+
+                  {recommendedSkillsLoading ? (
+                    <div className="py-4 w-full">
+                      <p className="cursor-pointer text-sm mb-1 sm:mb-0 sm:text-base font-medium ">
+                        Recommended Skills
+                      </p>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        <Skeleton className="h-6 sm:h-7 w-1/2" />
+                        <Skeleton className="h-6 sm:h-7 w-1/3" />
+                        <Skeleton className="h-6 sm:h-7 w-1/5" />
+                        <Skeleton className="h-6 sm:h-7 w-1/2" />
+                        <Skeleton className="h-6 sm:h-7 w-1/4" />
+                      </div>
+                    </div>
+                  ) : (
+                    recommendedSkills.length > 0 && (
+                      <div className="py-4">
+                        <p className="cursor-pointer text-sm mb-1 sm:mb-0 sm:text-base font-medium ">
+                          Recommended Skills
+                        </p>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {recommendedSkills.map((skill) => (
+                            <Badge
+                              key={skill}
+                              variant="outline"
+                              className="flex items-center gap-2 cursor-pointer"
+                              onClick={() => toggleSkills(skill)}
+                            >
+                              {skill}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  )}
                 </div>
               ) : (
                 <div className="relative">
@@ -497,17 +590,15 @@ export function InterviewSetupForm({
                     required
                   />
                   <p className="text-xs mb-2 flex justify-between h-4 mt-1">
-                    (JD should be under 99 - 999 letters.)
+                    ({`JD Should be between 99 - ${maxJDLength} letters.`})
                     {formData.jobDescription.trim() && (
                       <RemainingLength
                         currentLength={formData.jobDescription.length}
                         maxLength={maxJDLength}
-                        message="JD Should be under 99 - 999 letters."
-                        position=""
+                        message={`JD Should be between ${minJDLength} - ${maxJDLength} letters.`}
                       />
                     )}
                   </p>
-
                 </div>
               )}
 
@@ -522,16 +613,7 @@ export function InterviewSetupForm({
                   loading
                 }
               >
-                {loading ? (
-                  "Starting Interview..."
-                ) : (
-                  <p>
-                    Start Interview{" "}
-                    <span className="text-xs font-normal hidden md:inline-block">
-                      (Shift + Enter)
-                    </span>
-                  </p>
-                )}
+                {loading ? "Starting Interview..." : <p>Start Interview</p>}
               </Button>
             </div>
           )}

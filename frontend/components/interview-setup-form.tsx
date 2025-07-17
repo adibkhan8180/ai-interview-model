@@ -28,6 +28,7 @@ import {
 import ReactMarkdown from "react-markdown";
 import { getDomains, getRolesByDomainId } from "@/lib/jobsApi";
 import { getSkills } from "@/lib/api";
+import { Skeleton } from "./ui/skeleton";
 
 interface InterviewSetupFormProps {
   onSubmit: (data: InterviewSetupData) => void;
@@ -65,6 +66,8 @@ export function InterviewSetupForm({
   const [selectedDomainId, setSelectedDomainId] = useState<string | null>(null);
   const [jobRoles, setJobRoles] = useState<string[]>([]);
   const [recommendedSkills, setRecommendedSkills] = useState<string[]>([]);
+  const [recommendedSkillsLoading, setRecommendedSkillsLoading] =
+    useState(false);
 
   const { saveFormData } = useFormStore();
   const { setInterviewStarted } = useInterviewStore();
@@ -214,15 +217,23 @@ export function InterviewSetupForm({
   useEffect(() => {
     const getRecommendedSkills = async () => {
       if (!formData.domain || !formData.jobRole) return;
+      setRecommendedSkillsLoading(true);
 
-      const response = await getSkills({
-        domain: formData.domain,
-        jobRole: formData.jobRole,
-      });
-
-      if (!response?.success) return;
-
-      setRecommendedSkills(response?.skills);
+      try {
+        const response = await getSkills({
+          domain: formData.domain,
+          jobRole: formData.jobRole,
+        });
+        if (!response?.success) return;
+        setRecommendedSkills(response?.skills);
+        setRecommendedSkillsLoading(false);
+      } catch (error) {
+        console.log(
+          "Something went wrong while searching for recommended skills.",
+          error
+        );
+        setRecommendedSkillsLoading(false);
+      }
     };
 
     getRecommendedSkills();
@@ -530,24 +541,39 @@ export function InterviewSetupForm({
                     ))}
                   </div>
 
-                  {recommendedSkills.length > 0 && (
-                    <div className="py-4">
+                  {recommendedSkillsLoading ? (
+                    <div className="py-4 w-full">
                       <p className="cursor-pointer text-sm mb-1 sm:mb-0 sm:text-base font-medium ">
                         Recommended Skills
                       </p>
                       <div className="flex flex-wrap gap-2 mt-2">
-                        {recommendedSkills.map((skill) => (
-                          <Badge
-                            key={skill}
-                            variant="outline"
-                            className="flex items-center gap-2 cursor-pointer"
-                            onClick={() => toggleSkills(skill)}
-                          >
-                            {skill}
-                          </Badge>
-                        ))}
+                        <Skeleton className="h-6 sm:h-7 w-1/2" />
+                        <Skeleton className="h-6 sm:h-7 w-1/3" />
+                        <Skeleton className="h-6 sm:h-7 w-1/5" />
+                        <Skeleton className="h-6 sm:h-7 w-1/2" />
+                        <Skeleton className="h-6 sm:h-7 w-1/4" />
                       </div>
                     </div>
+                  ) : (
+                    recommendedSkills.length > 0 && (
+                      <div className="py-4">
+                        <p className="cursor-pointer text-sm mb-1 sm:mb-0 sm:text-base font-medium ">
+                          Recommended Skills
+                        </p>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {recommendedSkills.map((skill) => (
+                            <Badge
+                              key={skill}
+                              variant="outline"
+                              className="flex items-center gap-2 cursor-pointer"
+                              onClick={() => toggleSkills(skill)}
+                            >
+                              {skill}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )
                   )}
                 </div>
               ) : (

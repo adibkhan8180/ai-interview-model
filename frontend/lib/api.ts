@@ -108,3 +108,26 @@ export async function submitFinalInterviewAPI(sessionId: string): Promise<{
 
   return response.json();
 }
+
+export async function getSkills({
+  domain,
+  jobRole,
+}: {
+  domain: string;
+  jobRole: string;
+}): Promise<{
+  skills: string[];
+  success: boolean;
+}> {
+  const response = await fetch(`${BASE_URL}/api/skills`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ domain, jobRole }),
+  });
+
+  if (!response.ok) throw new Error("Failed to submit final interview");
+
+  return response.json();
+}

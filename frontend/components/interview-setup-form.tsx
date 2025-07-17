@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/tooltip";
 import ReactMarkdown from "react-markdown";
 import { getDomains, getRolesByDomainId } from "@/lib/jobsApi";
+import { getSkills } from "@/lib/api";
 
 interface InterviewSetupFormProps {
   onSubmit: (data: InterviewSetupData) => void;
@@ -63,6 +64,7 @@ export function InterviewSetupForm({
   const [domains, setDomains] = useState<DomainProps[]>([]);
   const [selectedDomainId, setSelectedDomainId] = useState<string | null>(null);
   const [jobRoles, setJobRoles] = useState<string[]>([]);
+  const [recommendedSkills, setRecommendedSkills] = useState<string[]>([]);
 
   const { saveFormData } = useFormStore();
   const { setInterviewStarted } = useInterviewStore();
@@ -209,6 +211,36 @@ export function InterviewSetupForm({
     getJobRoleByDomain();
   }, [formData.domain, selectedDomainId]);
 
+  useEffect(() => {
+    const getRecommendedSkills = async () => {
+      if (!formData.domain || !formData.jobRole) return;
+
+      const response = await getSkills({
+        domain: formData.domain,
+        jobRole: formData.jobRole,
+      });
+
+      if (!response?.success) return;
+
+      setRecommendedSkills(response?.skills);
+    };
+
+    getRecommendedSkills();
+  }, [formData.jobRole, formData.domain]);
+
+  const toggleSkills = (skill: string) => {
+    if (!skill) return;
+
+    const isExist = formData.skills.find((s) => s === skill);
+
+    if (isExist) {
+      setRecommendedSkills(recommendedSkills.filter((s) => s !== skill));
+    } else {
+      handleAddSkill(skill);
+      setRecommendedSkills(recommendedSkills.filter((s) => s !== skill));
+    }
+  };
+
   if (steps !== 1 && steps !== 2 && steps !== 3) return null;
 
   return (
@@ -282,7 +314,7 @@ export function InterviewSetupForm({
                   minLength={3}
                   maxLength={maxCompanyNameLength}
                   required
-                  className="px-3 py-2 text-sm sm:text-base font-"
+                  className="px-3 py-2 text-sm sm:text-base"
                 />
               </div>
 
@@ -497,6 +529,26 @@ export function InterviewSetupForm({
                       </Badge>
                     ))}
                   </div>
+
+                  {recommendedSkills.length > 0 && (
+                    <div className="py-4">
+                      <p className="cursor-pointer text-sm mb-1 sm:mb-0 sm:text-base font-medium ">
+                        Recommended Skills
+                      </p>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {recommendedSkills.map((skill) => (
+                          <Badge
+                            key={skill}
+                            variant="outline"
+                            className="flex items-center gap-2 cursor-pointer"
+                            onClick={() => toggleSkills(skill)}
+                          >
+                            {skill}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="relative">

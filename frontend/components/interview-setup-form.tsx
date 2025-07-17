@@ -84,6 +84,8 @@ export function InterviewSetupForm({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const categoryRef = useRef<HTMLButtonElement>(null);
   const domainRef = useRef<HTMLButtonElement>(null);
+  const interviewTypeRef = useRef<HTMLButtonElement>(null);
+
 
   const isDomainSpecific = formData.interviewCategory === "domain-specific";
 
@@ -151,7 +153,7 @@ export function InterviewSetupForm({
         } else if (steps === 2) {
           if (formData.interviewCategory === "HR") {
             if(!formData.interviewType) {
-              domainRef.current?.focus();
+              interviewTypeRef.current?.focus();
             }
             else {
               handleStartInterview();
@@ -435,7 +437,7 @@ export function InterviewSetupForm({
               <div className="flex flex-col gap-4">
                 <div>
                   <Label
-                    htmlFor="domain"
+                    htmlFor="interviewType"
                     className="text-sm mb-1 sm:text-base text-black capitalize"
                   >
                     Select Interview Type
@@ -453,7 +455,7 @@ export function InterviewSetupForm({
                   >
                     <SelectTrigger
                       className="w-full text-sm sm:text-base"
-                      ref={domainRef}
+                      ref={interviewTypeRef}
                     >
                       <SelectValue placeholder="Select Interview Type" />
                     </SelectTrigger>

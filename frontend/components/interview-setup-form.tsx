@@ -11,7 +11,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
+  SelectValue
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,7 +23,7 @@ import { useInterviewStore } from "@/lib/store/interviewStore";
 import {
   Tooltip,
   TooltipContent,
-  TooltipTrigger,
+  TooltipTrigger
 } from "@/components/ui/tooltip";
 import ReactMarkdown from "react-markdown";
 import { getDomains, getRolesByDomainId } from "@/lib/jobsApi";
@@ -41,27 +41,39 @@ const maxNoOfSkills = 5;
 
 const InterviewCategories = [
   { value: "HR", label: "HR Interview" },
-  { value: "domain-specific", label: "Domain-specific Interview" },
+  { value: "domain-specific", label: "Domain-specific Interview" }
+];
+
+const interviewTypes = [
+  { id: "1", name: "Screening" },
+  { id: "2", name: "Behavioral" },
+  { id: "3", name: "Situational" },
+  { id: "4", name: "Cultural Fit" },
+  { id: "5", name: "Stress" }
 ];
 
 export function InterviewSetupForm({
   onSubmit,
-  loading,
+  loading
 }: InterviewSetupFormProps) {
   const [formData, setFormData] = useState<InterviewSetupData>({
     companyName: "",
     jobRole: "",
     interviewCategory: "",
     domain: "",
+    interviewType: "",
     jobDescription: "",
     inputType: "skills-based",
-    skills: [],
+    skills: []
   });
 
   const [skill, setSkill] = useState("");
   const [steps, setSteps] = useState(1);
   const [domains, setDomains] = useState<DomainProps[]>([]);
   const [selectedDomainId, setSelectedDomainId] = useState<string | null>(null);
+  const [selectedInterviewTypeId, setSelectedInterviewTypeId] = useState<
+    string | null
+  >(null);
   const [jobRoles, setJobRoles] = useState<string[]>([]);
 
   const { saveFormData } = useFormStore();
@@ -97,7 +109,7 @@ export function InterviewSetupForm({
     if (isValid) {
       setFormData((prev) => ({
         ...prev,
-        skills: [...prev.skills, trimmed],
+        skills: [...prev.skills, trimmed]
       }));
       setSkill("");
     }
@@ -113,7 +125,7 @@ export function InterviewSetupForm({
   const removeSkill = (removedSkill: string) => {
     setFormData((prev) => ({
       ...prev,
-      skills: prev.skills.filter((s) => s !== removedSkill),
+      skills: prev.skills.filter((s) => s !== removedSkill)
     }));
   };
 
@@ -137,13 +149,22 @@ export function InterviewSetupForm({
             setSteps(2);
           }
         } else if (steps === 2) {
-          if (
-            !formData.domain ||
-            (jobRoleRef.current && !formData.jobRole.trim())
-          ) {
-            jobRoleRef.current?.focus();
+          if (formData.interviewCategory === "HR") {
+            if(!formData.interviewType) {
+              domainRef.current?.focus();
+            }
+            else {
+              handleStartInterview();
+            }
           } else {
-            setSteps(3);
+            if (
+              !formData.domain ||
+              (jobRoleRef.current && !formData.jobRole.trim())
+            ) {
+              jobRoleRef.current?.focus();
+            } else {
+              setSteps(3);
+            }
           }
         } else if (steps === 3) {
           const isSkillsValid =
@@ -218,31 +239,33 @@ export function InterviewSetupForm({
       </h1>
 
       <div className="flex items-center space-x-4">
-        {[1, 2, 3].map((step) => (
-          <div key={step} className="flex items-center space-x-4">
-            <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center border-2 cursor-pointer ${
-                steps === step
-                  ? "bg-[#E7ECFF] text-[#3B64F6] border-[#3B64F6]"
-                  : steps > step
-                  ? "bg-[#3B64F6] text-white border-[#3B64F6]"
-                  : "border-[#E2E8F0] text-gray-400"
-              }`}
-              onClick={() => {
-                if (steps > step) setSteps(step);
-              }}
-            >
-              {step}
-            </div>
-            {step < 3 && (
+        {[1, 2, ...(formData.interviewCategory === "HR" ? [] : [3])].map(
+          (step) => (
+            <div key={step} className="flex items-center space-x-4">
               <div
-                className={`h-0.5 w-12 ${
-                  steps > step ? "bg-[#3B64F6]" : "bg-[#E2E8F0]"
+                className={`w-8 h-8 rounded-full flex items-center justify-center border-2 cursor-pointer ${
+                  steps === step
+                    ? "bg-[#E7ECFF] text-[#3B64F6] border-[#3B64F6]"
+                    : steps > step
+                    ? "bg-[#3B64F6] text-white border-[#3B64F6]"
+                    : "border-[#E2E8F0] text-gray-400"
                 }`}
-              />
-            )}
-          </div>
-        ))}
+                onClick={() => {
+                  if (steps > step) setSteps(step);
+                }}
+              >
+                {step}
+              </div>
+              {step < (formData.interviewCategory === "HR" ? 2 : 3) && (
+                <div
+                  className={`h-0.5 w-12 ${
+                    steps > step ? "bg-[#3B64F6]" : "bg-[#E2E8F0]"
+                  }`}
+                />
+              )}
+            </div>
+          )
+        )}
       </div>
 
       <Card className="w-full sm:w-md z-10">
@@ -335,81 +358,124 @@ export function InterviewSetupForm({
             </div>
           )}
 
-          {steps === 2 && (
-            <div className="flex flex-col gap-4">
-              <div>
-                <Label
-                  htmlFor="domain"
-                  className="text-sm mb-1 sm:text-base text-black capitalize"
-                >
-                  Select Domain
-                </Label>
-                <Select
-                  value={formData.domain}
-                  onValueChange={(value) => {
-                    const selected = domains.find((d) => d.domain === value);
-                    setSelectedDomainId(selected ? selected.id : null);
-                    handleSelectChange("domain", value);
-                  }}
-                  required={isDomainSpecific}
-                >
-                  <SelectTrigger
-                    className="w-full text-sm sm:text-base"
-                    ref={domainRef}
+          {steps === 2 &&
+            (formData.interviewCategory === "domain-specific" ? (
+              <div className="flex flex-col gap-4">
+                <div>
+                  <Label
+                    htmlFor="domain"
+                    className="text-sm mb-1 sm:text-base text-black capitalize"
                   >
-                    <SelectValue placeholder="Select Domain" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {domains?.map((domain) => (
-                      <SelectItem value={domain.domain} key={domain.id}>
-                        {domain.domain}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label
-                  htmlFor="jobRole"
-                  className="text-sm mb-1 sm:text-base text-black capitalize"
-                >
-                  Job Role
-                </Label>
-                <Select
-                  value={formData.jobRole}
-                  onValueChange={(value) =>
-                    handleSelectChange("jobRole", value)
-                  }
-                  required
-                >
-                  <SelectTrigger
-                    className="w-full text-sm sm:text-base"
-                    ref={jobRoleRef}
-                    disabled={!formData.domain}
+                    Select Domain
+                  </Label>
+                  <Select
+                    value={formData.domain}
+                    onValueChange={(value) => {
+                      const selected = domains.find((d) => d.domain === value);
+                      setSelectedDomainId(selected ? selected.id : null);
+                      handleSelectChange("domain", value);
+                    }}
+                    required={isDomainSpecific}
                   >
-                    <SelectValue placeholder="Select Job Role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {jobRoles?.map((role, i) => (
-                      <SelectItem value={role} key={`role_${i}`}>
-                        {role}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                    <SelectTrigger
+                      className="w-full text-sm sm:text-base"
+                      ref={domainRef}
+                    >
+                      <SelectValue placeholder="Select Domain" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {domains?.map((domain) => (
+                        <SelectItem value={domain.domain} key={domain.id}>
+                          {domain.domain}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label
+                    htmlFor="jobRole"
+                    className="text-sm mb-1 sm:text-base text-black capitalize"
+                  >
+                    Job Role
+                  </Label>
+                  <Select
+                    value={formData.jobRole}
+                    onValueChange={(value) =>
+                      handleSelectChange("jobRole", value)
+                    }
+                    required
+                  >
+                    <SelectTrigger
+                      className="w-full text-sm sm:text-base"
+                      ref={jobRoleRef}
+                      disabled={!formData.domain}
+                    >
+                      <SelectValue placeholder="Select Job Role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {jobRoles?.map((role, i) => (
+                        <SelectItem value={role} key={`role_${i}`}>
+                          {role}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <Button
+                  onClick={() => setSteps(3)}
+                  className="text-base font-bold cursor-pointer"
+                  disabled={formData.domain === "" || formData.jobRole === ""}
+                >
+                  Next
+                </Button>
               </div>
+            ) : (
+              <div className="flex flex-col gap-4">
+                <div>
+                  <Label
+                    htmlFor="domain"
+                    className="text-sm mb-1 sm:text-base text-black capitalize"
+                  >
+                    Select Interview Type
+                  </Label>
+                  <Select
+                    value={formData.interviewType}
+                    onValueChange={(value) => {
+                      const selected = interviewTypes.find(
+                        (d) => d.name === value
+                      );
+                      setSelectedInterviewTypeId(selected ? selected.id : null);
+                      handleSelectChange("interviewType", value);
+                    }}
+                    required
+                  >
+                    <SelectTrigger
+                      className="w-full text-sm sm:text-base"
+                      ref={domainRef}
+                    >
+                      <SelectValue placeholder="Select Interview Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {interviewTypes.map((type) => (
+                        <SelectItem value={type.name} key={type.id}>
+                          {type.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button
+                  onClick={handleStartInterview}
+                  className="text-base font-bold cursor-pointer"
+                >
+                  {loading ? "Starting Interview..." : <p>Start Interview</p>}
+                </Button>
+              </div>
+            ))}
 
-              <Button
-                onClick={() => setSteps(3)}
-                className="text-base font-bold cursor-pointer"
-                disabled={formData.domain === "" || formData.jobRole === ""}
-              >
-                Next
-              </Button>
-            </div>
-          )}
-
-          {steps === 3 && (
+          {formData.interviewCategory === "domain-specific" && steps === 3 && (
             <div className="flex flex-col gap-6">
               <RadioGroup
                 value={formData.inputType}
@@ -549,7 +615,7 @@ const RemainingLength = ({
   currentLength,
   maxLength,
   message,
-  position = "text-xs sm:text-sm font-normal flex gap-1 items-center",
+  position = "text-xs sm:text-sm font-normal flex gap-1 items-center"
 }: {
   currentLength: number;
   maxLength: number;

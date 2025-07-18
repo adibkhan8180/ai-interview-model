@@ -19,25 +19,42 @@ export class InterviewService {
     jobDescription,
     skills,
     interviewType,
-    domain
+    domain,
+    hrRoundType
   ) {
-    const newSession = new InterviewSession({
+
+    let sessionData = {
       companyName,
-      jobRole,
-      inputType,
-      jobDescription,
-      skills,
       interviewType,
-      domain,
       chatHistory: [],
       status: "active",
       currentStep: "questioning",
-    });
+    };
+
+    if (interviewType === "domain-specific") {
+      sessionData = {
+        ...sessionData,
+        jobRole,
+        inputType,
+        jobDescription,
+        skills,
+        domain,
+      };
+    }
+
+    if (interviewType === "HR") {
+      sessionData = {
+        ...sessionData,
+        hrRoundType,
+      };
+    }
+    const newSession = new InterviewSession(sessionData);
 
     const savedSession = await newSession.save();
 
     return { sessionId: savedSession._id.toString() };
   }
+
 
   async getNextQuestion(sessionId) {
     const session = await InterviewSession.findById(sessionId);
@@ -50,41 +67,57 @@ export class InterviewService {
       );
     }
 
-    let conversationChain;
+    let response;
 
-    if (session.inputType === "skills-based") {
-      conversationChain = await this.aiService.createInterviewChainSkillsBased(
-        session.skills,
-        session.interviewType,
-        session.domain
+    if (session.interviewType === "HR") {
+      const hrChain = await this.aiService.createHRInterviewChain(
+        session.hrRoundType
       );
-    } else {
-      conversationChain = await this.aiService.createInterviewChain(
-        session.jobDescription,
-        session.interviewType,
-        session.domain
-      );
-    }
 
-    const response = await conversationChain.invoke({
-      input: "Generate the next question based on the conversation history.",
-      chat_history: session.chatHistory.map((msg) =>
-        msg.role === "human"
-          ? new HumanMessage(msg.content)
-          : new AIMessage(msg.content)
-      ),
-    });
+      response = await hrChain.invoke({
+        input: "Generate the next HR interview question based on conversation history.",
+        chat_history: session.chatHistory.map((msg) =>
+          msg.role === "human"
+            ? new HumanMessage(msg.content)
+            : new AIMessage(msg.content)
+        ),
+      });
 
-    if (session.inputType === "skills-based") {
       session.chatHistory.push({ role: "ai", content: response.content });
       await session.save();
-
       return response.content;
     } else {
-      session.chatHistory.push({ role: "ai", content: response.answer });
+      let conversationChain;
+      if (session.inputType === "skills-based") {
+        conversationChain = await this.aiService.createInterviewChainSkillsBased(
+          session.skills,
+          session.interviewType,
+          session.domain
+        );
+      } else {
+        conversationChain = await this.aiService.createInterviewChain(
+          session.jobDescription,
+          session.interviewType,
+          session.domain
+        );
+      }
+
+      response = await conversationChain.invoke({
+        input: "Generate the next question based on the conversation history.",
+        chat_history: session.chatHistory.map((msg) =>
+          msg.role === "human"
+            ? new HumanMessage(msg.content)
+            : new AIMessage(msg.content)
+        ),
+      });
+
+      const answerContent =
+        session.inputType === "skills-based" ? response.content : response.answer;
+
+      session.chatHistory.push({ role: "ai", content: answerContent });
       await session.save();
 
-      return response.answer;
+      return answerContent;
     }
   }
 
@@ -100,30 +133,41 @@ export class InterviewService {
     let response;
     let data;
 
-    if (session.inputType === "skills-based") {
-      // Skills-based flow
-      response = await this.aiService.askIntroQuestionSkillsBased(
-        session.skills,
-        session.interviewType,
-        session.domain,
+    // interviewtype === HR -> hrRoundType
+
+    if (session.interviewType === "HR") {
+      response = await this.aiService.askHRIntroQuestion(
         session.companyName,
-        session.chatHistory,
-        session.jobRole,
+        session.hrRoundType,
         input
       );
       data = response.content;
     } else {
-      // JD-based flow
-      response = await this.aiService.askIntroQuestion(
-        session.jobDescription,
-        session.interviewType,
-        session.domain,
-        session.companyName,
-        session.chatHistory,
-        session.jobRole,
-        input
-      );
-      data = response.answer;
+      if (session.inputType === "skills-based") {
+        // Skills-based flow
+        response = await this.aiService.askIntroQuestionSkillsBased(
+          session.skills,
+          session.interviewType,
+          session.domain,
+          session.companyName,
+          session.chatHistory,
+          session.jobRole,
+          input
+        );
+        data = response.content;
+      } else {
+        // JD-based flow
+        response = await this.aiService.askIntroQuestion(
+          session.jobDescription,
+          session.interviewType,
+          session.domain,
+          session.companyName,
+          session.chatHistory,
+          session.jobRole,
+          input
+        );
+        data = response.answer;
+      }
     }
 
     session.chatHistory.push({ role: "ai", content: data });

@@ -12,29 +12,40 @@ export const startInterview = async (req, res, next) => {
       inputType,
       interviewType,
       domain,
+      hrRoundType,
     } = req.body;
 
-    if (interviewType === "domain-specific" && !domain) {
-      return res.status(400).json({
-        success: false,
-        message: "Domain is required for domain specific interviews",
-      });
-    }
-    if (inputType === "skills-based" && (!skills || !skills.length)) {
-      return res.status(400).json({
-        success: false,
-        message: "At least one skill is required for Skills-based interviews",
-      });
+    if (interviewType === "HR") {
+      if (!hrRoundType) {
+        return res.status(400).json({
+          success: false,
+          message: "HR Round Type (situational, stress, behavioral) is required",
+        });
+      }
+    } else {
+      if (interviewType === "domain-specific" && !domain) {
+        return res.status(400).json({
+          success: false,
+          message: "Domain is required for domain specific interviews",
+        });
+      }
+      if (inputType === "skills-based" && (!skills || !skills.length)) {
+        return res.status(400).json({
+          success: false,
+          message: "At least one skill is required for Skills-based interviews",
+        });
+      }
     }
 
     const result = await interviewService.startInterview(
       companyName,
-      jobRole,
-      inputType,
+      interviewType === "domain-specific" ? jobRole : null,
+      inputType ?? null,
       inputType === "job-description" ? jobDescription : "",
       inputType === "skills-based" ? skills : [],
       interviewType,
       interviewType === "domain-specific" ? domain : null,
+      interviewType === "HR" ? hrRoundType : null
     );
 
     const introQuestion = await interviewService.getIntroQuestion(
@@ -96,12 +107,11 @@ export const submitInterview = async (req, res, next) => {
   try {
     const sessionId = req.params.sessionId;
     const result = await interviewService.submitInterview(sessionId);
-    res.status(200).json
-      ({
-        success: true,
-        overallFeedback: result.feedback,
-        status: result.status,
-      });
+    res.status(200).json({
+      success: true,
+      overallFeedback: result.feedback,
+      status: result.status,
+    });
   } catch (error) {
     console.error("Error in submitInterview:", error.message);
     next(error);

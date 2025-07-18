@@ -337,8 +337,8 @@ export default function AIInterviewSystem() {
               <VideoCall />
             </div>
           </TabsContent>
-          <TabsContent value="chat" className="flex-1 flex">
-            <div className="flex-1 md:h-[85vh] rounded-3xl overflow-hidden bg-[#FFFFFF] border sborder-[#E2E8F0] sm:hidden flex flex-col pb-2 sm:pb-0">
+          <TabsContent value="chat" className="flex">
+            <div className="h-[75vh] rounded-3xl overflow-hidden bg-[#FFFFFF] border sborder-[#E2E8F0] sm:hidden flex flex-col pb-2 sm:pb-0">
               {/* progress bar for larger screens */}
               <div className="py-4 px-5 m-2 rounded-tl-2xl rounded-tr-2xl bg-[#F7F9FC] hidden md:flex flex-row items-center gap-2 ">
                 <Image
@@ -380,7 +380,7 @@ export default function AIInterviewSystem() {
               <div className="w-full h-[1px] bg-[#E2E8F0] hidden md:block" />
 
               {/* conversation display */}
-              <div className="flex-1 max-h-[65vh] sm:max-h-[49vh] md:max-h-full overflow-y-scroll px-2 sm:px-6 ">
+              <div className="h-full pb-20 sm:pb-0 sm:max-h-[49vh] md:max-h-full overflow-y-scroll px-2 sm:px-6 ">
                 <div className="flex flex-col sm:space-y-4">
                   {conversation.map((message, index) => {
                     const isLastMessage = index === conversation.length - 1;
@@ -501,7 +501,7 @@ export default function AIInterviewSystem() {
           </TabsContent>
         </Tabs>
 
-        <div className="pb-1 sm:px-5 sm:hidden">
+        <div className="pb-1 px-3 sm:px-5 absolute bottom-0 left-0 right-0 sm:hidden">
           {!interviewComplete && (
             <ResponseInput
               onSubmitText={handleUserResponse}

@@ -10,6 +10,7 @@ const defaultFormData: InterviewSetupData = {
   jobDescription: "",
   inputType: "skills-based",
   skills: [],
+  interviewType: "",
 };
 
 export const useFormStore = create<FormState>()(

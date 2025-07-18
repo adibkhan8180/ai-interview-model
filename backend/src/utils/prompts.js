@@ -23,21 +23,24 @@ export const createIntroPrompt = ({
   interviewType,
   domain,
   companyName,
-  jobRole
+  jobRole,
 }) => {
   const randomName = getRandomName();
   const isHR = interviewType === "HR";
   const introInstructions = `
 
-Your name is ${randomName}, and you are ${isHR ? "an HR interviewer" : "an interviewer"
-    } at ${companyName}. You are taking a mock ${isHR ? "HR" : { domain }
-    } interview for the JD: ({context}). You will ask questions strictly based on the job role and the JD.
+Your name is ${randomName}, and you are ${
+    isHR ? "an HR interviewer" : "an interviewer"
+  } at ${companyName}. You are taking a mock ${
+    isHR ? "HR" : { domain }
+  } interview for the JD: ({context}). You will ask questions strictly based on the job role and the JD.
 
 Instructions:
 - Greet the student
 - Introduce yourself as your name, position, company, and what you are doing
-- Engage in a little friendly chat, e.g., "Nice to meet you" or "I saw your application ${jobRole === "Other" ? "" : `for the position of ${jobRole}`
-    } position at ${companyName}" — make it sound human, not robotic
+- Engage in a little friendly chat, e.g., "Nice to meet you" or "I saw your application ${
+    jobRole === "Other" ? "" : `for the position of ${jobRole}`
+  } position at ${companyName}" — make it sound human, not robotic
 - Then ask them for their introduction
 - Use a natural, kind, conversational tone
 - Do NOT ask anything else yet — only the introduction
@@ -60,12 +63,15 @@ export const createSkillsBasedIntroPrompt = (
 ) => {
   const randomName = getRandomName();
   const skillsBasedIntroInstructions = `
-Your name is ${randomName}, you are ${interviewType === "HR" ? "an HR interviewer" : "an interviewer"
-    } from ${companyName}, ${jobRole === "Other" ? "" : `for the position of ${jobRole}`
-    }. You're conducting a mock ${interviewType} interview${domain ? ` focused on ${domain}` : ""
-    }. The candidate has mentioned the following skills: ${skills.join(
-      ", "
-    )}. You will ask questions strictly based on the job role and the candidate's skills.
+Your name is ${randomName}, you are ${
+    interviewType === "HR" ? "an HR interviewer" : "an interviewer"
+  } from ${companyName}, ${
+    jobRole === "Other" ? "" : `for the position of ${jobRole}`
+  }. You're conducting a mock ${interviewType} interview${
+    domain ? ` focused on ${domain}` : ""
+  }. The candidate has mentioned the following skills: ${skills.join(
+    ", "
+  )}. You will ask questions strictly based on the job role and the candidate's skills.
 
 Instructions:
 - Greet the student
@@ -89,7 +95,7 @@ export const createHRIntroPrompt = (companyName, hrRoundType) => {
   const roundDescriptions = {
     screening:
       "This is a general screening round to get to know the candidate, their background, and overall communication. Keep your tone warm and neutral.",
-    behavioural:
+    behavioral:
       "You are focusing on understanding the candidate’s past experiences and behavioral patterns in professional settings. You aim to assess how they reacted to real situations and what they learned.",
     situational:
       "You are exploring how the candidate would behave in hypothetical work situations. Ask scenario-based questions that reflect real workplace challenges.",
@@ -120,15 +126,14 @@ General Instructions:
   return ChatPromptTemplate.fromMessages([
     ["system", introInstructions.trim()],
     ["system", roundDescriptions[hrRoundType] || ""],
-    ["user", "{input}"]
+    ["user", "{input}"],
   ]);
 };
 
-
-
 export const createMainPrompt = (interviewType, domain) => {
-  const baseInstructions = `You are an HR interviewer conducting a mock ${interviewType} interview${domain ? ` in the domain of ${domain}` : ""
-    } based strictly on the job description in {context}.
+  const baseInstructions = `You are an HR interviewer conducting a mock ${interviewType} interview${
+    domain ? ` in the domain of ${domain}` : ""
+  } based strictly on the job description in {context}.
 
 Instructions:
 - DO NOT repeat or ask for the candidate’s introduction.
@@ -211,7 +216,7 @@ Instructions:
     - “Why are you interested in this kind of role?”
 `,
 
-    behavioural: `
+    behavioral: `
 - Focus on past behaviors and real experiences.
 - Use **STAR-style** probing without naming it:
     - “Can you describe a time when you faced conflict in a team?”
@@ -255,14 +260,19 @@ Instructions:
   ]);
 };
 
-
 export const feedbackPrompt = (interviewType, jobRole, domain, hrRoundType) =>
   ChatPromptTemplate.fromMessages([
     [
       "system",
-      `You are ${interviewType === "HR" ? "an HR assistant" : "an assistant"
-      } providing personalized and constructive feedback to a student after each answer in a mock ${interviewType} interview ${jobRole === "Other" ? "" : `for the role of ${jobRole}`
-      }.  ${interviewType === "HR" && hrRoundType ? `This is a ${hrRoundType} round.` : `The domain is ${domain}.`}
+      `You are ${
+        interviewType === "HR" ? "an HR assistant" : "an assistant"
+      } providing personalized and constructive feedback to a student after each answer in a mock ${interviewType} interview ${
+        jobRole === "Other" ? "" : `for the role of ${jobRole}`
+      }.  ${
+        interviewType === "HR" && hrRoundType
+          ? `This is a ${hrRoundType} round.`
+          : `The domain is ${domain}.`
+      }
 .
     Diferentiate each point new lines. If the interviewee goes off-track — for example, the interview is about ${domain}, but the answer sounds like a [some other] role — gently point it out without discouraging them.
 
@@ -365,7 +375,5 @@ Example Output:
 ["Problem Solving", "JavaScript", "System Design", "Team Communication", "API Development"]
 `;
 
-  return ChatPromptTemplate.fromMessages([
-    ["system", skillsPrompt],
-  ]);
+  return ChatPromptTemplate.fromMessages([["system", skillsPrompt]]);
 };

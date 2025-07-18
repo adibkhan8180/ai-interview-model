@@ -4,6 +4,7 @@ export interface InterviewSetupData {
   interviewCategory: string;
   domain: string;
   jobDescription: string;
+  interviewType: string;
   inputType: "skills-based" | "job-description"; // Added for radio input selection
   skills: string[]; // Added for skills array
 }

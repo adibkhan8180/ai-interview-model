@@ -141,7 +141,7 @@ export function ResponseInput({
   return (
     <div className="w-full flex flex-col sm:py-2">
       {!interviewComplete && isLatestFeedback ? (
-        <div className="w-full flex sm:flex-row flex-col items-center justify-center gap-2 sm:p-5 md:p-0 sm:gap-5">
+        <div className="w-full flex sm:flex-row flex-col items-center justify-center gap-2 sm:p-5 md:p-0 sm:gap-5 pb-2 sm:pb-0">
           <p className="text-black text-sm sm:text-base leading-relaxed font-medium wrap-break-word">
             Do you want to revise the answer?
           </p>

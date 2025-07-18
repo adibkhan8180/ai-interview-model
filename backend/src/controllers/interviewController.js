@@ -12,8 +12,17 @@ export const startInterview = async (req, res, next) => {
       inputType,
       interviewType,
       domain,
+      hrRoundType,
     } = req.body;
 
+    if (interviewType === "HR") {
+      if (!hrRoundType) {
+        return res.status(400).json({
+          success: false,
+          message: "HR Round Type (situational, stress, behavioural) is required",
+        });
+      }
+    } else {
     if (interviewType === "domain-specific" && !domain) {
       return res.status(400).json({
         success: false,
@@ -26,15 +35,16 @@ export const startInterview = async (req, res, next) => {
         message: "At least one skill is required for Skills-based interviews",
       });
     }
+   }
 
     const result = await interviewService.startInterview(
       companyName,
-      jobRole,
-      inputType,
+      interviewType === "domain-specific" ? jobRole : null,
+      inputType ?? null,
       inputType === "job-description" ? jobDescription : "",
       inputType === "skills-based" ? skills : [],
       interviewType,
-      interviewType === "domain-specific" ? domain : null,
+      interviewType === "domain-specific" ? domain : null,    interviewType === "HR" ? hrRoundType : null
     );
 
     const introQuestion = await interviewService.getIntroQuestion(

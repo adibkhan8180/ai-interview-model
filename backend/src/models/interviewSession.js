@@ -8,22 +8,24 @@ const messageSchema = new mongoose.Schema({
 const interviewSessionSchema = new mongoose.Schema(
   {
     companyName: { type: String, required: true },
-    jobRole: { type: String, required: true },
     interviewType: {
       type: String,
       enum: ["HR", "domain-specific"],
       required: true,
     },
+
+    hrRoundType: {
+      type: String,
+      enum: ["screening", "situational", "stress", "behavioural", "cultural-fit"],
+    },
+
+    //domain specific
+    jobRole: { type: String, trim: true },
     domain: { type: String, trim: true },
-    chatHistory: [messageSchema],
-    status: { type: String, enum: ["active", "submitting", "completed"], default: "active" },
-    currentStep: { type: String, default: "questioning" },
-    lastFeedback: String,
-    overallFeedback: Object,
+
     inputType: {
       type: String,
       enum: ["skills-based", "job-description"],
-      required: true,
     },
     skills: {
       type: [String],
@@ -33,6 +35,13 @@ const interviewSessionSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+
+    chatHistory: [messageSchema],
+    status: { type: String, enum: ["active", "submitting", "completed"], default: "active" },
+    currentStep: { type: String, default: "questioning" },
+    lastFeedback: String,
+    overallFeedback: Object,
+
   },
   { timestamps: true }
 );

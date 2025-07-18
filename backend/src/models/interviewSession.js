@@ -16,7 +16,13 @@ const interviewSessionSchema = new mongoose.Schema(
 
     hrRoundType: {
       type: String,
-      enum: ["screening", "situational", "stress", "behavioural", "cultural-fit"],
+      enum: [
+        "screening",
+        "situational",
+        "stress",
+        "behavioral",
+        "cultural-fit",
+      ],
     },
 
     //domain specific
@@ -37,11 +43,14 @@ const interviewSessionSchema = new mongoose.Schema(
     },
 
     chatHistory: [messageSchema],
-    status: { type: String, enum: ["active", "submitting", "completed"], default: "active" },
+    status: {
+      type: String,
+      enum: ["active", "submitting", "completed"],
+      default: "active",
+    },
     currentStep: { type: String, default: "questioning" },
     lastFeedback: String,
     overallFeedback: Object,
-
   },
   { timestamps: true }
 );

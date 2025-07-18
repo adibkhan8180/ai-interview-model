@@ -47,11 +47,11 @@ const InterviewCategories = [
 ];
 
 const interviewTypes = [
-  { id: "1", name: "Screening" },
-  { id: "2", name: "Behavioral" },
-  { id: "3", name: "Situational" },
-  { id: "4", name: "Cultural Fit" },
-  { id: "5", name: "Stress" },
+  { id: "1", name: "Screening", value: "screening" },
+  { id: "2", name: "Behavioral", value: "behavioral" },
+  { id: "3", name: "Situational", value: "situational" },
+  { id: "4", name: "Cultural Fit", value: "cultural-fit" },
+  { id: "5", name: "Stress", value: "stress" },
 ];
 
 export function InterviewSetupForm({
@@ -73,9 +73,6 @@ export function InterviewSetupForm({
   const [steps, setSteps] = useState(1);
   const [domains, setDomains] = useState<DomainProps[]>([]);
   const [selectedDomainId, setSelectedDomainId] = useState<string | null>(null);
-  const [selectedInterviewTypeId, setSelectedInterviewTypeId] = useState<
-    string | null
-  >(null);
   const [jobRoles, setJobRoles] = useState<string[]>([]);
   const [recommendedSkills, setRecommendedSkills] = useState<string[]>([]);
   const [recommendedSkillsLoading, setRecommendedSkillsLoading] =
@@ -180,13 +177,15 @@ export function InterviewSetupForm({
             formData.inputType === "job-description" &&
             formData.jobDescription.trim() !== "";
 
-          if (isSkillsValid || isJobDescriptionValid) {
-            if (shiftKey && key === "Enter") {
-              handleStartInterview();
+          if (isDomainSpecific) {
+            if (isSkillsValid || isJobDescriptionValid) {
+              if (shiftKey && key === "Enter") {
+                handleStartInterview();
+              }
+            } else {
+              inputRef.current?.focus();
+              textareaRef.current?.focus();
             }
-          } else {
-            inputRef.current?.focus();
-            textareaRef.current?.focus();
           }
         }
       }
@@ -447,7 +446,7 @@ export function InterviewSetupForm({
                     onValueChange={(value) =>
                       handleSelectChange("jobRole", value)
                     }
-                    required
+                    required={isDomainSpecific}
                   >
                     <SelectTrigger
                       className="w-full text-sm sm:text-base"
@@ -486,13 +485,9 @@ export function InterviewSetupForm({
                   <Select
                     value={formData.interviewType}
                     onValueChange={(value) => {
-                      const selected = interviewTypes.find(
-                        (d) => d.name === value
-                      );
-                      setSelectedInterviewTypeId(selected ? selected.id : null);
                       handleSelectChange("interviewType", value);
                     }}
-                    required
+                    required={!isDomainSpecific}
                   >
                     <SelectTrigger
                       className="w-full text-sm sm:text-base"
@@ -502,7 +497,7 @@ export function InterviewSetupForm({
                     </SelectTrigger>
                     <SelectContent>
                       {interviewTypes.map((type) => (
-                        <SelectItem value={type.name} key={type.id}>
+                        <SelectItem value={type.value} key={type.id}>
                           {type.name}
                         </SelectItem>
                       ))}

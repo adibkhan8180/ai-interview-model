@@ -17,22 +17,32 @@ export async function startInterviewAPI(
     interviewCategory,
     inputType,
     skills,
+    interviewType,
   } = setupData;
+
+  const body =
+    interviewCategory === "domain-specific"
+      ? {
+          companyName,
+          jobRole,
+          jobDescription,
+          domain,
+          interviewType: interviewCategory,
+          inputType,
+          skills,
+        }
+      : {
+          companyName,
+          interviewType: interviewCategory,
+          hrRoundType: interviewType.toLowerCase(),
+        };
 
   const response = await fetch(`${BASE_URL}/api/interviews`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      companyName,
-      jobRole,
-      jobDescription,
-      domain,
-      interviewType: interviewCategory,
-      inputType,
-      skills,
-    }),
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {

@@ -34,10 +34,36 @@ export default function AIInterviewSetup() {
     resetInterviewStore();
     setInterviewStartTime(new Date());
 
-    const { companyName, jobRole, interviewCategory } = setupData;
+    const {
+      companyName,
+      jobRole,
+      interviewCategory,
+      interviewType,
+      domain,
+      inputType,
+      skills,
+      jobDescription,
+    } = setupData;
 
-    if (!companyName || !jobRole || !interviewCategory) {
-      alert("Please fill in all required fields.");
+    if (interviewCategory === "domain-specific") {
+      if (!companyName || !jobRole || !domain) {
+        alert("Please fill in all required fields.");
+        setLoading(false);
+        return;
+      }
+      if (inputType === "job-description" && !jobDescription) {
+        alert("Job Description is required.");
+        setLoading(false);
+        return;
+      }
+      if (inputType === "skills-based" && skills.length <= 0) {
+        alert("Skills is required.");
+        setLoading(false);
+        return;
+      }
+    }
+    if (interviewCategory === "HR" && !interviewType) {
+      alert("Interview Type is required.");
       setLoading(false);
       return;
     }

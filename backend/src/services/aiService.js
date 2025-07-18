@@ -17,6 +17,8 @@ import {
   feedbackPrompt,
   finalFeedbackPrompt,
   getSkillsPrompt,
+  createHRIntroPrompt,
+  createHRMainPrompt
 } from "../utils/prompts.js";
 import { z } from "zod";
 import { jsonrepair } from "jsonrepair";
@@ -76,6 +78,11 @@ export class AIService {
     );
 
     return mainPrompt.pipe(this.model);
+  }
+
+  async createHRInterviewChain(hrRoundType) {
+    const prompt = createHRMainPrompt(hrRoundType);
+    return prompt.pipe(this.model);
   }
 
   async askIntroQuestion(
@@ -148,14 +155,20 @@ export class AIService {
     });
   }
 
+  async askHRIntroQuestion(companyName, hrInterviewType, input) {
+    const prompt = createHRIntroPrompt(companyName, hrInterviewType);
+    return await prompt.pipe(this.model).invoke({ input });
+  }
+
   async generateFeedback(
     studentAnswer,
     chatHistory,
     interviewType,
     jobRole,
-    domain
+    domain,
+    hrRoundType
   ) {
-    const prompt = feedbackPrompt(interviewType, jobRole, domain);
+    const prompt = feedbackPrompt(interviewType, jobRole, domain, hrRoundType);
     const feedbackChain = prompt.pipe(this.model);
     return await feedbackChain.invoke({
       input: studentAnswer,

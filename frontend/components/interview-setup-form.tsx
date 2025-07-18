@@ -11,7 +11,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,7 +23,7 @@ import { useInterviewStore } from "@/lib/store/interviewStore";
 import {
   Tooltip,
   TooltipContent,
-  TooltipTrigger
+  TooltipTrigger,
 } from "@/components/ui/tooltip";
 import ReactMarkdown from "react-markdown";
 import { getDomains, getRolesByDomainId } from "@/lib/jobsApi";
@@ -41,7 +41,7 @@ const maxNoOfSkills = 5;
 
 const InterviewCategories = [
   { value: "HR", label: "HR Interview" },
-  { value: "domain-specific", label: "Domain-specific Interview" }
+  { value: "domain-specific", label: "Domain-specific Interview" },
 ];
 
 const interviewTypes = [
@@ -49,12 +49,12 @@ const interviewTypes = [
   { id: "2", name: "Behavioral" },
   { id: "3", name: "Situational" },
   { id: "4", name: "Cultural Fit" },
-  { id: "5", name: "Stress" }
+  { id: "5", name: "Stress" },
 ];
 
 export function InterviewSetupForm({
   onSubmit,
-  loading
+  loading,
 }: InterviewSetupFormProps) {
   const [formData, setFormData] = useState<InterviewSetupData>({
     companyName: "",
@@ -64,7 +64,7 @@ export function InterviewSetupForm({
     interviewType: "",
     jobDescription: "",
     inputType: "skills-based",
-    skills: []
+    skills: [],
   });
 
   const [skill, setSkill] = useState("");
@@ -85,7 +85,6 @@ export function InterviewSetupForm({
   const categoryRef = useRef<HTMLButtonElement>(null);
   const domainRef = useRef<HTMLButtonElement>(null);
   const interviewTypeRef = useRef<HTMLButtonElement>(null);
-
 
   const isDomainSpecific = formData.interviewCategory === "domain-specific";
 
@@ -111,7 +110,7 @@ export function InterviewSetupForm({
     if (isValid) {
       setFormData((prev) => ({
         ...prev,
-        skills: [...prev.skills, trimmed]
+        skills: [...prev.skills, trimmed],
       }));
       setSkill("");
     }
@@ -127,7 +126,7 @@ export function InterviewSetupForm({
   const removeSkill = (removedSkill: string) => {
     setFormData((prev) => ({
       ...prev,
-      skills: prev.skills.filter((s) => s !== removedSkill)
+      skills: prev.skills.filter((s) => s !== removedSkill),
     }));
   };
 
@@ -152,10 +151,9 @@ export function InterviewSetupForm({
           }
         } else if (steps === 2) {
           if (formData.interviewCategory === "HR") {
-            if(!formData.interviewType) {
+            if (!formData.interviewType) {
               interviewTypeRef.current?.focus();
-            }
-            else {
+            } else {
               handleStartInterview();
             }
           } else {
@@ -617,7 +615,7 @@ const RemainingLength = ({
   currentLength,
   maxLength,
   message,
-  position = "text-xs sm:text-sm font-normal flex gap-1 items-center"
+  position = "text-xs sm:text-sm font-normal flex gap-1 items-center",
 }: {
   currentLength: number;
   maxLength: number;

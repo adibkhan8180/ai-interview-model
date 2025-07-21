@@ -6,9 +6,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "prepare": "husky",
-    "format": "prettier --write ."
+    "lint": "next lint"
   },
   "dependencies": {
     "@ai-sdk/openai": "^1.3.22",

@@ -37,7 +37,7 @@ export const downloadFeedbackPdf = async (
 
   const colors = {
     primary: [59, 100, 246],
-    section: '#FF6652',
+    section: "#FF6652",
     black: [0, 0, 0],
     gray: [80, 80, 80],
   };
@@ -50,7 +50,7 @@ export const downloadFeedbackPdf = async (
   ) => {
     pdf.setFont("helvetica", fontStyle);
     pdf.setFontSize(fontSize);
-    pdf.setTextColor(...color as [number, number, number]);
+    pdf.setTextColor(...(color as [number, number, number]));
 
     const lines =
       typeof text === "string" ? pdf.splitTextToSize(text, 500) : text;
@@ -96,9 +96,24 @@ export const downloadFeedbackPdf = async (
     "bold",
     colors.black
   );
-  {formData.domain && addTextWithCheck(`Domain: ${formData.domain}`, 12, "bold", colors.black);}
-  {formData.jobRole && addTextWithCheck(`Job Role: ${formData.jobRole}`, 12, "bold", colors.black);}
-  {formData.inputType && addTextWithCheck(`Interview Type: ${formData.interviewType}`, 12, "bold", colors.black);}
+  <>
+    {formData.domain &&
+      addTextWithCheck(`Domain: ${formData.domain}`, 12, "bold", colors.black)}
+    {formData.jobRole &&
+      addTextWithCheck(
+        `Job Role: ${formData.jobRole}`,
+        12,
+        "bold",
+        colors.black
+      )}
+    {formData.interviewType &&
+      addTextWithCheck(
+        `Interview Type: ${formData.interviewType}`,
+        12,
+        "bold",
+        colors.black
+      )}
+  </>;
   {
     if (formData.inputType === "skills-based") {
       formData.skills.forEach((skill, index) => {
@@ -118,7 +133,6 @@ export const downloadFeedbackPdf = async (
       );
     }
   }
-
 
   // Overall Score
   addSectionTitle("Overall Score");

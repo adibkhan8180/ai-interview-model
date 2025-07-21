@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Mic, MicOff, Camera, CameraOff } from "lucide-react";
+import { Camera, CameraOff } from "lucide-react";
 import Image from "next/image";
 import { useInterviewStore } from "@/lib/store/interviewStore";
 
@@ -11,7 +11,7 @@ export function VideoCall() {
   const userVideoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [cameraEnabled, setCameraEnabled] = useState(false);
-  const [micEnabled, setMicEnabled] = useState(false);
+  // const [micEnabled, setMicEnabled] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
 
   useEffect(() => {
@@ -29,7 +29,7 @@ export function VideoCall() {
         streamRef.current = mediaStream;
         setStream(mediaStream);
         setCameraEnabled(true);
-        setMicEnabled(true);
+        // setMicEnabled(true);
       } catch (error) {
         console.error("Error accessing camera:", error);
       }
@@ -56,21 +56,21 @@ export function VideoCall() {
     }
   };
 
-  const toggleMic = () => {
-    if (stream) {
-      const audioTrack = stream.getAudioTracks()[0];
-      if (audioTrack) {
-        audioTrack.enabled = !micEnabled;
-        setMicEnabled(!micEnabled);
+  // const toggleMic = () => {
+  //   if (stream) {
+  //     const audioTrack = stream.getAudioTracks()[0];
+  //     if (audioTrack) {
+  //       audioTrack.enabled = !micEnabled;
+  //       setMicEnabled(!micEnabled);
 
-        // if (!micEnabled) {
-        //   onStartRecording()
-        // } else {
-        //   onStopRecording()
-        // }
-      }
-    }
-  };
+  //       // if (!micEnabled) {
+  //       //   onStartRecording()
+  //       // } else {
+  //       //   onStopRecording()
+  //       // }
+  //     }
+  //   }
+  // };
 
   return (
     <div className="flex flex-col-reverse gap-2 sm:gap-4">

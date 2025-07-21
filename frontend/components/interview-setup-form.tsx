@@ -79,7 +79,7 @@ export function InterviewSetupForm({
     useState(false);
 
   const { saveFormData } = useFormStore();
-  const { setInterviewStarted } = useInterviewStore();
+  const { setInterviewStarted, resetStore } = useInterviewStore();
 
   const inputRef = useRef<HTMLInputElement>(null);
   const jobRoleRef = useRef<HTMLButtonElement>(null);
@@ -89,6 +89,10 @@ export function InterviewSetupForm({
   const interviewTypeRef = useRef<HTMLButtonElement>(null);
 
   const isDomainSpecific = formData.interviewCategory === "domain-specific";
+
+  useEffect(() => {
+    resetStore();
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>

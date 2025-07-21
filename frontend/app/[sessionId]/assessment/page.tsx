@@ -163,16 +163,22 @@ function FinalAssessment() {
 
           <div className="px-4 space-y-2 sm:space-y-4">
             <p className="text-sm sm:text-base font-medium leading-relaxed text-[#2E2E2E]">
-              💡 Clarity of Motivation:
-              {overallFeedback?.coaching_scores?.clarity_of_motivation}
+              💡 Clarity of Motivation:{" "}
+              <span className="text-[#3B64F6] text-sm sm:text-base">
+                {overallFeedback?.coaching_scores?.clarity_of_motivation}/5
+              </span>
             </p>
             <p className="text-sm sm:text-base font-medium leading-relaxed text-[#2E2E2E]">
-              🎯 Career Goal Alignment:
-              {overallFeedback?.coaching_scores?.career_goal_alignment}
+              🎯 Career Goal Alignment:{" "}
+              <span className="text-[#3B64F6] text-sm sm:text-base">
+                {overallFeedback?.coaching_scores?.career_goal_alignment}/5
+              </span>
             </p>
             <p className="text-sm sm:text-base font-medium leading-relaxed text-[#2E2E2E]">
-              📖 Specificity of Learning:
-              {overallFeedback?.coaching_scores?.specificity_of_learning}
+              📖 Specificity of Learning:{" "}
+              <span className="text-[#3B64F6] text-sm sm:text-base">
+                {overallFeedback?.coaching_scores?.specificity_of_learning}/5
+              </span>
             </p>
           </div>
         </div>

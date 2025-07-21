@@ -90,14 +90,15 @@ export const downloadFeedbackPdf = async (
     "bold",
     colors.black
   );
-  addTextWithCheck(`Domain: ${formData.domain}`, 12, "bold", colors.black);
-  addTextWithCheck(`Job Role: ${formData.jobRole}`, 12, "bold", colors.black);
   addTextWithCheck(
     `Interview Category: ${formData.interviewCategory}`,
     12,
     "bold",
     colors.black
   );
+  {formData.domain && addTextWithCheck(`Domain: ${formData.domain}`, 12, "bold", colors.black);}
+  {formData.jobRole && addTextWithCheck(`Job Role: ${formData.jobRole}`, 12, "bold", colors.black);}
+  {formData.inputType && addTextWithCheck(`Interview Type: ${formData.interviewType}`, 12, "bold", colors.black);}
   {
     if (formData.inputType === "skills-based") {
       formData.skills.forEach((skill, index) => {

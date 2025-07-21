@@ -144,10 +144,10 @@ function FinalAssessment() {
                 {overallFeedback?.overall_score}/100%
               </span>
             </p>
-            {overallFeedback?.response_depth && (
+            {overallFeedback?.level && (
               <div className="text-sm sm:text-base text-center flex items-center juctify-center font-medium text-[#47B881] border border-[#47B881] rounded-full px-2 sm:px-3.5 space-x-2">
                 <span className="text-3xl">•</span>
-                <p>{overallFeedback?.response_depth}</p>
+                <p>{overallFeedback?.level}</p>
               </div>
             )}
           </div>

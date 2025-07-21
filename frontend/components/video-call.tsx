@@ -98,7 +98,7 @@ export function VideoCall() {
           </div>
         )}
 
-        <div className="absolute bottom-3 left-0 right-0 flex items-center justify-center space-x-2">
+        <div className="absolute bottom-3 left-0 right-0 flex items-center justify-end px-3 space-x-2">
           <button
             onClick={toggleCamera}
             className={`p-2 rounded-full ${
@@ -114,7 +114,7 @@ export function VideoCall() {
             )}
           </button>
 
-          <button
+          {/* <button
             onClick={toggleMic}
             className={`p-2 rounded-full ${
               micEnabled
@@ -127,7 +127,7 @@ export function VideoCall() {
             ) : (
               <MicOff className="w-4 h-4 text-white" />
             )}
-          </button>
+          </button> */}
         </div>
       </Card>
 

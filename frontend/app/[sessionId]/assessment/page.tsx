@@ -153,11 +153,11 @@ function FinalAssessment() {
           </div>
 
           <div className="bg-[#F7F9FC] rounded-2xl px-4 mt-2 sm:mt-9 mb-2 sm:mb-6">
-            <p className="text-sm sm:text-base font-semibold leading-relaxed text-[#4A5A75]">
-              Summary:
-            </p>
-            <p className="text-sm sm:text-base font-medium leading-relaxed text-[#4A5A75]">
-              {overallFeedback?.summary}
+            <p className="text-sm sm:text-lg font-bold leading-relaxed text-[#4A5A75]">
+              Summary:{" "}
+              <span className="text-sm sm:text-base font-medium leading-relaxed text-[#4A5A75]">
+                {overallFeedback?.summary}
+              </span>
             </p>
           </div>
 

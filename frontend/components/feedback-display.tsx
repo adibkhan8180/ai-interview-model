@@ -1,74 +1,62 @@
-import { Card, CardContent } from "@/components/ui/card"
-import { CheckCircle, Lightbulb, Target, TrendingUp } from "lucide-react"
+import Image from "next/image";
+import ReactMarkdown from "react-markdown";
+import { Button } from "./ui/button";
+import { useInterviewStore } from "@/lib/store/interviewStore";
 
-interface FeedbackDisplayProps {
-  feedback: string
-  type: "immediate" | "overall"
-}
-
-export function FeedbackDisplay({ feedback, type }: FeedbackDisplayProps) {
-  if (type === "immediate") {
-    return (
-      <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-400 p-4 rounded-lg my-3">
-        <div className="flex items-start space-x-3">
-          <Lightbulb className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
-          <div>
-            <h4 className="font-semibold text-yellow-800 mb-1">💡 Immediate Feedback</h4>
-            <p className="text-yellow-700 text-sm leading-relaxed">{feedback}</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // Parse overall feedback into sections
-  const sections = feedback.split("\n").filter((line) => line.trim())
-
+export function FeedbackDisplay({
+  feedback,
+  isLastMessage,
+}: {
+  feedback: string;
+  isLastMessage: boolean;
+}) {
+  const { stopSpeaking, isAISpeaking, audioInstance } = useInterviewStore();
   return (
-    <Card className="border-2 border-green-500 bg-gradient-to-br from-green-50 to-emerald-50">
-      <CardContent className="p-6">
-        <div className="flex items-center space-x-2 mb-4">
-          <CheckCircle className="w-6 h-6 text-green-600" />
-          <h3 className="text-xl font-bold text-green-800">Interview Assessment</h3>
+    <div className=" w-fit max-w-[90%]">
+      <div className="flex items-center gap-2 mb-1">
+        <div className="sm:w-8 sm:h-8 w-6 h-6 flex items-center justify-center bg-[#FEFBED] rounded-sm">
+          <Image
+            src="/assets/images/bulb.png"
+            alt="bulb"
+            width={24}
+            height={24}
+            className="sm:w-6 sm:h-6 w-4 h-4"
+          />
         </div>
+        <p className="text-sm sm:text-base font-semibold">Immediate Feedback</p>
 
-        <div className="space-y-4">
-          {sections.map((section, index) => {
-            const isStrengths =
-              section.toLowerCase().includes("strength") ||
-              section.toLowerCase().includes("good") ||
-              section.toLowerCase().includes("excellent")
-            const isImprovement =
-              section.toLowerCase().includes("improve") ||
-              section.toLowerCase().includes("develop") ||
-              section.toLowerCase().includes("consider")
-            const isRating = section.toLowerCase().includes("rating") || section.toLowerCase().includes("overall")
-
-            return (
-              <div key={index} className="flex items-start space-x-3">
-                {isStrengths && <TrendingUp className="w-4 h-4 text-green-600 mt-1 flex-shrink-0" />}
-                {isImprovement && <Target className="w-4 h-4 text-blue-600 mt-1 flex-shrink-0" />}
-                {isRating && <CheckCircle className="w-4 h-4 text-purple-600 mt-1 flex-shrink-0" />}
-                {!isStrengths && !isImprovement && !isRating && <div className="w-4 h-4 mt-1 flex-shrink-0" />}
-
-                <p
-                  className={`text-sm leading-relaxed ${
-                    isStrengths
-                      ? "text-green-700"
-                      : isImprovement
-                        ? "text-blue-700"
-                        : isRating
-                          ? "text-purple-700"
-                          : "text-gray-700"
-                  }`}
-                >
-                  {section}
-                </p>
+        {isLastMessage && isAISpeaking && (
+          <div className="flex items-center gap-1.5">
+            <Button
+              variant="ghost"
+              className="flex items-center gap-2 px-2 py-1 h-fit text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition cursor-pointer"
+              onClick={stopSpeaking}
+            >
+              <div className="relative w-4 h-4 flex items-center justify-center">
+                <Image
+                  src="/assets/svg/pause.svg"
+                  alt="Pause AI Audio"
+                  width={16}
+                  height={16}
+                  className="sm:w-4 sm:h-4 w-3 h-3 z-10"
+                />
+                <div className="absolute w-4 h-4 sm:w-6 sm:h-6 bg-[#3B64F6] opacity-50 rounded-full animate-ping" />
               </div>
-            )
-          })}
-        </div>
-      </CardContent>
-    </Card>
-  )
+              <span>Skip Audio</span>
+            </Button>
+            {!audioInstance && (
+              <p className="text-sm text-muted-foreground italic hidden sm:flex">
+                Generating audio...
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+      <div
+        className={`px-3 py-2 sm:p-6  border-l-4 border-[#FFC342] rounded-2xl text-sm  leading-relaxed bg-[#FFF5EA]`}
+      >
+        <ReactMarkdown>{feedback}</ReactMarkdown>
+      </div>
+    </div>
+  );
 }

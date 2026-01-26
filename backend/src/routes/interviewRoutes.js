@@ -1,7 +1,7 @@
 import express from 'express';
 import { startInterview, getNextQuestion, postAnswer, reviseAnswer, submitInterview, getInterviewStatus } from '../controllers/interviewController.js';
 import { validateBody, validateParams } from '../middleware/validate.js';
-import { startInterviewSchema, postAnswerSchema, sessionIdParamSchema } from '../../validators/interviewValidator.js';
+import { startInterviewSchema, postAnswerSchema, sessionIdParamSchema } from '../validators/interviewValidator.js';
 
 
 const router = express.Router();

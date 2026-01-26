@@ -5,11 +5,12 @@ import { persist } from "zustand/middleware";
 const defaultFormData: InterviewSetupData = {
   companyName: "",
   jobRole: "",
-  interviewCategory: "general",
+  interviewCategory: "",
   domain: "",
   jobDescription: "",
   inputType: "skills-based",
   skills: [],
+  interviewType: "",
 };
 
 export const useFormStore = create<FormState>()(
@@ -22,13 +23,18 @@ export const useFormStore = create<FormState>()(
           formData: { ...state.formData, ...data },
         })),
 
+      saveFormData: (data: InterviewSetupData) =>
+        set(() => ({
+          formData: { ...data },
+        })),
+
       resetForm: () =>
         set(() => ({
           formData: defaultFormData,
         })),
     }),
     {
-      name: "form-storage", // key name in localStorage
+      name: "form-storage",
     }
   )
 );

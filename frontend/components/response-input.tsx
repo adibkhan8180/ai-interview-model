@@ -1,26 +1,32 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Mic, MicOff, Send } from "lucide-react";
 import { getNextQuestionAPI, reviseAnswerAPI } from "@/lib/api";
 import { useInterviewStore } from "@/lib/store/interviewStore";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { ResponseInputProps } from "@/types";
+import Image from "next/image";
+import { Textarea } from "./ui/textarea";
+import { Pause, Loader, Mic } from "lucide-react";
+
+const maxAnswerLength = 1499;
+const minAnswerLength = 140;
 
 export function ResponseInput({
   onSubmitText,
   onStartRecording,
   onStopRecording,
+  isTranscribing,
   isRecording,
   isAISpeaking,
+  isWaiting,
   speakTextWithTTS,
   isLatestFeedback,
-  setShowFinalAssessment,
-  finalAssessmentLoading,
+  textResponse,
+  setTextResponse,
 }: ResponseInputProps) {
-  const [textResponse, setTextResponse] = useState("");
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const {
@@ -31,42 +37,41 @@ export function ResponseInput({
     maxQuestions,
   } = useInterviewStore();
 
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
   const params = useParams();
   const sessionId = params?.sessionId as string;
-  if (!sessionId) {
-    return;
-  }
 
-  const handleReviseQuestion = async () => {
+  const handleSubmit = useCallback(() => {
+    if (textResponse?.trim()) {
+      onSubmitText(textResponse);
+      setTextResponse("");
+    }
+  }, [textResponse, onSubmitText, setTextResponse]);
+
+  const handleReviseQuestion = useCallback(async () => {
     setLoading(true);
     try {
       const data = await reviseAnswerAPI(sessionId);
-
       setConversation({
         role: "ai",
         content: data.question,
         isFeedback: false,
       });
-
       speakTextWithTTS(data.question);
     } catch (error) {
-      console.error("Error reviseing answer:", error);
+      console.error("Error revising answer:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [sessionId, setConversation, speakTextWithTTS]);
 
-  const getNextQuestion = async () => {
-    if (questionCount === maxQuestions) {
-      setShowFinalAssessment(true);
-      return;
-    }
-
+  const getNextQuestion = useCallback(async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const data = await getNextQuestionAPI(sessionId);
       incrementQuestionCount();
-
       setConversation({
         role: "ai",
         content: data?.question,
@@ -78,24 +83,43 @@ export function ResponseInput({
     } finally {
       setLoading(false);
     }
+  }, [sessionId, incrementQuestionCount, setConversation, speakTextWithTTS]);
+
+  const handleStartRecording = () => {
+    if (isRecording) {
+      return;
+    }
+    setCountdown(60);
+    onStartRecording();
+
+    timerRef.current = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev && prev > 1) {
+          return prev - 1;
+        } else {
+          handleStopRecording();
+          return 0;
+        }
+      });
+    }, 1000);
   };
 
-  const handleSubmit = () => {
-    if (textResponse.trim()) {
-      onSubmitText(textResponse);
-      setTextResponse("");
-    }
+  const handleStopRecording = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    setCountdown(null);
+    onStopRecording();
   };
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (textResponse !== "" && event.key === "Enter") {
-        handleSubmit();
-      }
-
-      if (textResponse === "" && event.key === "Enter") {
+      if (event.key === "Enter" && !event.shiftKey) {
         event.preventDefault();
-        inputRef.current?.focus();
+        if (textResponse?.trim() && textResponse?.length > minAnswerLength) {
+          handleSubmit();
+        } else {
+          event.preventDefault();
+          inputRef.current?.focus();
+        }
       }
     };
 
@@ -105,99 +129,135 @@ export function ResponseInput({
     };
   }, [textResponse, handleSubmit]);
 
-  return (
-    <div className="space-y-3 ">
-      <div className="flex items-center justify-center space-x-2 mb-2">
-        <div className="h-px bg-gray-200 flex-grow"></div>
-        <span className="text-sm text-gray-500 px-2">Respond via</span>
-        <div className="h-px bg-gray-200 flex-grow"></div>
-      </div>
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.style.height = "auto";
+      inputRef.current.style.height = `${inputRef.current.scrollHeight}px`;
+    }
+  }, [textResponse]);
 
-      <div className="w-full flex flex-col md:flex-row gap-3">
-        {!interviewComplete && isLatestFeedback ? (
-          <div className="w-full flex items-center justify-center gap-5 m-4">
-            <p className="text-yellow-700 text-sm leading-relaxed">
-              Do you want to revise the answer?
-            </p>
+  if (!sessionId) return null;
+
+  return (
+    <div className="w-full flex flex-col sm:py-2">
+      {!interviewComplete && isLatestFeedback ? (
+        <div className="w-full flex sm:flex-row flex-col items-center justify-center gap-2 sm:p-5 md:p-0 sm:gap-5 pb-2 sm:pb-0">
+          <p className="text-black text-sm sm:text-base leading-relaxed font-medium wrap-break-word">
+            Do you want to revise the answer?
+          </p>
+          <div className="flex flex-row gap-2 sm:gap-5">
             <Button
               onClick={handleReviseQuestion}
-              disabled={
-                isAISpeaking
-                  ? true
-                  : maxQuestions === questionCount
-                  ? finalAssessmentLoading
-                  : loading
-              }
-              className="bg-green-500 hover:bg-green-600 cursor-pointer"
+              disabled={isAISpeaking || loading}
+              className="bg-[#3B64F6] cursor-pointer h-fit py-1 px-2 text-sm sm:text-base"
             >
-              yes
+              Yes
             </Button>
             <Button
-              onClick={getNextQuestion}
-              disabled={
-                isAISpeaking
-                  ? true
-                  : maxQuestions === questionCount
-                  ? finalAssessmentLoading
-                  : loading
-              }
+              onClick={() => {
+                if (maxQuestions === questionCount) {
+                  router.replace(`/${sessionId}/assessment`);
+                } else {
+                  getNextQuestion();
+                }
+              }}
+              disabled={isAISpeaking || loading}
               className={`${
-                maxQuestions === questionCount
-                  ? "bg-blue-400 hover:bg-blue-500"
-                  : "bg-red-500 hover:bg-red-600 "
-              } cursor-pointer`}
+                maxQuestions === questionCount ? "bg-green-500" : "bg-[#C51E1E]"
+              } cursor-pointer h-fit py-1 px-2 text-sm sm:text-base`}
             >
               {maxQuestions === questionCount ? "Get Assessment!" : "No"}
             </Button>
           </div>
-        ) : (
-          <div className="flex-1 flex gap-4 items-end">
+        </div>
+      ) : (
+        <>
+          <div className="flex-1 flex h-full gap-2 rounded-2xl overflow-hidden shadow-md bg-white">
             <Textarea
               placeholder={
                 isAISpeaking
                   ? "AI is speaking..."
+                  : isRecording
+                  ? "Listening..."
+                  : isTranscribing
+                  ? "Transcribing..."
                   : "Type your response here..."
               }
               ref={inputRef}
               value={textResponse}
               onChange={(e) => setTextResponse(e.target.value)}
-              className="rounded-xl resize-none p-2 px-4 shadow-md"
-              disabled={isRecording || isAISpeaking}
+              onPaste={(e) => e.preventDefault()}
+              minLength={minAnswerLength}
+              maxLength={maxAnswerLength}
+              rows={1}
+              style={{
+                height: "auto",
+                maxHeight: "7rem",
+                overflowY: "auto",
+              }}
+              className="ml-2 text-sm sm:text-base flex-1 sm:font-medium border-none outline-none shadow-none placeholder:text-[#919ECD] px-2 py-3 resize-none"
             />
-            {textResponse.trim() ? (
-              <div className="">
-                <Button
-                  onClick={handleSubmit}
-                  disabled={!textResponse.trim() || isAISpeaking}
-                  className=" w-10 h-10 rounded-full cursor-pointer bg-blue-600 hover:bg-blue-700"
-                >
-                  <Send />
-                </Button>
-              </div>
-            ) : (
-              <Button
-                onClick={isRecording ? onStopRecording : onStartRecording}
-                disabled={isAISpeaking}
-                className={`w-10 h-10 rounded-full cursor-pointer ${
-                  isRecording
-                    ? "bg-red-500 hover:bg-red-600"
-                    : "bg-green-500 hover:bg-green-600 "
-                }`}
-              >
-                {isRecording ? (
-                  <>
-                    <MicOff />
-                  </>
-                ) : (
-                  <>
-                    <Mic />
-                  </>
-                )}
-              </Button>
-            )}
+            <Button
+              onClick={isRecording ? handleStopRecording : handleStartRecording}
+              variant="outline"
+              disabled={isAISpeaking || isWaiting || isTranscribing}
+              className="rounded-full cursor-pointer h-fit p-2 py-3 sm:py-1 sm:px-2 self-end mb-1 sm:mb-2"
+            >
+              {isRecording ? (
+                <Pause size={16} color="#3B64F6" />
+              ) : isTranscribing ? (
+                <Loader className="w-4 h-4 animate-spin" />
+              ) : (
+                <Mic size={16} color="#3B64F6" />
+              )}
+              <p className="text-sm font-medium text-[#3B64F6] hidden md:flex">
+                {isRecording ? "Listening..." : "Voice"}
+              </p>
+            </Button>
+            <Button
+              onClick={isRecording ? handleStopRecording : handleSubmit}
+              disabled={
+                isWaiting ||
+                isAISpeaking ||
+                isRecording ||
+                isTranscribing ||
+                !textResponse?.trim() ||
+                textResponse?.length < minAnswerLength
+              }
+              className="w-12 h-12 rounded-none cursor-pointer bg-[#3B64F6] self-end rounded-tr-2xl"
+            >
+              <Image
+                src="/assets/svg/send.svg"
+                alt="send"
+                height={20}
+                width={20}
+              />
+            </Button>
           </div>
-        )}
-      </div>
+          {isRecording ? (
+            <p className="text-xs text-muted-foreground w-full text-end mt-1">
+              {`${Math.floor((countdown || 0) / 60)
+                .toString()
+                .padStart(2, "0")}:${((countdown || 0) % 60)
+                .toString()
+                .padStart(2, "0")}`}{" "}
+              time remaining.
+            </p>
+          ) : (
+            isAISpeaking ||
+            (textResponse?.length < minAnswerLength && (
+              <p className="text-xs text-muted-foreground w-full text-end mt-1">
+                {textResponse?.length} / {minAnswerLength} letters minimum.
+              </p>
+            ))
+          )}
+        </>
+      )}
+      {isAISpeaking && (
+        <p className="text-xs text-muted-foreground w-full text-center mt-1">
+          You can skip the audio to proceed!
+        </p>
+      )}
     </div>
   );
 }

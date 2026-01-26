@@ -1,4 +1,8 @@
-import { InterviewSetupData, InterviewStartResponse } from "@/types";
+import {
+  InterviewSetupData,
+  InterviewStartResponse,
+  OverallFeedback,
+} from "@/types";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
 
@@ -13,22 +17,32 @@ export async function startInterviewAPI(
     interviewCategory,
     inputType,
     skills,
+    interviewType,
   } = setupData;
+
+  const body =
+    interviewCategory === "domain-specific"
+      ? {
+          companyName,
+          jobRole,
+          jobDescription,
+          domain,
+          interviewType: interviewCategory,
+          inputType,
+          skills,
+        }
+      : {
+          companyName,
+          interviewType: interviewCategory,
+          hrRoundType: interviewType.toLowerCase(),
+        };
 
   const response = await fetch(`${BASE_URL}/api/interviews`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      companyName,
-      jobRole,
-      jobDescription,
-      domain,
-      interviewType: interviewCategory,
-      inputType,
-      skills,
-    }),
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {
@@ -86,9 +100,10 @@ export async function reviseAnswerAPI(
   return response.json();
 }
 
-export async function submitFinalInterviewAPI(
-  sessionId: string
-): Promise<{ overallFeedback: any }> {
+export async function submitFinalInterviewAPI(sessionId: string): Promise<{
+  status: string;
+  overallFeedback: OverallFeedback;
+}> {
   const response = await fetch(
     `${BASE_URL}/api/interviews/${sessionId}/submit`,
     {
@@ -98,6 +113,29 @@ export async function submitFinalInterviewAPI(
       },
     }
   );
+
+  if (!response.ok) throw new Error("Failed to submit final interview");
+
+  return response.json();
+}
+
+export async function getSkills({
+  domain,
+  jobRole,
+}: {
+  domain: string;
+  jobRole: string;
+}): Promise<{
+  skills: string[];
+  success: boolean;
+}> {
+  const response = await fetch(`${BASE_URL}/api/skills`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ domain, jobRole }),
+  });
 
   if (!response.ok) throw new Error("Failed to submit final interview");
 

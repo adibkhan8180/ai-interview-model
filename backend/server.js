@@ -9,9 +9,27 @@ import { connectDB } from "./src/config/database.js";
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+// const PORT = process.env.PORT || 8080;
 
-connectDB();
+let isConnected = false;
+
+async function connectToMongoDB() {
+  try {
+    if (!isConnected) {
+      await connectDB();
+      isConnected = true;
+    }
+  } catch (error) {
+    console.error("Failed to connect to MongoDB:", error);
+  }
+}
+
+app.use(async (req, res, next) => {
+  if (!isConnected) {
+    await connectToMongoDB();
+  }
+  next();
+});
 
 app.use(cors({ origin: "*" }));
 app.use(express.json());
@@ -21,6 +39,8 @@ app.use("/api", jobRoutes);
 
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(`Interview API Server running on port ${PORT}`);
-});
+// app.listen(PORT, () => {
+//   console.log(`Interview API Server running on port ${PORT}`);
+// });
+
+export default app;

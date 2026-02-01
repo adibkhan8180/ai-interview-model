@@ -277,7 +277,7 @@ export function InterviewSetupForm({
   return (
     <div className="h-full w-full flex flex-col items-center justify-center gap-4 sm:gap-6 px-3 sm:px-0">
       <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">
-        <span className="text-[#3B64F6]">AI-Video</span> Interview Setup
+        <span className="text-[#799c58]">AI-Video</span> Interview Setup
       </h1>
 
       <div className="flex items-center space-x-4">
@@ -287,9 +287,9 @@ export function InterviewSetupForm({
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center border-2 cursor-pointer ${
                   steps === step
-                    ? "bg-[#E7ECFF] text-[#3B64F6] border-[#3B64F6]"
+                    ? "bg-[#E7ECFF] text-[#799c58] border-[#799c58]"
                     : steps > step
-                    ? "bg-[#3B64F6] text-white border-[#3B64F6]"
+                    ? "bg-[#799c58] text-white border-[#799c58]"
                     : "border-[#E2E8F0] text-gray-400"
                 }`}
                 onClick={() => {
@@ -301,7 +301,7 @@ export function InterviewSetupForm({
               {step < (formData.interviewCategory === "HR" ? 2 : 3) && (
                 <div
                   className={`h-0.5 w-12 ${
-                    steps > step ? "bg-[#3B64F6]" : "bg-[#E2E8F0]"
+                    steps > step ? "bg-[#799c58]" : "bg-[#E2E8F0]"
                   }`}
                 />
               )}
@@ -698,7 +698,7 @@ const RemainingLength = ({
   <span className={position}>
     {maxLength - currentLength}
     <Tooltip>
-      <TooltipTrigger className="h-3 w-3 text-xs bg-[#3B64F6] text-white rounded-full font-bold cursor-pointer">
+      <TooltipTrigger className="h-3 w-3 text-xs bg-[#799c58] text-white rounded-full font-bold cursor-pointer">
         i
       </TooltipTrigger>
       <TooltipContent>

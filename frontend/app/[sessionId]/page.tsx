@@ -253,7 +253,7 @@ export default function AIInterviewSystem() {
                                     height={16}
                                     className="sm:w-4 sm:h-4 w-3 h-3 z-10"
                                   />
-                                  <div className="absolute sm:w-6 sm:h-6 w-4 h-4 bg-[#3B64F6] opacity-50 rounded-full animate-ping duration-300" />
+                                  <div className="absolute sm:w-6 sm:h-6 w-4 h-4 bg-[#799c58] opacity-50 rounded-full animate-ping duration-300" />
                                 </div>
                                 <span>Skip Audio</span>
                               </Button>
@@ -431,7 +431,7 @@ export default function AIInterviewSystem() {
                                         height={16}
                                         className="sm:w-4 sm:h-4 w-3 h-3 z-10"
                                       />
-                                      <div className="absolute sm:w-6 sm:h-6 w-4 h-4 bg-[#3B64F6] opacity-50 rounded-full animate-ping duration-300" />
+                                      <div className="absolute sm:w-6 sm:h-6 w-4 h-4 bg-[#799c58] opacity-50 rounded-full animate-ping duration-300" />
                                     </div>
                                     <span>Skip Audio</span>
                                   </Button>

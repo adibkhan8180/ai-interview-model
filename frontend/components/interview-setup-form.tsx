@@ -341,7 +341,7 @@ export function InterviewSetupForm({
                   id="companyName"
                   name="companyName"
                   ref={inputRef}
-                  placeholder="eg. TruScholar"
+                  placeholder="eg. Google"
                   value={formData.companyName}
                   onChange={handleChange}
                   minLength={3}

@@ -11,7 +11,7 @@ export default function Header() {
     <header className="sm:fixed h-fit top-0 left-0 right-0 bg-white shadow-md z-50 border-[#E2E8F0] border-b">
       <div className="w-full xl:w-7xl mx-auto flex flex-row-reverse items-center justify-between py-3 px-3 xl:px-0">
         <Image
-          src="https://truscholar-assets-public.s3.ap-south-1.amazonaws.com/websiteimages/truscholar+new+logo.png"
+          src="/assets/images/PrepSyncLogo.png"
           alt="AI Interviewer"
           width={192}
           height={192}

@@ -140,7 +140,7 @@ function FinalAssessment() {
               <span className="text-[#2E2E2E] text-sm sm:text-base">
                 Overall Score:{" "}
               </span>
-              <span className="text-[#3B64F6] text-sm sm:text-base">
+              <span className="text-[#799c58] text-sm sm:text-base">
                 {overallFeedback?.overall_score}/100%
               </span>
             </p>
@@ -254,7 +254,7 @@ function FinalAssessment() {
                         )}
                         <div className="flex items-start space-x-3">
                           <div className="flex items-start space-x-3 bg-[#E0ECFD] px-3.5 py-1.5 rounded-full">
-                            <p className="text-sm leading-relaxed text-[#3B64F6]">
+                            <p className="text-sm leading-relaxed text-[#799c58]">
                               <span className="text-[#2E2E2E] font-semibold">
                                 📊 Score:{" "}
                               </span>
@@ -262,7 +262,7 @@ function FinalAssessment() {
                             </p>
                           </div>
                           <div className="flex items-start space-x-3 bg-[#E0ECFD] px-3.5 py-1.5 rounded-full">
-                            <p className="text-sm leading-relaxed text-[#3B64F6]">
+                            <p className="text-sm leading-relaxed text-[#799c58]">
                               <span className="text-[#2E2E2E] font-semibold">
                                 🎓 Depth:{" "}
                               </span>
@@ -291,13 +291,13 @@ function FinalAssessment() {
       <div className="max-w-4xl mx-auto w-full py-3 my-2 flex justify-between space-x-6 ">
         <button
           onClick={handleDownload}
-          className="py-2 w-full bg-white hover:text-[#3B57F6] text-[#3B64F6] rounded-md cursor-pointer border border-[#3B64F6]"
+          className="py-2 w-full bg-white hover:text-[#3B57F6] text-[#799c58] rounded-md cursor-pointer border border-[#799c58]"
         >
           Download Report
         </button>
         <button
           onClick={startNewInterview}
-          className="py-2 w-full bg-[#3B64F6] hover:bg-[#3B57F6] text-white rounded-md cursor-pointer"
+          className="py-2 w-full bg-[#799c58] hover:bg-[#3B57F6] text-white rounded-md cursor-pointer"
         >
           Start New Interview
         </button>

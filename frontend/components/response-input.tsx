@@ -149,7 +149,7 @@ export function ResponseInput({
             <Button
               onClick={handleReviseQuestion}
               disabled={isAISpeaking || loading}
-              className="bg-[#3B64F6] cursor-pointer h-fit py-1 px-2 text-sm sm:text-base"
+              className="bg-[#799c58] cursor-pointer h-fit py-1 px-2 text-sm sm:text-base"
             >
               Yes
             </Button>
@@ -204,13 +204,13 @@ export function ResponseInput({
               className="rounded-full cursor-pointer h-fit p-2 py-3 sm:py-1 sm:px-2 self-end mb-1 sm:mb-2"
             >
               {isRecording ? (
-                <Pause size={16} color="#3B64F6" />
+                <Pause size={16} color="#799c58" />
               ) : isTranscribing ? (
                 <Loader className="w-4 h-4 animate-spin" />
               ) : (
-                <Mic size={16} color="#3B64F6" />
+                <Mic size={16} color="#799c58" />
               )}
-              <p className="text-sm font-medium text-[#3B64F6] hidden md:flex">
+              <p className="text-sm font-medium text-[#799c58] hidden md:flex">
                 {isRecording ? "Listening..." : "Voice"}
               </p>
             </Button>
@@ -224,7 +224,7 @@ export function ResponseInput({
                 !textResponse?.trim() ||
                 textResponse?.length < minAnswerLength
               }
-              className="w-12 h-12 rounded-none cursor-pointer bg-[#3B64F6] self-end rounded-tr-2xl"
+              className="w-12 h-12 rounded-none cursor-pointer bg-[#799c58] self-end rounded-tr-2xl"
             >
               <Image
                 src="/assets/svg/send.svg"

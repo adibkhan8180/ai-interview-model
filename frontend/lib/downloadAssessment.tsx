@@ -3,7 +3,7 @@ import jsPDF from "jspdf";
 
 export const downloadFeedbackPdf = async (
   feedback: OverallFeedback,
-  formData: InterviewSetupData
+  formData: InterviewSetupData,
 ) => {
   const pdf = new jsPDF("p", "pt", "a4");
   const margin = 40;
@@ -31,13 +31,11 @@ export const downloadFeedbackPdf = async (
     });
   };
 
-  const logoBase64 = await loadImageAsBase64(
-    "https://truscholar-assets-public.s3.ap-south-1.amazonaws.com/websiteimages/truscholar+new+logo.png"
-  );
+  const logoBase64 = await loadImageAsBase64("");
 
   const colors = {
     primary: [59, 100, 246],
-    section: '#FF6652',
+    section: "#FF6652",
     black: [0, 0, 0],
     gray: [80, 80, 80],
   };
@@ -46,11 +44,11 @@ export const downloadFeedbackPdf = async (
     text: string | string[],
     fontSize = 10,
     fontStyle: "normal" | "bold" = "normal",
-    color: number[] = colors.gray
+    color: number[] = colors.gray,
   ) => {
     pdf.setFont("helvetica", fontStyle);
     pdf.setFontSize(fontSize);
-    pdf.setTextColor(...color as [number, number, number]);
+    pdf.setTextColor(...(color as [number, number, number]));
 
     const lines =
       typeof text === "string" ? pdf.splitTextToSize(text, 500) : text;
@@ -88,7 +86,7 @@ export const downloadFeedbackPdf = async (
     `Company Name: ${formData.companyName}`,
     12,
     "bold",
-    colors.black
+    colors.black,
   );
   addTextWithCheck(`Domain: ${formData.domain}`, 12, "bold", colors.black);
   addTextWithCheck(`Job Role: ${formData.jobRole}`, 12, "bold", colors.black);
@@ -96,7 +94,7 @@ export const downloadFeedbackPdf = async (
     `Interview Category: ${formData.interviewCategory}`,
     12,
     "bold",
-    colors.black
+    colors.black,
   );
   {
     if (formData.inputType === "skills-based") {
@@ -105,7 +103,7 @@ export const downloadFeedbackPdf = async (
           `Skill ${index + 1}: ${skill}`,
           11,
           "bold",
-          colors.black
+          colors.black,
         );
       });
     } else {
@@ -113,11 +111,10 @@ export const downloadFeedbackPdf = async (
         `Job Description: ${formData.jobDescription}`,
         12,
         "bold",
-        colors.black
+        colors.black,
       );
     }
   }
-
 
   // Overall Score
   addSectionTitle("Overall Score");
